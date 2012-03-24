@@ -49,6 +49,7 @@ HBITMAP = HANDLE
 HIMAGELIST = HANDLE
 HGDIOBJ = HANDLE
 HMETAFILE = HANDLE
+HRGN = HANDLE
 
 ULONG = DWORD
 ULONG_PTR = DWORD
@@ -69,7 +70,7 @@ ATOM = WORD
 SHORT = c_short
 LPARAM = c_ulong
 WPARAM = c_uint
-LPVOID = c_voidp
+LPVOID = c_void_p
 LONG = c_long
 BYTE = c_byte
 TCHAR = c_char #TODO depends on unicode/wide conventions
@@ -301,9 +302,21 @@ NULL = 0
 
 IDI_APPLICATION = 32512
 
-SW_SHOW = 5
-SW_SHOWNORMAL = 1
-SW_HIDE = 0
+SW_HIDE            = 0
+SW_SHOWNORMAL      = 1
+SW_NORMAL          = 1
+SW_SHOWMINIMIZED   = 2
+SW_SHOWMAXIMIZED   = 3
+SW_MAXIMIZE        = 3
+SW_SHOWNOACTIVATE  = 4
+SW_SHOW            = 5
+SW_MINIMIZE        = 6
+SW_SHOWMINNOACTIVE = 7
+SW_SHOWNA          = 8
+SW_RESTORE         = 9
+SW_SHOWDEFAULT     = 10
+SW_FORCEMINIMIZE   = 11
+SW_MAX             = 11
 
 EN_CHANGE = 768
 
@@ -474,15 +487,42 @@ WS_TILEDWINDOW	= 0xcf0000
 WS_VISIBLE	= 0x10000000
 WS_VSCROLL	= 0x200000
 
-WS_EX_TOOLWINDOW = 128
-WS_EX_LEFT = 0
-WS_EX_LTRREADING = 0
-WS_EX_RIGHTSCROLLBAR = 0
-WS_EX_WINDOWEDGE = 256
-WS_EX_STATICEDGE = 0x20000
-WS_EX_CLIENTEDGE = 512
-WS_EX_OVERLAPPEDWINDOW   =     0x300
-WS_EX_APPWINDOW    =   0x40000
+# Extended Window Styles
+WS_EX_DLGMODALFRAME    = 0x00000001L
+WS_EX_NOPARENTNOTIFY   = 0x00000004L
+WS_EX_TOPMOST          = 0x00000008L
+WS_EX_ACCEPTFILES      = 0x00000010L
+WS_EX_TRANSPARENT      = 0x00000020L
+if WINVER >= 0x0400:
+	WS_EX_MDICHILD         = 0x00000040L
+	WS_EX_TOOLWINDOW       = 0x00000080L
+	WS_EX_WINDOWEDGE       = 0x00000100L
+	WS_EX_CLIENTEDGE       = 0x00000200L
+	WS_EX_CONTEXTHELP      = 0x00000400L
+
+	WS_EX_RIGHT            = 0x00001000L
+	WS_EX_LEFT             = 0x00000000L
+	WS_EX_RTLREADING       = 0x00002000L
+	WS_EX_LTRREADING       = 0x00000000L
+	WS_EX_LEFTSCROLLBAR    = 0x00004000L
+	WS_EX_RIGHTSCROLLBAR   = 0x00000000L
+
+	WS_EX_CONTROLPARENT    = 0x00010000L
+	WS_EX_STATICEDGE       = 0x00020000L
+	WS_EX_APPWINDOW        = 0x00040000L
+
+	WS_EX_OVERLAPPEDWINDOW = (WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE)
+	WS_EX_PALETTEWINDOW    = (WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST)
+
+if WINVER >= 0x0500:
+	WS_EX_LAYERED          = 0x00080000
+	WS_EX_NOINHERITLAYOUT  = 0x00100000L # Disable inheritence of mirroring by children
+	WS_EX_LAYOUTRTL        = 0x00400000L # Right to left mirroring
+
+if WINVER >= 0x0501:
+	WS_EX_COMPOSITED       = 0x02000000L
+if WINVER >= 0x0500:
+	WS_EX_NOACTIVATE       = 0x08000000L
 
 WA_INACTIVE = 0
 WA_ACTIVE = 1
@@ -891,7 +931,15 @@ def Fail(value):
         raise WinError()
     else:
         return value
-    
+
+COLORREF = DWORD
+LPCOLORREF = POINTER(COLORREF)
+
+# The ZeroMemory function fills a block of memory with zeros
+SIZE_T = c_ulong
+def ZeroMemory(Destination, Length):
+	memset(addressof(Destination), 0, Length)
+
 GetModuleHandle = windll.kernel32.GetModuleHandleA
 PostQuitMessage= windll.user32.PostQuitMessage
 DefWindowProc = windll.user32.DefWindowProcA
@@ -1024,3 +1072,18 @@ GetClassInfo = windll.user32.GetClassInfoA
 OpenEvent = windll.kernel32.OpenEventA
 CreateEvent = windll.kernel32.CreateEventA
 LockWindowUpdate = windll.user32.LockWindowUpdate
+
+# RedrawWindow() flags
+RDW_INVALIDATE         = 0x0001
+RDW_INTERNALPAINT      = 0x0002
+RDW_ERASE              = 0x0004
+RDW_VALIDATE           = 0x0008
+RDW_NOINTERNALPAINT    = 0x0010
+RDW_NOERASE            = 0x0020
+RDW_NOCHILDREN         = 0x0040
+RDW_ALLCHILDREN        = 0x0080
+RDW_UPDATENOW          = 0x0100
+RDW_ERASENOW           = 0x0200
+RDW_FRAME              = 0x0400
+RDW_NOFRAME            = 0x0800
+RedrawWindow = WINFUNCTYPE(c_byte, HWND, POINTER(RECT), HRGN, c_uint)(('RedrawWindow', windll.user32))

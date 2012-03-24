@@ -21,36 +21,81 @@
 
 #TODO wrap shBrowseForFolder directory selection dialog
 
+# Common dialog error return codes
+CDERR_DIALOGFAILURE    = 0xFFFF
+CDERR_GENERALCODES     = 0x0000
+CDERR_STRUCTSIZE       = 0x0001
+CDERR_INITIALIZATION   = 0x0002
+CDERR_NOTEMPLATE       = 0x0003
+CDERR_NOHINSTANCE      = 0x0004
+CDERR_LOADSTRFAILURE   = 0x0005
+CDERR_FINDRESFAILURE   = 0x0006
+CDERR_LOADRESFAILURE   = 0x0007
+CDERR_LOCKRESFAILURE   = 0x0008
+CDERR_MEMALLOCFAILURE  = 0x0009
+CDERR_MEMLOCKFAILURE   = 0x000A
+CDERR_NOHOOK           = 0x000B
+CDERR_REGISTERMSGFAIL  = 0x000C
+PDERR_PRINTERCODES     = 0x1000
+PDERR_SETUPFAILURE     = 0x1001
+PDERR_PARSEFAILURE     = 0x1002
+PDERR_RETDEFFAILURE    = 0x1003
+PDERR_LOADDRVFAILURE   = 0x1004
+PDERR_GETDEVMODEFAIL   = 0x1005
+PDERR_INITFAILURE      = 0x1006
+PDERR_NODEVICES        = 0x1007
+PDERR_NODEFAULTPRN     = 0x1008
+PDERR_DNDMMISMATCH     = 0x1009
+PDERR_CREATEICFAILURE  = 0x100A
+PDERR_PRINTERNOTFOUND  = 0x100B
+PDERR_DEFAULTDIFFERENT = 0x100C
+CFERR_CHOOSEFONTCODES  = 0x2000
+CFERR_NOFONTS          = 0x2001
+CFERR_MAXLESSTHANMIN   = 0x2002
+FNERR_FILENAMECODES    = 0x3000
+FNERR_SUBCLASSFAILURE  = 0x3001
+FNERR_INVALIDFILENAME  = 0x3002
+FNERR_BUFFERTOOSMALL   = 0x3003
+FRERR_FINDREPLACECODES = 0x4000
+FRERR_BUFFERLENGTHZERO = 0x4001
+CCERR_CHOOSECOLORCODES = 0x5000
+
 from windows import *
 from wtl import *
 from ctypes import *
 
-LPOFNHOOKPROC = c_voidp #TODO
+# UINT_PTR CALLBACK OFNHookProc(
+# HWND hdlg,      // handle to child dialog box
+# UINT uiMsg,     // message identifier
+# WPARAM wParam,  // message parameter
+# LPARAM lParam);   // message parameter
+OFNHookProc = WINFUNCTYPE(UINT_PTR, HWND, UINT, WPARAM, LPARAM)
+LPOFNHOOKPROC = OFNHookProc
 
 class OPENFILENAME(Structure):
-    _fields_ = [("lStructSize", DWORD),
-                ("hwndOwner", HWND),
-                ("hInstance", HINSTANCE),
-                ("lpstrFilter", LPCTSTR),
-                ("lpstrCustomFilter", LPTSTR),
-                ("nMaxCustFilter", DWORD),
-                ("nFilterIndex", DWORD),
-                ("lpstrFile", LPTSTR),
-                ("nMaxFile", DWORD),
-                ("lpstrFileTitle", LPTSTR),
-                ("nMaxFileTitle", DWORD),
-                ("lpstrInitialDir", LPCTSTR),
-                ("lpstrTitle", LPCTSTR),
-                ("flags", DWORD),
-                ("nFileOffset", WORD),
-                ("nFileExtension", WORD),
-                ("lpstrDefExt", LPCTSTR),
-                ("lCustData", LPARAM),
-                ("lpfnHook", LPOFNHOOKPROC),
-                ("lpTemplateName", LPCTSTR),
-                ("pvReserved", LPVOID),
-                ("dwReserved", DWORD),
-                ("flagsEx", DWORD)]
+	_fields_ = [("lStructSize", DWORD),
+				("hwndOwner", HWND),
+				("hInstance", HINSTANCE),
+				("lpstrFilter", LPCTSTR),
+				("lpstrCustomFilter", LPTSTR),
+				("nMaxCustFilter", DWORD),
+				("nFilterIndex", DWORD),
+				("lpstrFile", LPTSTR),
+				("nMaxFile", DWORD),
+				("lpstrFileTitle", LPTSTR),
+				("nMaxFileTitle", DWORD),
+				("lpstrInitialDir", LPCTSTR),
+				("lpstrTitle", LPCTSTR),
+				("flags", DWORD),
+				("nFileOffset", WORD),
+				("nFileExtension", WORD),
+				("lpstrDefExt", LPCTSTR),
+				("lCustData", LPARAM),
+				("lpfnHook", LPOFNHOOKPROC),
+				("lpTemplateName", LPCTSTR),
+				("pvReserved", LPVOID),
+				("dwReserved", DWORD),
+				("flagsEx", DWORD)]
 
 GetOpenFileName = windll.comdlg32.GetOpenFileNameA
 GetSaveFileName = windll.comdlg32.GetSaveFileNameA
@@ -83,43 +128,73 @@ OFN_SHAREWARN= 0
 OFN_NODEREFERENCELINKS = 0x100000
 OPENFILENAME_SIZE_VERSION_400 = 76
 
-
 class FileDialog(OPENFILENAME):
-    def SetFilter(self, filter):
-        self.lpstrFilter = filter.replace('|', '\0') + '\0\0'
+	def SetFilter(self, filter):
+		self.lpstrFilter = filter.replace('|', '\0') + '\0\0'
 
-    filter = property(None, SetFilter, None, "")
-        
-    def DoModal(self, parent = None):
-        szPath = '\0' * 1024
-        if versionInfo.isMajorMinor(4, 0): #fix for NT4.0
-            self.lStructSize = OPENFILENAME_SIZE_VERSION_400
-        else:
-            self.lStructSize = sizeof(OPENFILENAME)
-        self.lpstrFile = szPath
-        self.nMaxFile = 1024
-        self.hwndOwner = handle(parent)
-        try:
-            #the windows file dialogs change the current working dir of the app
-            #if the user selects a file from a different dir
-            #this prevents that from happening (it causes al sorts of problems with
-            #hardcoded relative paths)
-            import os
-            cwd = os.getcwd()
-            if self.DoIt() != 0:
-                return szPath[:szPath.find('\0')].strip()
-            else:
-                return None
-        finally:
-            os.chdir(cwd) #return to old current working dir
-            
-        
-    
+	filter = property(None, SetFilter, None, "")
+	def DoModal(self, parent = None):
+		szPath = '\0' * 1024
+		if versionInfo.isMajorMinor(4, 0): #fix for NT4.0
+			self.lStructSize = OPENFILENAME_SIZE_VERSION_400
+		else:
+			self.lStructSize = sizeof(OPENFILENAME)
+		self.lpstrFile = szPath
+		self.nMaxFile = 1024
+		self.hwndOwner = handle(parent)
+		try:
+			#the windows file dialogs change the current working dir of the app
+			#if the user selects a file from a different dir
+			#this prevents that from happening (it causes al sorts of problems with
+			#hardcoded relative paths)
+			import os
+			cwd = os.getcwd()
+			if self.DoIt() != 0:
+				return szPath[:szPath.find('\0')].strip()
+			else:
+				return None
+		finally:
+			os.chdir(cwd) #return to old current working dir
+
 class OpenFileDialog(FileDialog):
-    def DoIt(self):
-        return GetOpenFileName(byref(self))
+	def DoIt(self):
+		return GetOpenFileName(byref(self))
 
 class SaveFileDialog(FileDialog):
-    def DoIt(self):
-        return GetSaveFileName(byref(self))
-    
+	def DoIt(self):
+		return GetSaveFileName(byref(self))
+
+
+# ======================Choosing a Color
+CC_RGBINIT              = 0x00000001
+CC_FULLOPEN             = 0x00000002
+CC_PREVENTFULLOPEN      = 0x00000004
+CC_SHOWHELP             = 0x00000008
+CC_ENABLEHOOK           = 0x00000010
+CC_ENABLETEMPLATE       = 0x00000020
+CC_ENABLETEMPLATEHANDLE = 0x00000040
+if WINVER >= 0x0400:
+	CC_SOLIDCOLOR       = 0x00000080
+	CC_ANYCOLOR         = 0x00000100
+
+# UINT_PTR CALLBACK CCHookProc(
+# HWND hdlg,      // handle to dialog box
+# UINT uiMsg,     // message identifier
+# WPARAM wParam,  // message parameter
+# LPARAM lParam);   // message parameter
+CCHookProc = WINFUNCTYPE(UINT_PTR, HWND, UINT, WPARAM, LPARAM)
+LPCCHOOKPROC = CCHookProc
+
+class CHOOSECOLOR(Structure):
+	_fields_ = [('lStructSize', DWORD),
+				('hwndOwner', HWND),
+				('hInstance', HWND),
+				('rgbResult', COLORREF),
+				('lpCustColors', LPCOLORREF),
+				('Flags', DWORD),
+				('lCustData', LPARAM),
+				('lpfnHook', LPCCHOOKPROC),
+				('lpTemplateName', LPCTSTR)]
+
+ChooseColor = WINFUNCTYPE(c_byte, POINTER(CHOOSECOLOR))(('ChooseColorA', windll.comdlg32))
+

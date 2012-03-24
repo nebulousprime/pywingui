@@ -10,7 +10,7 @@ except:
 	print('PYWINGUI MODULE IS NOT ACCESSIBLE')
 
 if has_pywingui:
-	class ChoiseDialog(Dialog):
+	class ChoiceDialog(Dialog):
 		driver_type = 0
 		full_screen = False
 		stencil_buffer = False
@@ -163,7 +163,7 @@ if has_pywingui:
 
 if __name__ == '__main__':
 	if has_pywingui:
-		dialog = ChoiseDialog()
+		dialog = ChoiceDialog()
 		dialogResult = dialog.DoModal()
 		if dialogResult == IDOK:
 			print('Pressed OK')

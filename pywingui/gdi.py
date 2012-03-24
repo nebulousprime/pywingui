@@ -93,7 +93,33 @@ class BITMAPFILEHEADER(Structure):
         ("bfReserved1",    WORD),
         ("bfReserved2",    WORD),
         ("bfOffBits",   DWORD)]
-    
+
+class DISPLAY_DEVICE(Structure):
+	_fields_ = [
+	('cb', DWORD),
+	('DeviceName', c_wchar * 32),
+	('DeviceString', c_wchar * 128),
+	('StateFlags', DWORD),
+	('DeviceID', c_wchar * 128),
+	('DeviceKey', c_wchar * 128)]
+HDC = POINTER(DISPLAY_DEVICE)
+
+COLOR16 = c_ushort
+class TRIVERTEX(Structure):
+	_fields_ = [
+	('x', c_long),
+	('y', c_long),
+	('Red', COLOR16),
+	('Green', COLOR16),
+	('Blue', COLOR16),
+	('Alpha', COLOR16)]
+PTRIVERTEX = POINTER(TRIVERTEX)
+
+class GRADIENT_RECT(Structure):
+	_fields_ = [
+	('UpperLeft', c_ulong),
+	('LowerRight', c_ulong)]
+
 MONO_FONT = 8
 OBJ_FONT = 6
 ANSI_FIXED_FONT  = 11
@@ -207,6 +233,24 @@ TextOut = windll.gdi32.TextOutA
 CreateDIBSection = windll.gdi32.CreateDIBSection
 DeleteDC = windll.gdi32.DeleteDC
 GetDIBits = windll.gdi32.GetDIBits
+
+SetTextColor = WINFUNCTYPE(COLORREF, c_void_p, COLORREF)(('SetTextColor', windll.gdi32))
+if WINVER >= 0x0500:
+	SetDCBrushColor = WINFUNCTYPE(COLORREF, c_void_p, COLORREF)(('SetDCBrushColor', windll.gdi32))
+	SetDCPenColor = WINFUNCTYPE(COLORREF, c_void_p, COLORREF)(('SetDCPenColor', windll.gdi32))
+	#~ SetDCBrushColor = WINFUNCTYPE(COLORREF, HDC, COLORREF)(('SetDCBrushColor', windll.gdi32))
+	#~ SetDCPenColor = WINFUNCTYPE(COLORREF, HDC, COLORREF)(('SetDCPenColor', windll.gdi32))
+
+GRADIENT_FILL_RECT_H   = 0x00000000
+GRADIENT_FILL_RECT_V   = 0x00000001
+GRADIENT_FILL_TRIANGLE = 0x00000002
+GRADIENT_FILL_OP_FLAG  = 0x000000ff
+
+if WINVER >= 0x0500:
+	GdiGradientFill = WINFUNCTYPE(c_byte, c_void_p, PTRIVERTEX, c_ulong, c_void_p, c_ulong, c_ulong)(('GdiGradientFill', windll.gdi32))
+	GradientFill = GdiGradientFill# for backward compatibility
+else:
+	GradientFill = WINFUNCTYPE(c_byte, c_void_p, PTRIVERTEX, c_ulong, c_void_p, c_ulong, c_ulong)(('GradientFill', windll.gdi32))
 
 class Bitmap(WindowsObject):
     __dispose__ = DeleteObject

@@ -63,7 +63,7 @@ class Controls(dict):
             self[args[0]] = args[1]
         else:
             raise "invalid number of arguments"
-            
+
     def dispose(self):
         for ctrl in self.values():
             ctrl.dispose()
@@ -74,7 +74,7 @@ class Controls(dict):
             return self[key]
         else:
             return dict.__getattr__(key)
-        
+
 class Form(Window):
     """A class representing an applications main window. This class
     supports accelerators, automatic closing of the application with
@@ -85,7 +85,7 @@ class Form(Window):
     A single child view is supported and it must be available in the
     derived class as 'view' property.
     """
-    
+
     _window_style_ex_ = WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | \
                         WS_EX_WINDOWEDGE | WS_EX_APPWINDOW
 
@@ -111,7 +111,7 @@ class Form(Window):
         Window.__init__(self, *args, **kwargs)
 
     controls = property(lambda self: self.m_controls)
-    
+
     def dispose(self):
         self.controls.dispose()
         #TODO weak ref on filter
@@ -119,7 +119,7 @@ class Form(Window):
         #TODO dispose Accel Table weak refs?
 
     _haccel_ = 0
-        
+
     def CreateAccels(self):
         """Create accelerator table from _form_accels_"""
         if self._form_accels_ and not Form._haccel_:
@@ -157,7 +157,7 @@ class Form(Window):
             self.m_enabled = fEnable
 
         enabled = property(lambda self: self.m_enabled)
-        
+
     def OnInitMenuPopup(self, event):
         """querys cmd ui update map to see if menu items must be enabled/disabled"""
         if HIWORD(event.lParam) == 1: return #it's the window menu
@@ -217,7 +217,7 @@ class Form(Window):
         EndDeferWindowPos(hdwp)
 
         if coolBar: coolBar.Invalidate()
-        
+
     def OnDestroy(self, event):
         self.dispose()
         Form._form_count_ -= 1
@@ -232,7 +232,7 @@ class Form(Window):
 
     def OnCreate(self, event):
         pass
-        
+
     def OnExitCmd(self, event):
         self.SendMessage(WM_CLOSE)
 
@@ -243,7 +243,7 @@ class Form(Window):
     ##form from closing
     def OnClose(self, event):
         event.handled = False #event will buble and invoke window destroy eventually
-    
+
     _msg_map_ = MSG_MAP([MSG_HANDLER(WM_DESTROY, OnDestroy),
                          MSG_HANDLER(WM_CREATE, OnCreate),
                          MSG_HANDLER(WM_SIZE, OnSize),
@@ -253,9 +253,8 @@ class Form(Window):
                          CMD_ID_HANDLER(ID_EXIT, OnExitCmd),
                          CMD_ID_HANDLER(ID_CLOSE, OnCloseCmd),
                          NTF_HANDLER(comctl.RBN_HEIGHTCHANGE,
-                                     lambda self, event: self.DoLayout(*self.clientRect.size)),
+                         lambda self, event: self.DoLayout(*self.clientRect.size)),
                          ])
-        
 
 
 class CMD_UI_UPDATE(object):

@@ -37,12 +37,11 @@ class MyWindow(Window):
 
         msg = "Hello World"
         gdi.TextOut(hdc, rc.width / 2, rc.height / 2, msg, len(msg))
-        
+
         self.EndPaint(ps)
 
     msg_handler(WM_PAINT)(OnPaint) #python 2.3 style decorator
 
-        
     def OnDestroy(self, event):
         PostQuitMessage(NULL)
 
@@ -52,11 +51,3 @@ myWindow = MyWindow()
 
 application = Application()
 application.Run()
-
-    
-
-
-
-                              
-
-
