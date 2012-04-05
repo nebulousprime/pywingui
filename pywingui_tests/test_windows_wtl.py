@@ -26,24 +26,16 @@ from pywingui.gdi import *
 from pywingui.wtl import *
 
 class MyWindow(Window):
-    _window_title_ = "Minimal Venster Window Example"
-    _window_background_ = GetStockObject(WHITE_BRUSH)
-    _window_icon_ = _window_icon_sm_ = Icon("blinky.ico")
+	_window_title_ = "Minimal Venster Window Example"
+	_window_background_ = GetStockObject(WHITE_BRUSH)
+	_window_icon_ = _window_icon_sm_ = Icon("blinky.ico")
 
-    def OnDestroy(self, event):
-        application.Quit()
+	def OnDestroy(self, event):
+		application.Quit()
 
-    msg_handler(WM_DESTROY)(OnDestroy)
+	msg_handler(WM_DESTROY)(OnDestroy)
 
 myWindow = MyWindow()
 
 application = Application()
 application.Run()
-
-    
-
-
-
-                              
-
-

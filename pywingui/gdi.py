@@ -23,6 +23,19 @@ from ctypes import *
 from windows import *
 from wtl import *
 
+RASTER_FONTTYPE   = 0x0001
+DEVICE_FONTTYPE   = 0x002
+TRUETYPE_FONTTYPE = 0x004
+
+def RGB(r,g,b):
+    return r | (g<<8) | (b<<16)
+
+def PALETTERGB(r,g,b):
+    return 0x02000000 | RGB(r,g,b)
+
+def PALETTEINDEX(i):
+    return 0x01000000 | i
+
 class BITMAP(Structure):
     _fields_ = [("bmType", LONG),
     		("bmWidth", LONG),

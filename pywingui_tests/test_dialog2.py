@@ -24,6 +24,7 @@
 
 from pywingui.wtl import *
 from pywingui.dialog import *
+from pywingui import comctl
 
 class ExampleDialog(Dialog):    
     IDC_EDIT_A = 1000
@@ -103,7 +104,13 @@ class ExampleDialog(Dialog):
         self.ctrlEditA.SetFocus()
 
 if __name__ == '__main__':
-    dialog = ExampleDialog()
-    #show the dialog and return the result:
-    dialogResult = dialog.DoModal()
-    #dialResult == IDOK if user presses 'OK', IDCANCEL when user presses 'Cancel'
+	dialog = ExampleDialog()
+	#show the dialog and return the result:
+	dialogResult = dialog.DoModal()
+	#dialResult == IDOK if user presses 'OK', IDCANCEL when user presses 'Cancel'
+	if dialogResult == IDOK:
+		MessageBox(0, 'Pressed OK button', 'Dialog Result', MB_OK | MB_ICONINFORMATION)
+	elif dialogResult == IDCANCEL:
+		MessageBox(0, 'Pressed Cancel button', 'Dialog Result', MB_OK | MB_ICONINFORMATION)
+	else:
+		MessageBox(0, 'Pressed Close button', 'Dialog Result', MB_OK | MB_ICONINFORMATION)

@@ -77,8 +77,8 @@ class MyForm(form.Form):
             buttons.InsertButton(0, button)
 
         progressBar = comctl.ProgressBar(parent = coolBar, orStyle = comctl.PBS_SMOOTH)
-        progressBar.SetBarColor(RGB(100, 200, 255))
-        progressBar.SetBkColor(RGB(55, 55, 55))
+        progressBar.SetBarColor(gdi.RGB(100, 200, 255))
+        progressBar.SetBkColor(gdi.RGB(55, 55, 55))
         progressBar.MoveWindow(0, 0, 200, 20, 0)
         progressBar.SetRange(0, 500)
         progressBar.SetPos(450)

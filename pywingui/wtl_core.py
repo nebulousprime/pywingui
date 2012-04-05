@@ -34,12 +34,17 @@ class HandleMap(dict):
 	This latter method should be bound to a windows-free-routine corresponding to the
 	type of the handle"""
 
+	def freeze_method(self, fndisp, dbgstr):
+		def freeze_func(wref = 0, fndisp = fndisp, dbgstr = dbgstr):
+			self.__dispose__(handle, wref, fndisp, dbgstr)
+		return freeze_func
+
 	def __setitem__(self, handle, value):
 		# watch the lambda closure, freezing the binding of:
 		# - fndisp to the __dispose__ variable of the value object
 		# - handle to the provided windows-handle in the first actual parameter
-		lmdisp = lambda wr, fndisp = value.__dispose__, dbgstr = str(value.__class__): \
-			self.__dispose__(handle, wr, fndisp, dbgstr)
+		lmdisp = lambda wr, fndisp = value.__dispose__, dbgstr = str(value.__class__): self.__dispose__(handle, wr, fndisp, dbgstr)
+		#lmdisp = self.freeze_method(value.__dispose__, str(value.__class__))
 		dict.__setitem__(self, handle, weakref.ref(value, lmdisp))
 
 	def __getitem__(self, handle):
@@ -52,10 +57,13 @@ class HandleMap(dict):
 			return d
 
 	def __dispose__(self, handle, wr, fndisp, dbgstr): # callback of weakref wr, called when wr() is garbage
+		global quit
 		self.__delitem__(handle)
 		if not quit:
-			fndisp(handle)
-
+			try:
+				fndisp(handle)
+			except:
+				print('ERROR HandleMap %d, %s, %s, %s' % (handle, repr(wr), repr(fndisp), dbgstr))
 
 hndlMap = HandleMap() #contains the mapping from python instances (of Window) to windows HANDLES
 createHndlMap = {} #used while handling messages during CreateWindow(Ex)
@@ -416,7 +424,12 @@ class HANDLER(object):
 	def __call__(self, receiver, event):
 	   return self.handler(receiver, event)
 
-	handler = property(lambda self: self.m_handler)   
+	#handler = property(lambda self: self.m_handler)   
+	def getHandler(self):
+		return self.m_handler
+	def setHandler(self, value):
+		self.m_handler = value
+	handler = property(getHandler, setHandler)
 
 #Handler for normal window messages (e.g. WM_SIZE, WM_CLOSE, WM_PAINT etc)		
 class MSG_HANDLER(HANDLER):

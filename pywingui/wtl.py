@@ -20,8 +20,9 @@
 ## WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
 ##
 
-from windows import *
 from ctypes import *
+from windows import *
+from winuser import *
 
 import wtl_core
 
@@ -126,11 +127,16 @@ class DecoratedWindow(wtl_core.Window):
 	def SetCapture(self):
 		SetCapture(self.handle)
 
-	def Invalidate(self, bErase = TRUE):
-		InvalidateRect(self.handle, NULL, bErase)
+	def Invalidate(self, bErase = True):
+		InvalidateRect(self.handle, None, bErase)
+		#~ InvalidateRect(self.handle, NULL, bErase)
 
-	def InvalidateRect(self, rc, bErase = TRUE):
-		InvalidateRect(self.handle, byref(rc), bErase)
+	def InvalidateRect(self, rc = None, bErase = True):
+		InvalidateRect(self.handle, pointer(rc), bErase)
+		#~ InvalidateRect(self.handle, byref(rc), bErase)
+
+	def InvalidateRgn(self, hRgn = None, bErase = True):
+		InvalidateRgn(self.handle, hRgn, bErase)
 
 	def GetDCEx(self, hrgnClip, flags):
 		return GetDCEx(self.handle, hrgnClip, flags)
@@ -214,8 +220,72 @@ wtl_core.Event = EventDecorator
 class Icon(wtl_core.WindowsObject):
 	__dispose__ = DestroyIcon
 
-	def __init__(self, path):
-		wtl_core.WindowsObject.__init__(self, LoadImage(NULL, path, IMAGE_ICON, 0, 0, LR_LOADFROMFILE))
+	def __init__(self, *args, **kwargs):
+		hinst = kwargs.pop('hinst', NULL)
+		if not hinst:
+			hinst = kwargs.pop('hInstance', NULL)
+		lpszName = kwargs.pop('lpszName', 0)
+		if not lpszName:
+			lpszName = kwargs.pop('lpIconName', 0)
+		uType = kwargs.pop('uType', IMAGE_ICON)
+		cxDesired = kwargs.pop('cxDesired', 0)
+		cyDesired = kwargs.pop('cyDesired', 0)
+		fuLoad = kwargs.pop('fuLoad', LR_LOADFROMFILE)
+		# useLoadIcon only for the standard exclamation icon
+		# and for a custom icon included as a resource in the application's resource-definition file.
+		useLoadIcon = kwargs.pop('useLoadIcon', False)
+		# now args parser
+		if len(args) == len(kwargs) == 0:
+			useLoadIcon = True
+		elif len(args) == 1:
+			if isinstance(args[0], (int, long, HINSTANCE)):
+				hinst = args[0]
+			else:# for Venster backward compatibility
+				lpszName = args[0]
+		elif len(args) == 2:
+			hinst, lpszName = args
+		elif len(args) == 3:
+			hinst, lpszName, uType = args
+		elif len(args) == 4:
+			hinst, lpszName, uType, cxDesired = args
+		elif len(args) == 5:
+			hinst, lpszName, uType, cxDesired, cyDesired = args
+		elif len(args) > 5:
+			hinst, lpszName, uType, cxDesired, cyDesired, fuLoad = args
+		if isinstance(lpszName, (int, long)):
+			lpszName = MAKEINTRESOURCE(lpszName)
+		if useLoadIcon:
+			wtl_core.WindowsObject.__init__(self, LoadIcon(hinst, lpszName))
+		else:
+			wtl_core.WindowsObject.__init__(self, LoadImage(hinst, lpszName, uType, cxDesired, cyDesired, fuLoad))
+
+class IconEx(wtl_core.WindowsObject):
+	__dispose__ = DestroyIcon
+
+	def __init__(self, *args, **kwargs):
+		hInstance = kwargs.pop('hInstance', NULL)
+		nWidth = kwargs.pop('nWidth', 32)
+		nHeight = kwargs.pop('nHeight', 32)
+		cPlanes = kwargs.pop('cPlanes', 1)
+		cBitsPixel = kwargs.pop('cBitsPixel', 1)
+		lpbANDbits = kwargs.pop('lpbANDbits', NULL)
+		lpbXORbits = kwargs.pop('lpbXORbits', NULL)
+		# now args parser
+		if len(args) == 1:
+			hInstance = args[0]
+		elif len(args) == 2:
+			hInstance, nWidth = args
+		elif len(args) == 3:
+			hInstance, nWidth, nHeight = args
+		elif len(args) == 4:
+			hInstance, nWidth, nHeight, cPlanes = args
+		elif len(args) == 5:
+			hInstance, nWidth, nHeight, cPlanes, cBitsPixel = args
+		elif len(args) == 6:
+			hInstance, nWidth, nHeight, cPlanes, cBitsPixel, lpbANDbits = args
+		elif len(args) > 6:
+			hInstance, nWidth, nHeight, cPlanes, cBitsPixel, lpbANDbits, lpbXORbits = args
+		wtl_core.WindowsObject.__init__(self, CreateIcon(hInstance, nWidth, nHeight, cPlanes, cBitsPixel, lpbANDbits, lpbXORbits))
 
 class MenuBase(object):
 	def AppendMenu(self, flags, idNewItem, lpNewItem):

@@ -52,196 +52,193 @@ LVIF_STATE  = 8
 LVIF_DI_SETITEM =  0x1000
 
 class MaskedStructureType(Structure.__class__):
-    def __new__(cls, name, bases, dct):
-        fields = []
-        for field in dct['_fields_']:
-            fields.append((field[0], field[1]))
-            if len(field) == 4: #masked field
-                dct[field[3]] = property(None,
-                                         lambda self, val, field = field:
-                                         self.setProperty(field[0], field[2], val))
-        dct['_fields_'] = fields
-        return Structure.__class__.__new__(cls, name, bases, dct)
-    
+	def __new__(cls, name, bases, dct):
+		fields = []
+		for field in dct['_fields_']:
+			fields.append((field[0], field[1]))
+			if len(field) == 4: #masked field
+				dct[field[3]] = property(None, lambda self, val, field = field: self.setProperty(field[0], field[2], val))
+		dct['_fields_'] = fields
+		return Structure.__class__.__new__(cls, name, bases, dct)
+
 class MaskedStructure(Structure):
-    __metaclass__ = MaskedStructureType
-    _fields_ = []
+	__metaclass__ = MaskedStructureType
+	_fields_ = []
 
-    def setProperty(self, name, mask, value):
-        setattr(self, self._mask_, getattr(self, self._mask_) | mask)
-        setattr(self, name, value)
+	def setProperty(self, name, mask, value):
+		setattr(self, self._mask_, getattr(self, self._mask_) | mask)
+		setattr(self, name, value)
 
-    def clear(self):
-        setattr(self, self._mask_, 0)
-        
+	def clear(self):
+		setattr(self, self._mask_, 0)
+
 class NMCBEENDEDIT(Structure):
-    _fields_ = [("hdr", NMHDR),
-                ("fChanged", BOOL),
-                ("iNewSelection", INT),
-                ("szText", POINTER(TCHAR)),
-                ("iWhy", INT)]
+	_fields_ = [("hdr", NMHDR),
+				("fChanged", BOOL),
+				("iNewSelection", INT),
+				("szText", POINTER(TCHAR)),
+				("iWhy", INT)]
 
 class LVCOLUMN(MaskedStructure):
-    _mask_ = 'mask'
-    _fields_ = [("mask", UINT),
-                ("fmt", INT, LVCF_FMT, "format"),
-                ("cx", INT, LVCF_WIDTH, 'width'),
-                ("pszText", LPTSTR, LVCF_TEXT, 'text'),
-                ("cchTextMax", INT),
-                ("iSubItem", INT),
-                ("iImage", INT),
-                ("iOrder", INT)]
+	_mask_ = 'mask'
+	_fields_ = [("mask", UINT),
+				("fmt", INT, LVCF_FMT, "format"),
+				("cx", INT, LVCF_WIDTH, 'width'),
+				("pszText", LPTSTR, LVCF_TEXT, 'text'),
+				("cchTextMax", INT),
+				("iSubItem", INT),
+				("iImage", INT),
+				("iOrder", INT)]
 
 class LVITEM(Structure):
-    _fields_ = [("mask", UINT),
-                ("iItem", INT),
-                ("iSubItem", INT),
-                ("state", UINT),
-                ("stateMask", UINT),
-                ("pszText", LPTSTR),
-                ("cchTextMax", INT),
-                ("iImage", INT),
-                ("lParam", LPARAM),
-                ("iIndent", INT)]
-
+	_fields_ = [("mask", UINT),
+				("iItem", INT),
+				("iSubItem", INT),
+				("state", UINT),
+				("stateMask", UINT),
+				("pszText", LPTSTR),
+				("cchTextMax", INT),
+				("iImage", INT),
+				("lParam", LPARAM),
+				("iIndent", INT)]
 
 class TVITEMEX(MaskedStructure):
-    _mask_ = 'mask'
-    _fields_ = [("mask", UINT),
-                ("hItem", HTREEITEM),
-                ("state", UINT),
-                ("stateMask", UINT),
-                ("pszText", LPTSTR, TVIF_TEXT, 'text'),
-                ("cchTextMax", INT),
-                ("iImage", INT, TVIF_IMAGE, 'image'),
-                ("iSelectedImage", INT, TVIF_SELECTEDIMAGE, 'selectedImage'),
-                ("cChildren", INT, TVIF_CHILDREN, 'children'),
-                ("lParam", LPARAM, TVIF_PARAM, 'param'),
-                ("iIntegral", INT)]
+	_mask_ = 'mask'
+	_fields_ = [("mask", UINT),
+				("hItem", HTREEITEM),
+				("state", UINT),
+				("stateMask", UINT),
+				("pszText", LPTSTR, TVIF_TEXT, 'text'),
+				("cchTextMax", INT),
+				("iImage", INT, TVIF_IMAGE, 'image'),
+				("iSelectedImage", INT, TVIF_SELECTEDIMAGE, 'selectedImage'),
+				("cChildren", INT, TVIF_CHILDREN, 'children'),
+				("lParam", LPARAM, TVIF_PARAM, 'param'),
+				("iIntegral", INT)]
 
 class TVITEM(Structure):
-    _fields_ = [("mask", UINT),
-                ("hItem", HTREEITEM),
-                ("state", UINT),
-                ("stateMask", UINT),
-                ("pszText", LPTSTR),
-                ("cchTextMax", INT),
-                ("iImage", INT),
-                ("iSelectedImage", INT),
-                ("cChildren", INT),
-                ("lParam", LPARAM)]
+	_fields_ = [("mask", UINT),
+				("hItem", HTREEITEM),
+				("state", UINT),
+				("stateMask", UINT),
+				("pszText", LPTSTR),
+				("cchTextMax", INT),
+				("iImage", INT),
+				("iSelectedImage", INT),
+				("cChildren", INT),
+				("lParam", LPARAM)]
 
 class TBBUTTON(Structure):
-    _fields_ = [("iBitmap", INT),
-                ("idCommand", INT),
-                ("fsState", BYTE),
-                ("fsStyle", BYTE),
-                ("bReserved", BYTE * 2),
-                ("dwData", DWORD_PTR),
-                ("iString", INT_PTR)]
+	_fields_ = [("iBitmap", INT),
+				("idCommand", INT),
+				("fsState", BYTE),
+				("fsStyle", BYTE),
+				("bReserved", BYTE * 2),
+				("dwData", DWORD_PTR),
+				("iString", INT_PTR)]
 
 class TBBUTTONINFO(Structure):
-    _fields_ = [("cbSize", UINT),
-                ("dwMask", DWORD),
-                ("idCommand", INT),
-                ("iImage", INT),
-                ("fsState", BYTE),
-                ("fsStyle", BYTE),
-                ("cx", WORD),
-                ("lParam", DWORD_PTR),
-                ("pszText", LPTSTR),
-                ("cchText", INT)]
+	_fields_ = [("cbSize", UINT),
+				("dwMask", DWORD),
+				("idCommand", INT),
+				("iImage", INT),
+				("fsState", BYTE),
+				("fsStyle", BYTE),
+				("cx", WORD),
+				("lParam", DWORD_PTR),
+				("pszText", LPTSTR),
+				("cchText", INT)]
 
 class TVINSERTSTRUCT(Structure):
-    _fields_ = [("hParent", HTREEITEM),
-                ("hInsertAfter", HTREEITEM),
-                ("itemex", TVITEMEX)]
+	_fields_ = [("hParent", HTREEITEM),
+				("hInsertAfter", HTREEITEM),
+				("itemex", TVITEMEX)]
 
 class TCITEM(Structure):
-    _fields_ = [("mask", UINT),
-                ("dwState", DWORD),
-                ("dwStateMask", DWORD),
-                ("pszText", LPTSTR),
-                ("cchTextMax", INT),
-                ("iImage", INT),
-                ("lParam", LPARAM)]
+	_fields_ = [("mask", UINT),
+				("dwState", DWORD),
+				("dwStateMask", DWORD),
+				("pszText", LPTSTR),
+				("cchTextMax", INT),
+				("iImage", INT),
+				("lParam", LPARAM)]
 
 class NMTREEVIEW(Structure):
-    _fields_ = [("hdr", NMHDR),
-                ("action", UINT),
-                ("itemOld", TVITEM),
-                ("itemNew", TVITEM),
-                ("ptDrag", POINT)]
+	_fields_ = [("hdr", NMHDR),
+				("action", UINT),
+				("itemOld", TVITEM),
+				("itemNew", TVITEM),
+				("ptDrag", POINT)]
 
 class NMLISTVIEW(Structure):
-    _fields_ = [("hrd", NMHDR),
-                ("iItem", INT),
-                ("iSubItem", INT),
-                ("uNewState", UINT),
-                ("uOldState", UINT),
-                ("uChanged", UINT),
-                ("ptAction", POINT),
-                ("lParam", LPARAM)]
-    
+	_fields_ = [("hrd", NMHDR),
+				("iItem", INT),
+				("iSubItem", INT),
+				("uNewState", UINT),
+				("uOldState", UINT),
+				("uChanged", UINT),
+				("ptAction", POINT),
+				("lParam", LPARAM)]
+
 class INITCOMMONCONTROLSEX(Structure):
-    _fields_ = [("dwSize", DWORD),
-                ("dwICC", DWORD)]
+	_fields_ = [("dwSize", DWORD),
+				("dwICC", DWORD)]
 
 class REBARINFO(Structure):
-    _fields_ = [("cbSize", UINT),
-                ("fMask", UINT),
-                ("himl", HIMAGELIST)]
+	_fields_ = [("cbSize", UINT),
+				("fMask", UINT),
+				("himl", HIMAGELIST)]
 
 class REBARBANDINFO(Structure):
-    _fields_ = [("cbSize", UINT),
-                ("fMask", UINT),
-                ("fStyle", UINT),
-                ("clrFore", COLORREF),
-                ("clrBack", COLORREF),
-                ("lpText", LPTSTR),
-                ("cch", UINT),
-                ("iImage", INT),
-                ("hwndChild", HWND),
-                ("cxMinChild", UINT),
-                ("cyMinChild", UINT),
-                ("cx", UINT),
-                ("hbmBack", HBITMAP),
-                ("wID", UINT),
-                ("cyChild", UINT),
-                ("cyMaxChild", UINT),
-                ("cyIntegral", UINT),
-                ("cxIdeal", UINT),
-                ("lParam", LPARAM),
-                ("cxHeader", UINT)]
+	_fields_ = [("cbSize", UINT),
+				("fMask", UINT),
+				("fStyle", UINT),
+				("clrFore", COLORREF),
+				("clrBack", COLORREF),
+				("lpText", LPTSTR),
+				("cch", UINT),
+				("iImage", INT),
+				("hwndChild", HWND),
+				("cxMinChild", UINT),
+				("cyMinChild", UINT),
+				("cx", UINT),
+				("hbmBack", HBITMAP),
+				("wID", UINT),
+				("cyChild", UINT),
+				("cyMaxChild", UINT),
+				("cyIntegral", UINT),
+				("cxIdeal", UINT),
+				("lParam", LPARAM),
+				("cxHeader", UINT)]
 
 class NMTOOLBAR(Structure):
-    _fields_ = [("hdr", NMHDR),
-                ("iItem", INT),
-                ("tbButton", TBBUTTON),
-                ("cchText", INT),
-                ("pszText", LPTSTR),
-                ("rcButton", RECT)]
+	_fields_ = [("hdr", NMHDR),
+				("iItem", INT),
+				("tbButton", TBBUTTON),
+				("cchText", INT),
+				("pszText", LPTSTR),
+				("rcButton", RECT)]
 
 class NMTBHOTITEM(Structure):
-    _fields_ = [("hdr", NMHDR),
-                ("idOld", INT),
-                ("idNew", INT),
-                ("dwFlags", DWORD)]
+	_fields_ = [("hdr", NMHDR),
+				("idOld", INT),
+				("idNew", INT),
+				("dwFlags", DWORD)]
 
 class PBRANGE(Structure):
-    _fields_ = [("iLow", INT),
-                ("iHigh", INT)]
-    
+	_fields_ = [("iLow", INT),
+				("iHigh", INT)]
+
 class NMITEMACTIVATE(Structure):
-    _fields_ = [("hdr", NMHDR),
-                ("iItem", c_int),
-                ("iSubItem", c_int),
-                ("uNewState", UINT),
-                ("uOldState", UINT),
-                ("uChanged", UINT),
-                ("ptAction", POINT),
-                ("lParam", LPARAM),
-                ("uKeyFlags", UINT)]
+	_fields_ = [("hdr", NMHDR),
+				("iItem", c_int),
+				("iSubItem", c_int),
+				("uNewState", UINT),
+				("uOldState", UINT),
+				("uChanged", UINT),
+				("ptAction", POINT),
+				("lParam", LPARAM),
+				("uKeyFlags", UINT)]
 
 NM_FIRST    =   UINT_MAX
 
@@ -291,7 +288,7 @@ TBSTYLE_TRANSPARENT = 0x8000
 TBSTYLE_REGISTERDROP = 0x4000
 TBSTYLE_BUTTON = 0x0000
 TBSTYLE_AUTOSIZE = 0x0010
-    
+
 TB_BUTTONSTRUCTSIZE = WM_USER+30
 TB_ADDBUTTONS       = WM_USER+20
 TB_INSERTBUTTONA    = WM_USER + 21
@@ -320,7 +317,7 @@ TVIF_SELECTEDIMAGE  = 32
 TVIF_CHILDREN      =  64
 TVIF_INTEGRAL      =  0x0080
 TVIF_DI_SETITEM    =  0x1000
- 
+
 TVI_ROOT     = 0xFFFF0000l
 TVI_FIRST    = 0xFFFF0001l
 TVI_LAST     = 0xFFFF0002l
@@ -359,7 +356,6 @@ TVM_SETITEM= TVM_SETITEMA
 TVM_GETITEMA=            (TV_FIRST + 12)
 TVM_GETITEMW =           (TV_FIRST + 62)
 TVM_GETITEM = TVM_GETITEMA
-
 
 TVS_HASBUTTONS =       1
 TVS_HASLINES = 2
@@ -439,7 +435,6 @@ TBTS_LEFT =               1
 TBTS_BOTTOM =             2
 TBTS_RIGHT =              3
 
-
 TB_LINEUP =               0
 TB_LINEDOWN =             1
 TB_PAGEUP =               2
@@ -455,8 +450,6 @@ TBCD_TICS =    0x0001
 TBCD_THUMB =   0x0002
 TBCD_CHANNEL = 0x0003
 
-
-
 STATUSCLASSNAME = "msctls_statusbar32"
 
 REBARCLASSNAMEW = u"ReBarWindow32"
@@ -470,7 +463,6 @@ PROGRESS_CLASS = PROGRESS_CLASSA
 TRACKBAR_CLASSW = u"msctls_trackbar32"
 TRACKBAR_CLASSA = "msctls_trackbar32"
 TRACKBAR_CLASS = TRACKBAR_CLASSA
-
 
 EDIT = "Edit"
 BUTTON = "BUTTON"
@@ -500,52 +492,52 @@ WC_TABCONTROLW =      u"SysTabControl32"
 WC_TABCONTROL = WC_TABCONTROLA
 
 LVS_ICON    = 0
-LVS_REPORT   =1
-LVS_SMALLICON =       2
+LVS_REPORT   = 1
+LVS_SMALLICON = 2
 LVS_LIST    = 3
-LVS_TYPEMASK= 3
-LVS_SINGLESEL=        4
-LVS_SHOWSELALWAYS=    8
-LVS_SORTASCENDING =   16
-LVS_SORTDESCENDING =  32
+LVS_TYPEMASK = 3
+LVS_SINGLESEL = 4
+LVS_SHOWSELALWAYS = 8
+LVS_SORTASCENDING = 16
+LVS_SORTDESCENDING = 32
 LVS_SHAREIMAGELISTS = 64
 LVS_NOLABELWRAP     = 128
 LVS_AUTOARRANGE     = 256
 LVS_EDITLABELS      = 512
-LVS_NOSCROLL= 0x2000
+LVS_NOSCROLL = 0x2000
 LVS_TYPESTYLEMASK  =  0xfc00
-LVS_ALIGNTOP= 0
+LVS_ALIGNTOP = 0
 LVS_ALIGNLEFT =       0x800
 LVS_ALIGNMASK  =      0xc00
-LVS_OWNERDRAWFIXED=   0x400
+LVS_OWNERDRAWFIXED =  0x400
 LVS_NOCOLUMNHEADER =  0x4000
 LVS_NOSORTHEADER   =  0x8000
-LVS_OWNERDATA =4096
-LVS_EX_CHECKBOXES= 4
-LVS_EX_FULLROWSELECT= 32
-LVS_EX_GRIDLINES =1
-LVS_EX_HEADERDRAGDROP= 16
-LVS_EX_ONECLICKACTIVATE= 64
-LVS_EX_SUBITEMIMAGES= 2
-LVS_EX_TRACKSELECT= 8
-LVS_EX_TWOCLICKACTIVATE= 128
+LVS_OWNERDATA = 4096
+LVS_EX_CHECKBOXES = 4
+LVS_EX_FULLROWSELECT = 32
+LVS_EX_GRIDLINES = 1
+LVS_EX_HEADERDRAGDROP = 16
+LVS_EX_ONECLICKACTIVATE = 64
+LVS_EX_SUBITEMIMAGES = 2
+LVS_EX_TRACKSELECT = 8
+LVS_EX_TWOCLICKACTIVATE = 128
 LVS_EX_FLATSB       = 0x00000100
 LVS_EX_REGIONAL     = 0x00000200
 LVS_EX_INFOTIP      = 0x00000400
 LVS_EX_UNDERLINEHOT = 0x00000800
-LVS_EX_UNDERLINECOLD= 0x00001000
-LVS_EX_MULTIWORKAREAS =       0x00002000
+LVS_EX_UNDERLINECOLD = 0x00001000
+LVS_EX_MULTIWORKAREAS = 0x00002000
 LVS_EX_LABELTIP     = 0x00004000
 LVS_EX_BORDERSELECT = 0x00008000
 
-LVIS_FOCUSED         =   0x0001
-LVIS_SELECTED        =   0x0002
-LVIS_CUT             =   0x0004
-LVIS_DROPHILITED     =   0x0008
-LVIS_ACTIVATING      =   0x0020
+LVIS_FOCUSED         = 0x0001
+LVIS_SELECTED        = 0x0002
+LVIS_CUT             = 0x0004
+LVIS_DROPHILITED     = 0x0008
+LVIS_ACTIVATING      = 0x0020
 
-LVIS_OVERLAYMASK      =  0x0F00
-LVIS_STATEIMAGEMASK   =  0xF000
+LVIS_OVERLAYMASK     = 0x0F00
+LVIS_STATEIMAGEMASK  = 0xF000
 
 LVM_FIRST = 0x1000
 LVM_INSERTCOLUMNA = (LVM_FIRST+27)
@@ -582,7 +574,6 @@ LVN_COLUMNCLICK       =  (LVN_FIRST-8)
 LVN_BEGINDRAG         =  (LVN_FIRST-9)
 LVN_BEGINRDRAG        =  (LVN_FIRST-11)
 
-
 NM_OUTOFMEMORY    =      (NM_FIRST-1)
 NM_CLICK          =      (NM_FIRST-2)   
 NM_DBLCLK         =      (NM_FIRST-3)
@@ -606,7 +597,6 @@ LVCFMT_JUSTIFYMASK =  3
 LVCFMT_BITMAP_ON_RIGHT =4096
 LVCFMT_COL_HAS_IMAGES = 32768
 LVCFMT_IMAGE =2048
-
 
 ICC_LISTVIEW_CLASSES =1
 ICC_TREEVIEW_CLASSES =2
@@ -657,7 +647,6 @@ TVN_SELCHANGED  =  TVN_SELCHANGEDA
 TVN_DELETEITEMA  =     (TVN_FIRST-9)
 TVN_DELETEITEMW  =    (TVN_FIRST-58)
 TVN_DELETEITEM = TVN_DELETEITEMA
-
 
 SB_SIMPLE =   (WM_USER+9)
 SB_SETTEXTA = (WM_USER+1)
@@ -711,7 +700,6 @@ ImageList_AddMasked = windll.comctl32.ImageList_AddMasked
 ImageList_AddIcon = windll.comctl32.ImageList_AddIcon
 ImageList_SetBkColor = windll.comctl32.ImageList_SetBkColor
 
-
 InitCommonControlsEx = windll.comctl32.InitCommonControlsEx
 
 class Button(Window):
@@ -735,8 +723,8 @@ class RadioButton(Button):
 		self.SendMessage(BM_SETCHECK, state)
 
 class AutoRadioButton(RadioButton):
-    _window_class_ = BUTTON
-    _window_style_ = WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTORADIOBUTTON
+	_window_class_ = BUTTON
+	_window_style_ = WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTORADIOBUTTON
 
 class CheckBox(RadioButton):
 	_window_class_ = BUTTON
@@ -850,328 +838,325 @@ class ComboBoxEx(ComboBox):
 	_window_style_ = WS_VISIBLE | WS_CHILD | CBS_DROPDOWN
 
 class Edit(Window):
-    _window_class__ = EDIT
-    _window_style_ = WS_VISIBLE | WS_CHILD
+	_window_class__ = EDIT
+	_window_style_ = WS_VISIBLE | WS_CHILD
 
 class ListBox(Window):
-    _window_class_ = 'ListBox'
-    _window_style_ = WS_VISIBLE | WS_CHILD
+	_window_class_ = 'ListBox'
+	_window_style_ = WS_VISIBLE | WS_CHILD
 
-    def AddString (self, txt):
-        self.SendMessage(LB_ADDSTRING, 0, txt)
+	def AddString (self, txt):
+		self.SendMessage(LB_ADDSTRING, 0, txt)
 
-    def InsertString (self, idx, txt):
-        self.SendMessage(LB_INSERTSTRING, idx, txt)
+	def InsertString (self, idx, txt):
+		self.SendMessage(LB_INSERTSTRING, idx, txt)
 
-    def DeleteString (self, idx):
-        self.SendMessage(LB_DELETESTRING, idx)
+	def DeleteString (self, idx):
+		self.SendMessage(LB_DELETESTRING, idx)
 
-    def ResetContent (self):
-        self.SendMessage(LB_RESETCONTENT)
+	def ResetContent (self):
+		self.SendMessage(LB_RESETCONTENT)
 
-    def GetCount (self):
-        return self.SendMessage(LB_GETCOUNT)
+	def GetCount (self):
+		return self.SendMessage(LB_GETCOUNT)
 
-    def SetTopIndex (self, idx):
-        self.SendMessage (LB_SETTOPINDEX, idx)
+	def SetTopIndex (self, idx):
+		self.SendMessage (LB_SETTOPINDEX, idx)
 
 class ProgressBar(Window):
-    _window_class_ = PROGRESS_CLASS
-    _window_style_ = WS_VISIBLE | WS_CHILD
+	_window_class_ = PROGRESS_CLASS
+	_window_style_ = WS_VISIBLE | WS_CHILD
 
-    def SetRange(self, nMinRange, nMaxRange):
-        if nMinRange > 65535 or nMaxRange > 65535:
-            return self.SendMessage(PBM_SETRANGE32, nMinRange, nMaxRange)
-        else:
-            return self.SendMessage(PBM_SETRANGE, 0, MAKELPARAM(nMinRange, nMaxRange))
+	def SetRange(self, nMinRange, nMaxRange):
+		if nMinRange > 65535 or nMaxRange > 65535:
+			return self.SendMessage(PBM_SETRANGE32, nMinRange, nMaxRange)
+		else:
+			return self.SendMessage(PBM_SETRANGE, 0, MAKELPARAM(nMinRange, nMaxRange))
 
-    def GetRange(self, fWhichLimit): # True=get low, False=get high range
-        return self.SendMessage(PBM_GETRANGE, fWhichLimit, 0)
+	def GetRange(self, fWhichLimit): # True=get low, False=get high range
+		return self.SendMessage(PBM_GETRANGE, fWhichLimit, 0)
 
-    def SetPos(self, nNewPos):
-        return self.SendMessage(PBM_SETPOS, nNewPos, 0)
+	def SetPos(self, nNewPos):
+		return self.SendMessage(PBM_SETPOS, nNewPos, 0)
 
-    def GetPos(self):
-        return self.SendMessage(PBM_GETPOS, 0, 0)
+	def GetPos(self):
+		return self.SendMessage(PBM_GETPOS, 0, 0)
 
-    def SetBarColor(self, clrBar):
-        return self.SendMessage(PBM_SETBARCOLOR, 0, clrBar)
+	def SetBarColor(self, clrBar):
+		return self.SendMessage(PBM_SETBARCOLOR, 0, clrBar)
 
-    def SetBkColor(self, clrBk):
-        return self.SendMessage(PBM_SETBKCOLOR, 0, clrBk)
+	def SetBkColor(self, clrBk):
+		return self.SendMessage(PBM_SETBKCOLOR, 0, clrBk)
 
-    def SetStep(self, nStepInc):
-        return self.SendMessage(PBM_SETSTEP, nStepInc, 0)
+	def SetStep(self, nStepInc):
+		return self.SendMessage(PBM_SETSTEP, nStepInc, 0)
 
-    def StepIt(self):
-        return self.SendMessage(PBM_STEPIT, 0, 0)
+	def StepIt(self):
+		return self.SendMessage(PBM_STEPIT, 0, 0)
 
-    def DeltaPos(self, nIncrement):
-        return self.SendMessage(PBM_DELTAPOS, nIncrement, 0)
+	def DeltaPos(self, nIncrement):
+		return self.SendMessage(PBM_DELTAPOS, nIncrement, 0)
 
 class TrackBar(Window):
-    _window_class_ = TRACKBAR_CLASS
-    _window_style_ = WS_VISIBLE | WS_CHILD | TBS_AUTOTICKS | TBS_TOOLTIPS
-    _window_style_ex_ = 0
+	_window_class_ = TRACKBAR_CLASS
+	_window_style_ = WS_VISIBLE | WS_CHILD | TBS_AUTOTICKS | TBS_TOOLTIPS
+	_window_style_ex_ = 0
 
-    def __init__(self, *args, **kwargs):
-        Window.__init__(self, *args, **kwargs)
+	def __init__(self, *args, **kwargs):
+		Window.__init__(self, *args, **kwargs)
 
-    def SetRange(self, nMinRange, nMaxRange):
-        return self.SendMessage(TBM_SETRANGE, 0, MAKELPARAM(nMinRange, nMaxRange))
+	def SetRange(self, nMinRange, nMaxRange):
+		return self.SendMessage(TBM_SETRANGE, 0, MAKELPARAM(nMinRange, nMaxRange))
 
-    def SetPageSize(self, nSize):
-        return self.SendMessage(TBM_SETPAGESIZE, 0, nSize)
+	def SetPageSize(self, nSize):
+		return self.SendMessage(TBM_SETPAGESIZE, 0, nSize)
 
-    def GetPageSize(self):
-        return self.SendMessage(TBM_GETPAGESIZE, 0, 0)
+	def GetPageSize(self):
+		return self.SendMessage(TBM_GETPAGESIZE, 0, 0)
 
-    def SetLineSize(self, nSize):
-        return self.SendMessage(TBM_SETLINESIZE, 0, nSize)
+	def SetLineSize(self, nSize):
+		return self.SendMessage(TBM_SETLINESIZE, 0, nSize)
 
-    def GetLineSize(self):
-        return self.SendMessage(TBM_GETLINESIZE, 0, 0)
+	def GetLineSize(self):
+		return self.SendMessage(TBM_GETLINESIZE, 0, 0)
 
-    def GetRangeMin(self):
-        return self.SendMessage(TBM_GETRANGEMIN, 0, 0)
+	def GetRangeMin(self):
+		return self.SendMessage(TBM_GETRANGEMIN, 0, 0)
 
-    def GetRangeMax(self):
-        return self.SendMessage(TBM_GETRANGEMAX, 0, 0)
+	def GetRangeMax(self):
+		return self.SendMessage(TBM_GETRANGEMAX, 0, 0)
 
-    def SetPos(self,lPosition, fRedraw=1):
-        return self.SendMessage(TBM_SETPOS, fRedraw, lPosition)
+	def SetPos(self,lPosition, fRedraw=1):
+		return self.SendMessage(TBM_SETPOS, fRedraw, lPosition)
 
-    def GetPos(self):
-        return self.SendMessage(TBM_GETPOS, 0, 0)
+	def GetPos(self):
+		return self.SendMessage(TBM_GETPOS, 0, 0)
 
-    def ClearSel(self, fRedraw=0):
-        return self.SendMessage(TBM_CLEARSEL, fRedraw, 0)
+	def ClearSel(self, fRedraw=0):
+		return self.SendMessage(TBM_CLEARSEL, fRedraw, 0)
 
-    def SetTickFreq(self, wFreq):
-        return self.SendMessage(TBM_SETTICFREQ, wFreq, 0)
+	def SetTickFreq(self, wFreq):
+		return self.SendMessage(TBM_SETTICFREQ, wFreq, 0)
 
-    def SetBuddy(self, hwndBuddy, fLocation=0):
-        return self.SendMessage(TBM_SETBUDDY, fLocation, hwndBuddy)
-    
+	def SetBuddy(self, hwndBuddy, fLocation=0):
+		return self.SendMessage(TBM_SETBUDDY, fLocation, hwndBuddy)
+
 class TabControl(Window):
-    _window_class_ = WC_TABCONTROL
-    _window_style_ = WS_VISIBLE | WS_CHILD | TCS_MULTILINE
+	_window_class_ = WC_TABCONTROL
+	_window_style_ = WS_VISIBLE | WS_CHILD | TCS_MULTILINE
 
-    def InsertItem(self, iItem, item):        
-        return self.SendMessage(TCM_INSERTITEM, iItem, byref(item))
+	def InsertItem(self, iItem, item):        
+		return self.SendMessage(TCM_INSERTITEM, iItem, byref(item))
 
-    def GetItem(self, index, mask):
-        item = TCITEM()
-        item.mask = mask
-        if self.SendMessage(TCM_GETITEM, index, byref(item)):
-            return item
-        else:
-            raise "error"
-        
-    def AdjustRect(self, fLarger, rect):
-        lprect = byref(rect)
-        self.SendMessage(TCM_ADJUSTRECT, fLarger, lprect)
+	def GetItem(self, index, mask):
+		item = TCITEM()
+		item.mask = mask
+		if self.SendMessage(TCM_GETITEM, index, byref(item)):
+			return item
+		else:
+			raise "error"
+		
+	def AdjustRect(self, fLarger, rect):
+		lprect = byref(rect)
+		self.SendMessage(TCM_ADJUSTRECT, fLarger, lprect)
 
-    def GetCurSel(self):
-        return self.SendMessage(TCM_GETCURSEL)
+	def GetCurSel(self):
+		return self.SendMessage(TCM_GETCURSEL)
 
-    def SetCurSel(self, iItem):
-        return self.SendMessage(TCM_SETCURSEL, iItem)
-        
-    
+	def SetCurSel(self, iItem):
+		return self.SendMessage(TCM_SETCURSEL, iItem)
+
 class TreeView(Window):
-    _window_class_ = WC_TREEVIEW
-    _window_style_ = WS_CHILD | WS_VISIBLE | WS_TABSTOP |\
-                       TVS_HASBUTTONS|TVS_LINESATROOT|TVS_HASLINES
-    _window_style_ex_ = 0
+	_window_class_ = WC_TREEVIEW
+	_window_style_ = WS_CHILD | WS_VISIBLE | WS_TABSTOP | TVS_HASBUTTONS|TVS_LINESATROOT|TVS_HASLINES
+	_window_style_ex_ = 0
 
-    def InsertItem(self, hParent, hInsertAfter, itemEx):
-        insertStruct = TVINSERTSTRUCT()
-        insertStruct.hParent = hParent
-        insertStruct.hInsertAfter = hInsertAfter
-        insertStruct.itemex = itemEx
-        
-        return self.SendMessage(TVM_INSERTITEM, 0, byref(insertStruct))
-    
-    def GetItem(self, item):
-        return self.SendMessage(TVM_GETITEM, 0, byref(item))
-        
-    def SetImageList(self, imageList, iImage = TVSIL_NORMAL):
-        return self.SendMessage(TVM_SETIMAGELIST, iImage, handle(imageList))
+	def InsertItem(self, hParent, hInsertAfter, itemEx):
+		insertStruct = TVINSERTSTRUCT()
+		insertStruct.hParent = hParent
+		insertStruct.hInsertAfter = hInsertAfter
+		insertStruct.itemex = itemEx
 
-    def GetChildItem(self, hitem):
-        """gets the first child of item"""
-        return self.SendMessage(TVM_GETNEXTITEM, TVGN_CHILD, hitem)
+		return self.SendMessage(TVM_INSERTITEM, 0, byref(insertStruct))
 
-    def GetNextItem(self, hitem):
-        """gets the next sibling from item"""
-        return self.SendMessage(TVM_GETNEXTITEM, TVGN_NEXT, hitem)
-        
-    def GetRootItem(self):
-        """returns the root item"""
-        return self.SendMessage(TVM_GETNEXTITEM, TVGN_ROOT)
-    
-    def CollapseAndReset(self, hitem):
-        self.SendMessage(TVM_EXPAND, TVE_COLLAPSE|TVE_COLLAPSERESET, hitem)
+	def GetItem(self, item):
+		return self.SendMessage(TVM_GETITEM, 0, byref(item))
 
-    def DeleteAllItems(self):
-        return self.SendMessage(TVM_DELETEITEM)
+	def SetImageList(self, imageList, iImage = TVSIL_NORMAL):
+		return self.SendMessage(TVM_SETIMAGELIST, iImage, handle(imageList))
 
-    def IsExpanded(self, hitem):
-        return self.SendMessage(TVM_GETITEMSTATE, hitem, TVIS_EXPANDED)
+	def GetChildItem(self, hitem):
+		"""gets the first child of item"""
+		return self.SendMessage(TVM_GETNEXTITEM, TVGN_CHILD, hitem)
 
-    def Expand(self, hitem):
-        return self.SendMessage(TVM_EXPAND, TVE_EXPAND, hitem)
+	def GetNextItem(self, hitem):
+		"""gets the next sibling from item"""
+		return self.SendMessage(TVM_GETNEXTITEM, TVGN_NEXT, hitem)
 
-    def EnsureVisible(self, hitem):
-        return self.SendMessage(TVM_ENSUREVISIBLE, 0, hitem)
+	def GetRootItem(self):
+		"""returns the root item"""
+		return self.SendMessage(TVM_GETNEXTITEM, TVGN_ROOT)
 
-    def SelectItem(self, hitem):
-        return self.SendMessage(TVM_SELECTITEM, TVGN_CARET, hitem)
+	def CollapseAndReset(self, hitem):
+		self.SendMessage(TVM_EXPAND, TVE_COLLAPSE|TVE_COLLAPSERESET, hitem)
 
-    def GetSelection(self):
-        return self.SendMessage(TVM_GETNEXTITEM, TVGN_CARET)
-    
+	def DeleteAllItems(self):
+		return self.SendMessage(TVM_DELETEITEM)
+
+	def IsExpanded(self, hitem):
+		return self.SendMessage(TVM_GETITEMSTATE, hitem, TVIS_EXPANDED)
+
+	def Expand(self, hitem):
+		return self.SendMessage(TVM_EXPAND, TVE_EXPAND, hitem)
+
+	def EnsureVisible(self, hitem):
+		return self.SendMessage(TVM_ENSUREVISIBLE, 0, hitem)
+
+	def SelectItem(self, hitem):
+		return self.SendMessage(TVM_SELECTITEM, TVGN_CARET, hitem)
+
+	def GetSelection(self):
+		return self.SendMessage(TVM_GETNEXTITEM, TVGN_CARET)
+
 class ListView(Window):
-    _window_class_ = WC_LISTVIEW
-    _window_style_ = WS_CHILD | WS_VISIBLE | LVS_REPORT 
-    _window_style_ex_ = 0
-    _listview_style_ex_ = 0
+	_window_class_ = WC_LISTVIEW
+	_window_style_ = WS_CHILD | WS_VISIBLE | LVS_REPORT 
+	_window_style_ex_ = 0
+	_listview_style_ex_ = 0
 
-    def __init__(self, *args, **kwargs):
-        Window.__init__(self, *args, **kwargs)
-        self.SetExtendedListViewStyle(self._listview_style_ex_, self._listview_style_ex_)
-        
-    def InsertColumn(self, iCol, lvcolumn):
-        return self.SendMessage(LVM_INSERTCOLUMN, iCol, byref(lvcolumn))
+	def __init__(self, *args, **kwargs):
+		Window.__init__(self, *args, **kwargs)
+		self.SetExtendedListViewStyle(self._listview_style_ex_, self._listview_style_ex_)
 
-    def SetColumn(self, iCol, lvcolumn):
-        return self.SendMessage(LVM_SETCOLUMN, iCol, byref(lvcolumn))
+	def InsertColumn(self, iCol, lvcolumn):
+		return self.SendMessage(LVM_INSERTCOLUMN, iCol, byref(lvcolumn))
 
-    def SetColumnWidth(self, iCol, width):
-        return self.SendMessage(LVM_SETCOLUMNWIDTH, iCol, width)
-    
-    def InsertItem(self, item):
-        if item.iItem == -1: item.iItem = self.GetItemCount()
-        return self.SendMessage(LVM_INSERTITEM, 0, byref(item))
+	def SetColumn(self, iCol, lvcolumn):
+		return self.SendMessage(LVM_SETCOLUMN, iCol, byref(lvcolumn))
 
-    def SetItem(self, item):
-        return self.SendMessage(LVM_SETITEM, 0, byref(item))
+	def SetColumnWidth(self, iCol, width):
+		return self.SendMessage(LVM_SETCOLUMNWIDTH, iCol, width)
 
-    def DeleteAllItems(self):
-        return self.SendMessage(LVM_DELETEALLITEMS)
+	def InsertItem(self, item):
+		if item.iItem == -1: item.iItem = self.GetItemCount()
+		return self.SendMessage(LVM_INSERTITEM, 0, byref(item))
 
-    def SetItemState(self, i, state, stateMask):
-        item = LVITEM()
-        item.iItem = i
-        item.mask = LVIF_STATE
-        item.state = state
-        item.stateMask = stateMask
-        return self.SendMessage(LVM_SETITEMSTATE, i, byref(item))
+	def SetItem(self, item):
+		return self.SendMessage(LVM_SETITEM, 0, byref(item))
 
-    def GetItemState(self, i, stateMask):
-        return self.SendMessage(LVM_GETITEMSTATE, i, stateMask)
-    
-    def GetItemCount(self):
-        return self.SendMessage(LVM_GETITEMCOUNT)
+	def DeleteAllItems(self):
+		return self.SendMessage(LVM_DELETEALLITEMS)
 
-    def GetItemParam(self, i):
-        item = LVITEM()
-        item.iItem = i
-        item.mask = LVIF_PARAM
-        self.SendMessage(LVM_GETITEM, 0, byref(item))
-        return item.lParam
-    
-    def SetItemCount(self, cItems, dwFlags = 0):
-        self.SendMessage(LVM_SETITEMCOUNT, cItems, dwFlags)
-        
-    def GetSelectedCount(self):
-        return self.SendMessage(LVM_GETSELECTEDCOUNT)
+	def SetItemState(self, i, state, stateMask):
+		item = LVITEM()
+		item.iItem = i
+		item.mask = LVIF_STATE
+		item.state = state
+		item.stateMask = stateMask
+		return self.SendMessage(LVM_SETITEMSTATE, i, byref(item))
 
-    def SetExtendedListViewStyle(self, dwExMask, dwExStyle):
-        return self.SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, dwExMask, dwExStyle)
-    
+	def GetItemState(self, i, stateMask):
+		return self.SendMessage(LVM_GETITEMSTATE, i, stateMask)
+
+	def GetItemCount(self):
+		return self.SendMessage(LVM_GETITEMCOUNT)
+
+	def GetItemParam(self, i):
+		item = LVITEM()
+		item.iItem = i
+		item.mask = LVIF_PARAM
+		self.SendMessage(LVM_GETITEM, 0, byref(item))
+		return item.lParam
+
+	def SetItemCount(self, cItems, dwFlags = 0):
+		self.SendMessage(LVM_SETITEMCOUNT, cItems, dwFlags)
+
+	def GetSelectedCount(self):
+		return self.SendMessage(LVM_GETSELECTEDCOUNT)
+
+	def SetExtendedListViewStyle(self, dwExMask, dwExStyle):
+		return self.SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, dwExMask, dwExStyle)
+
 class ToolBar(Window):
-    _window_class_ = TOOLBARCLASSNAME
-    _window_style_ = WS_CHILD | WS_VISIBLE
+	_window_class_ = TOOLBARCLASSNAME
+	_window_style_ = WS_CHILD | WS_VISIBLE
 
-    def __init__(self, *args, **kwargs):
-        Window.__init__(self, *args, **kwargs)
-        self.SendMessage(TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0)
-        
-    def PressButton(self, idButton, fPress):
-        return self.SendMessage(TB_PRESSBUTTON, idButton, fPress)
+	def __init__(self, *args, **kwargs):
+		Window.__init__(self, *args, **kwargs)
+		self.SendMessage(TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0)
 
-    def GetRect(self, idCtrl):
-        rc = RECT()
-        self.SendMessage(TB_GETRECT, idCtrl, byref(rc))
-        return rc
+	def PressButton(self, idButton, fPress):
+		return self.SendMessage(TB_PRESSBUTTON, idButton, fPress)
 
-    def HitTest(self, pt):
-        return self.SendMessage(TB_HITTEST, 0, byref(pt))
-        
-    def SetHotItem(self, idButton):
-        return self.SendMessage(TB_SETHOTITEM, idButton)
+	def GetRect(self, idCtrl):
+		rc = RECT()
+		self.SendMessage(TB_GETRECT, idCtrl, byref(rc))
+		return rc
 
-    def GetHotItem(self):
-        return self.SendMessage(TB_GETHOTITEM)
+	def HitTest(self, pt):
+		return self.SendMessage(TB_HITTEST, 0, byref(pt))
 
-    def InsertButton(self, iButton, tbButton):
-        return self.SendMessage(TB_INSERTBUTTON, iButton, byref(tbButton))
+	def SetHotItem(self, idButton):
+		return self.SendMessage(TB_SETHOTITEM, idButton)
 
-    def SetImageList(self, imageList, iImage = 0):
-        return self.SendMessage(TB_SETIMAGELIST, iImage, handle(imageList))
+	def GetHotItem(self):
+		return self.SendMessage(TB_GETHOTITEM)
 
-    def SetButtonSize(self, dxButton, dyButton):
-        return self.SendMessage(TB_SETBUTTONSIZE, 0, MAKELONG(dxButton, dyButton))
-            
+	def InsertButton(self, iButton, tbButton):
+		return self.SendMessage(TB_INSERTBUTTON, iButton, byref(tbButton))
+
+	def SetImageList(self, imageList, iImage = 0):
+		return self.SendMessage(TB_SETIMAGELIST, iImage, handle(imageList))
+
+	def SetButtonSize(self, dxButton, dyButton):
+		return self.SendMessage(TB_SETBUTTONSIZE, 0, MAKELONG(dxButton, dyButton))
+
 class Rebar(Window):
-    _window_class_ = REBARCLASSNAME
-    _window_style_ = WS_CHILDWINDOW|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|WS_BORDER|\
-                       RBS_VARHEIGHT|RBS_BANDBORDERS|RBS_AUTOSIZE|RBS_DBLCLKTOGGLE|\
-                       RBS_REGISTERDROP|CCS_NODIVIDER|CCS_TOP|CCS_NOPARENTALIGN
-    _window_style_ex_ = WS_EX_LEFT|WS_EX_LTRREADING|WS_EX_RIGHTSCROLLBAR|WS_EX_TOOLWINDOW
+	_window_class_ = REBARCLASSNAME
+	_window_style_ = WS_CHILDWINDOW|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|WS_BORDER|\
+					RBS_VARHEIGHT|RBS_BANDBORDERS|RBS_AUTOSIZE|RBS_DBLCLKTOGGLE|\
+					RBS_REGISTERDROP|CCS_NODIVIDER|CCS_TOP|CCS_NOPARENTALIGN
+	_window_style_ex_ = WS_EX_LEFT|WS_EX_LTRREADING|WS_EX_RIGHTSCROLLBAR|WS_EX_TOOLWINDOW
 
-    def __init__(self, *args, **kwargs):
-        Window.__init__(self, *args, **kwargs)
-        
-        rebarInfo = REBARINFO()
-        rebarInfo.cbSize = sizeof(REBARINFO)
-        rebarInfo.fMask = 0
-        rebarInfo.himl = NULL
-        self.SendMessage(RB_SETBARINFO, 0, byref(rebarInfo))
+	def __init__(self, *args, **kwargs):
+		Window.__init__(self, *args, **kwargs)
+
+		rebarInfo = REBARINFO()
+		rebarInfo.cbSize = sizeof(REBARINFO)
+		rebarInfo.fMask = 0
+		rebarInfo.himl = NULL
+		self.SendMessage(RB_SETBARINFO, 0, byref(rebarInfo))
 
 class ImageList(WindowsObject):
-    __dispose__ = ImageList_Destroy
-    
-    def __init__(self, cx, cy, flags, cInitial, cGrow):
-        WindowsObject.__init__(self, ImageList_Create(cx, cy, flags, cInitial, cGrow))
+	__dispose__ = ImageList_Destroy
 
-    def AddMasked(self, bitmap, crMask):
-        return ImageList_AddMasked(self.handle, handle(bitmap), crMask)
+	def __init__(self, cx, cy, flags, cInitial, cGrow):
+		WindowsObject.__init__(self, ImageList_Create(cx, cy, flags, cInitial, cGrow))
 
-    def SetBkColor(self, clrRef):
-        ImageList_SetBkColor(self.handle, clrRef)
-        
-    def AddIcon(self, hIcon):
-        return ImageList_AddIcon(self.handle, hIcon)
+	def AddMasked(self, bitmap, crMask):
+		return ImageList_AddMasked(self.handle, handle(bitmap), crMask)
 
-    def AddIconsFromModule(self, moduleName, cx, cy, uFlags):
-        hdll = GetModuleHandle(moduleName)
-        i = 1
-        #dont know how many icons there are in module, this loop
-        #breaks if there are no more because then an exception is thrown:
-        while 1:
-            try:
-                hIcon = LoadImage(hdll, i , IMAGE_ICON, cx, cy, uFlags)
-                self.AddIcon(hIcon)
-            except:
-                break
-            i += 1
+	def SetBkColor(self, clrRef):
+		ImageList_SetBkColor(self.handle, clrRef)
 
+	def AddIcon(self, hIcon):
+		return ImageList_AddIcon(self.handle, hIcon)
+
+	def AddIconsFromModule(self, moduleName, cx, cy, uFlags):
+		hdll = GetModuleHandle(moduleName)
+		i = 1
+		#dont know how many icons there are in module, this loop
+		#breaks if there are no more because then an exception is thrown:
+		while 1:
+			try:
+				hIcon = LoadImage(hdll, i , IMAGE_ICON, cx, cy, uFlags)
+				self.AddIcon(hIcon)
+			except:
+				break
+			i += 1
 
 def InitCommonControls(dwICC):
-    iccex = INITCOMMONCONTROLSEX()
-    iccex.dwSize = sizeof(INITCOMMONCONTROLSEX)
-    iccex.dwICC = dwICC
-    InitCommonControlsEx(byref(iccex))
+	iccex = INITCOMMONCONTROLSEX()
+	iccex.dwSize = sizeof(INITCOMMONCONTROLSEX)
+	iccex.dwICC = dwICC
+	InitCommonControlsEx(byref(iccex))

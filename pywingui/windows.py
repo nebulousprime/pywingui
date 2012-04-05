@@ -19,7 +19,7 @@
 ## OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 ## WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
 
-from version_microsoft import WINVER
+from version_microsoft import WINVER, UNICODE
 
 from ctypes import *
 
@@ -111,9 +111,6 @@ def MAKELONG(w1, w2):
     return w1 | (w2 << 16)
 
 MAKELPARAM = MAKELONG
-
-def RGB(r,g,b):
-    return r | (g<<8) | (b<<16)
 
 ##### Windows Callback functions ################################
 WNDPROC = WINFUNCTYPE(c_int, HWND, UINT, WPARAM, LPARAM)
@@ -708,14 +705,14 @@ MB_RETRYCANCEL           =   0x00000005
 
 
 MB_ICONASTERISK = 64
-MB_ICONEXCLAMATION= 0x30
-MB_ICONWARNING= 0x30
-MB_ICONERROR= 16
-MB_ICONHAND= 16
-MB_ICONQUESTION= 32
-MB_ICONINFORMATION= 64
-MB_ICONSTOP= 16
-MB_ICONMASK= 240
+MB_ICONEXCLAMATION = 0x30
+MB_ICONWARNING = 0x30
+MB_ICONERROR = 16
+MB_ICONHAND = 16
+MB_ICONQUESTION = 32
+MB_ICONINFORMATION = 64
+MB_ICONSTOP = 16
+MB_ICONMASK = 240
 
 IDOK          =      1
 IDCANCEL      =      2
@@ -985,7 +982,7 @@ SetWindowLong = windll.user32.SetWindowLongA
 SetClassLong = windll.user32.SetClassLongA
 GetClassLong = windll.user32.GetClassLongA
 SetWindowPos = windll.user32.SetWindowPos
-InvalidateRect = windll.user32.InvalidateRect
+#InvalidateRect = windll.user32.InvalidateRect
 BeginPaint = windll.user32.BeginPaint
 EndPaint = windll.user32.EndPaint
 SetCapture = windll.user32.SetCapture

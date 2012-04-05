@@ -31,64 +31,67 @@ IDD_EXAMPLE_1 = "#101"
 
 
 class ExampleDialog(Dialog):    
-    _dialog_module_ = RESDLL
-    _dialog_id_ = IDD_EXAMPLE_1
+	_dialog_module_ = RESDLL
+	_dialog_id_ = IDD_EXAMPLE_1
 
-    #controls ID as defined in resource dll:
-    IDC_EDIT_A = 1000
-    IDC_EDIT_B = 1001
-    IDC_BUTTON_SUM = 1002
-    IDC_EDIT_SUM = 1003
-    IDC_EDIT_EVAL = 1004
-    IDC_EDIT_EVAL_RES = 1006
+	#controls ID as defined in resource dll:
+	IDC_EDIT_A = 1000
+	IDC_EDIT_B = 1001
+	IDC_BUTTON_SUM = 1002
+	IDC_EDIT_SUM = 1003
+	IDC_EDIT_EVAL = 1004
+	IDC_EDIT_EVAL_RES = 1006
 
-    def OnSum(self, event):
-        #get the values from box A and B and put the sum in the result box
-        try:
-            a = float(self.ctrlEditA.GetText())
-            b = float(self.ctrlEditB.GetText())
-            c = str(a + b)
-        except:
-            c = "Error!"
-            
-        self.ctrlEditSum.SetText(c)
+	def OnSum(self, event):
+		#get the values from box A and B and put the sum in the result box
+		try:
+			a = float(self.ctrlEditA.GetText())
+			b = float(self.ctrlEditB.GetText())
+			c = str(a + b)
+		except:
+			c = "Error!"
 
-    cmd_handler(IDC_BUTTON_SUM)(OnSum)
+		self.ctrlEditSum.SetText(c)
 
-    def OnEval(self, event):
-        #evaluates the line as a python expression and show the results
-        try:
-            evalResult = str(eval(self.ctrlEditEval.GetText()))
-        except:
-            #dump the stacktrace in a string for display
-            import traceback
-            import StringIO
-            tmp = StringIO.StringIO()
-            traceback.print_exc(file = tmp)
-            #multiline edit box wants '\r\n' as linebreak:
-            evalResult = tmp.getvalue().replace('\n', '\r\n') 
+	cmd_handler(IDC_BUTTON_SUM)(OnSum)
 
-        self.ctrlEditEvalRes.SetText(evalResult)
+	def OnEval(self, event):
+		#evaluates the line as a python expression and show the results
+		try:
+			evalResult = str(eval(self.ctrlEditEval.GetText()))
+		except:
+			#dump the stacktrace in a string for display
+			import traceback
+			import StringIO
+			tmp = StringIO.StringIO()
+			traceback.print_exc(file = tmp)
+			#multiline edit box wants '\r\n' as linebreak:
+			evalResult = tmp.getvalue().replace('\n', '\r\n') 
 
-    cmd_handler(IDC_EDIT_EVAL, EN_CHANGE)(OnEval)
+		self.ctrlEditEvalRes.SetText(evalResult)
 
-    def OnInitDialog(self, event):
-        Dialog.OnInitDialog(self, event)
+	cmd_handler(IDC_EDIT_EVAL, EN_CHANGE)(OnEval)
 
-        #Windows has created dialog controls, so obtain references here...
-        self.ctrlEditA = self.GetDlgItem(self.IDC_EDIT_A, comctl.Edit)
-        self.ctrlEditB = self.GetDlgItem(self.IDC_EDIT_B, comctl.Edit)
-        self.ctrlEditSum = self.GetDlgItem(self.IDC_EDIT_SUM, comctl.Edit) 
-        self.ctrlEditEval = self.GetDlgItem(self.IDC_EDIT_EVAL, comctl.Edit)
-        self.ctrlEditEvalRes = self.GetDlgItem(self.IDC_EDIT_EVAL_RES, comctl.Edit)
-        #always nice to set the focus correctly:
-        self.ctrlEditA.SetFocus()
-       
-            
+	def OnInitDialog(self, event):
+		Dialog.OnInitDialog(self, event)
+
+		#Windows has created dialog controls, so obtain references here...
+		self.ctrlEditA = self.GetDlgItem(self.IDC_EDIT_A, comctl.Edit)
+		self.ctrlEditB = self.GetDlgItem(self.IDC_EDIT_B, comctl.Edit)
+		self.ctrlEditSum = self.GetDlgItem(self.IDC_EDIT_SUM, comctl.Edit) 
+		self.ctrlEditEval = self.GetDlgItem(self.IDC_EDIT_EVAL, comctl.Edit)
+		self.ctrlEditEvalRes = self.GetDlgItem(self.IDC_EDIT_EVAL_RES, comctl.Edit)
+		#always nice to set the focus correctly:
+		self.ctrlEditA.SetFocus()
+
+
 if __name__ == '__main__':
-    dialog = ExampleDialog()
-    #show the dialog and return the result:
-    dialogResult = dialog.DoModal()
-    #dialResult == IDOK if user presses 'OK', IDCANCEL when user presses 'Cancel'
-
-                      
+	from os.path import isfile
+	if not isfile(RESDLL):
+		#print('NOT EXISTS FILE "%s"' % RESDLL)
+		MessageBox(0, '%s\n\nsee Venster examples catalog on\n\nhttp://venster.sf.net\nor\nhttp://venster-continue.googlecode.com' % RESDLL, 'NOT EXISTS FILE', MB_OK | MB_ICONWARNING)
+	else:
+		dialog = ExampleDialog()
+		#show the dialog and return the result:
+		dialogResult = dialog.DoModal()
+		#dialResult == IDOK if user presses 'OK', IDCANCEL when user presses 'Cancel'
