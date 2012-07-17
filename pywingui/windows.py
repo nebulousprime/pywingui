@@ -1032,9 +1032,25 @@ SetWindowText = windll.user32.SetWindowTextA
 GetFocus = windll.user32.GetFocus
 
 GlobalAlloc = windll.kernel32.GlobalAlloc
+GlobalReAlloc = windll.kernel32.GlobalReAlloc
 GlobalLock = windll.kernel32.GlobalLock
 GlobalUnlock = windll.kernel32.GlobalUnlock
 GlobalFree = windll.kernel32.GlobalFree
+#~ GlobalDiscard = windll.kernel32.GlobalDiscard
+GlobalFlags = windll.kernel32.GlobalFlags
+GlobalHandle = windll.kernel32.GlobalHandle
+GlobalSize = windll.kernel32.GlobalSize
+
+LocalAlloc = windll.kernel32.LocalAlloc
+LocalReAlloc = windll.kernel32.LocalReAlloc
+LocalLock = windll.kernel32.LocalLock
+LocalUnlock = windll.kernel32.LocalUnlock
+LocalFree = windll.kernel32.LocalFree
+#~ LocalDiscard = windll.kernel32.LocalDiscard
+LocalFlags = windll.kernel32.LocalFlags
+LocalHandle = windll.kernel32.LocalHandle
+LocalSize = windll.kernel32.LocalSize
+
 OpenClipboard = windll.user32.OpenClipboard
 EmptyClipboard = windll.user32.EmptyClipboard
 SetClipboardData = windll.user32.SetClipboardData

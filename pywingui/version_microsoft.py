@@ -1,3 +1,4 @@
+# version_microsoft.py
 'Microsoft products version constants'
 
 from sys import getwindowsversion
