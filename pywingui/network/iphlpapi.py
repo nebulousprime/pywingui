@@ -1,8 +1,6 @@
 # iphlpapi.py
 # Copyright (c) 2012 Maxim Kolosov
 
-from ctypes import *
-
 NET_ADDRESS_FORMAT_ = 0
 NET_ADDRESS_FORMAT = 0
 NET_ADDRESS_FORMAT_UNSPECIFIED = 0
@@ -53,7 +51,12 @@ NET_STRING_ANY_ADDRESS_NO_SCOPE = NET_STRING_NAMED_ADDRESS | NET_STRING_IP_ADDRE
 NET_STRING_ANY_SERVICE = NET_STRING_NAMED_SERVICE | NET_STRING_IP_SERVICE
 NET_STRING_ANY_SERVICE_NO_SCOPE = NET_STRING_NAMED_SERVICE | NET_STRING_IP_SERVICE_NO_SCOPE
 
-from pywingui.sdkddkver import NTDDI_VERSION, NTDDI_WIN2K, NTDDI_LONGHORN
+from socket import AF_INET
+
+from ctypes import *
+
+from pywingui.sdkddkver import NTDDI_VERSION, NTDDI_WIN2K, NTDDI_WIN2KSP1, NTDDI_WINXPSP1, NTDDI_LONGHORN
+from ipexport import *
 from ipifcons import *
 from iptypes import *
 from ifmib import *
@@ -244,6 +247,202 @@ if NTDDI_VERSION >= NTDDI_WIN2K:
 		#~ Statistics = cast(cdll.msvcrt.malloc(sizeof(MIB_IPSTATS)), PMIB_IPSTATS)
 		result = _GetIpStatistics(Statistics)
 		return result, Statistics
+
+	_GetIpStatisticsEx = WINFUNCTYPE(c_ulong, PMIB_IPSTATS, c_ulong)(('GetIpStatisticsEx', windll.iphlpapi))
+	def GetIpStatisticsEx(Family = AF_INET):
+		'retrieves the IP statistics for the current computer, also supports the Internet Protocol version 6 (IPv6) protocol family'
+		Statistics = MIB_IPSTATS()
+		result = _GetIpStatisticsEx(Statistics, Family)
+		return result, Statistics
+
+if NTDDI_VERSION >= NTDDI_LONGHORN:
+	_SetIpStatisticsEx = WINFUNCTYPE(c_ulong, PMIB_IPSTATS, c_ulong)(('SetIpStatisticsEx', windll.iphlpapi))
+	def SetIpStatisticsEx(Statistics = MIB_IPSTATS(), Family = AF_INET):
+		'set the IP statistics for the current computer, also supports the Internet Protocol version 6 (IPv6) protocol family'
+		return _SetIpStatisticsEx(Statistics, Family)
+
+_GetIcmpStatistics = WINFUNCTYPE(c_ulong, PMIB_ICMP)(('GetIcmpStatistics', windll.iphlpapi))
+def GetIcmpStatistics():
+	'retrieves the Internet Control Message Protocol (ICMP) for IPv4 statistics for the local computer'
+	Statistics = MIB_ICMP()
+	result = _GetIcmpStatistics(Statistics)
+	return result, Statistics
+
+if NTDDI_VERSION >= NTDDI_WINXPSP1:
+	_GetIcmpStatisticsEx = WINFUNCTYPE(c_ulong, PMIB_ICMP_EX, c_ulong)(('GetIcmpStatisticsEx', windll.iphlpapi))
+	def GetIcmpStatisticsEx(Family = AF_INET):
+		'retrieves the Internet Control Message Protocol (ICMP) for IPv4 statistics for the local computer, also supports the version 6 (IPv6) protocol family'
+		Statistics = MIB_ICMP_EX()
+		result = _GetIcmpStatisticsEx(Statistics, Family)
+		return result, Statistics
+
+if NTDDI_VERSION >= NTDDI_WIN2K:
+
+	_GetTcpStatistics = WINFUNCTYPE(c_ulong, PMIB_TCPSTATS)(('GetTcpStatistics', windll.iphlpapi))
+	def GetTcpStatistics():
+		'retrieves the TCP statistics for IPv4 on the current computer'
+		Statistics = MIB_TCPSTATS()
+		result = _GetTcpStatistics(Statistics)
+		return result, Statistics
+
+	_GetTcpStatisticsEx = WINFUNCTYPE(c_ulong, PMIB_TCPSTATS, c_ulong)(('GetTcpStatisticsEx', windll.iphlpapi))
+	def GetTcpStatisticsEx(Family = AF_INET):
+		'retrieves the Transmission Control Protocol (TCP) statistics for the current computer, also supports the Internet Protocol version 6 (IPv6) protocol family'
+		Statistics = MIB_TCPSTATS()
+		result = _GetTcpStatisticsEx(Statistics, Family)
+		return result, Statistics
+
+_GetUdpStatistics = WINFUNCTYPE(c_ulong, PMIB_UDPSTATS)(('GetUdpStatistics', windll.iphlpapi))
+def GetUdpStatistics():
+	'retrieves the User Datagram Protocol (UDP) statistics for IPv4 on the current computer'
+	Statistics = MIB_UDPSTATS()
+	result = _GetUdpStatistics(Statistics)
+	return result, Statistics
+
+_GetUdpStatisticsEx = WINFUNCTYPE(c_ulong, PMIB_UDPSTATS, c_ulong)(('GetUdpStatisticsEx', windll.iphlpapi))
+def GetUdpStatisticsEx(Family = AF_INET):
+	'retrieves the User Datagram Protocol (UDP) statistics for the current computer, also supports the Internet Protocol version 6 (IPv6) protocol family'
+	Statistics = MIB_UDPSTATS()
+	result = _GetUdpStatisticsEx(Statistics, Family)
+	return result, Statistics
+
+SetIfEntry = WINFUNCTYPE(c_ulong, PMIB_IFROW)(('SetIfEntry', windll.iphlpapi))
+SetIfEntry.__doc__ = 'Used to set the ifAdminStatus on an interface.  The only fields of the MIB_IFROW that are relevant are the dwIndex (index of the interface whose status needs to be set) and the dwAdminStatus which can be either MIB_IF_ADMIN_STATUS_UP or MIB_IF_ADMIN_STATUS_DOWN'
+
+# Used to create, modify or delete a route.  In all cases the
+# dwForwardIfIndex, dwForwardDest, dwForwardMask, dwForwardNextHop and
+# dwForwardPolicy MUST BE SPECIFIED. Currently dwForwardPolicy is unused
+# and MUST BE 0.
+# For a set, the complete MIB_IPFORWARDROW structure must be specified
+CreateIpForwardEntry = WINFUNCTYPE(c_ulong, PMIB_IPFORWARDROW)(('CreateIpForwardEntry', windll.iphlpapi))
+SetIpForwardEntry = WINFUNCTYPE(c_ulong, PMIB_IPFORWARDROW)(('SetIpForwardEntry', windll.iphlpapi))
+DeleteIpForwardEntry = WINFUNCTYPE(c_ulong, PMIB_IPFORWARDROW)(('DeleteIpForwardEntry', windll.iphlpapi))
+
+if NTDDI_VERSION >= NTDDI_WIN2K:
+	SetIpStatistics = WINFUNCTYPE(c_ulong, PMIB_IPSTATS)(('SetIpStatistics', windll.iphlpapi))
+	SetIpStatistics.__doc__ = 'Used to set the ipForwarding to ON or OFF (currently only ON->OFF is allowed) and to set the defaultTTL.  If only one of the fields needs to be modified and the other needs to be the same as before the other field needs to be set to MIB_USE_CURRENT_TTL or MIB_USE_CURRENT_FORWARDING as the case may be'
+
+SetIpTTL = WINFUNCTYPE(c_ulong, c_uint)(('SetIpTTL', windll.iphlpapi))
+SetIpTTL.__doc__ = 'Used to set the defaultTTL'
+
+# Used to create, modify or delete an ARP entry.  In all cases the dwIndex
+# dwAddr field MUST BE SPECIFIED.
+# For a set, the complete MIB_IPNETROW structure must be specified
+CreateIpNetEntry = WINFUNCTYPE(c_ulong, PMIB_IPNETROW)(('CreateIpNetEntry', windll.iphlpapi))
+SetIpNetEntry = WINFUNCTYPE(c_ulong, PMIB_IPNETROW)(('SetIpNetEntry', windll.iphlpapi))
+DeleteIpNetEntry = WINFUNCTYPE(c_ulong, PMIB_IPNETROW)(('DeleteIpNetEntry', windll.iphlpapi))
+FlushIpNetTable = WINFUNCTYPE(c_ulong, c_ulong)(('FlushIpNetTable', windll.iphlpapi))
+
+# Used to create or delete a Proxy ARP entry. The dwIndex is the index of
+# the interface on which to PARP for the dwAddress.  If the interface is
+# of a type that doesnt support ARP, e.g. PPP, then the call will fail
+CreateProxyArpEntry = WINFUNCTYPE(c_ulong, c_ulong, c_ulong, c_ulong)(('CreateProxyArpEntry', windll.iphlpapi))
+CreateProxyArpEntry.__doc__ = 'params : dwAddress, dwMask, dwIfIndex'
+DeleteProxyArpEntry = WINFUNCTYPE(c_ulong, c_ulong, c_ulong, c_ulong)(('DeleteProxyArpEntry', windll.iphlpapi))
+DeleteProxyArpEntry.__doc__ = 'params : dwAddress, dwMask, dwIfIndex'
+
+# Used to set the state of a TCP Connection.
+# The only state that it can be set to is MIB_TCP_STATE_DELETE_TCB.
+# The complete MIB_TCPROW structure MUST BE SPECIFIED
+SetTcpEntry = WINFUNCTYPE(c_ulong, PMIB_TCPROW)(('SetTcpEntry', windll.iphlpapi))
+_GetInterfaceInfo = WINFUNCTYPE(c_ulong, PIP_INTERFACE_INFO, c_void_p)(('GetInterfaceInfo', windll.iphlpapi))
+def GetInterfaceInfo(pIfTable = IP_INTERFACE_INFO()):
+	dwOutBufLen = c_ulong()
+	result = _GetInterfaceInfo(pIfTable, byref(dwOutBufLen))
+	return result, dwOutBufLen
+_GetUniDirectionalAdapterInfo = WINFUNCTYPE(c_ulong, PIP_UNIDIRECTIONAL_ADAPTER_ADDRESS, c_void_p)(('GetUniDirectionalAdapterInfo', windll.iphlpapi))
+def GetUniDirectionalAdapterInfo(pIPIfInfo = IP_UNIDIRECTIONAL_ADAPTER_ADDRESS()):
+	dwOutBufLen = c_ulong()
+	result = _GetUniDirectionalAdapterInfo(pIPIfInfo, byref(dwOutBufLen))
+	return result, dwOutBufLen
+
+if NTDDI_VERSION >= NTDDI_WIN2KSP1:
+	_NhpAllocateAndGetInterfaceInfoFromStack = WINFUNCTYPE(c_ulong, POINTER(PIP_INTERFACE_NAME_INFO), c_void_p, c_bool, c_ulong, c_ulong)(('NhpAllocateAndGetInterfaceInfoFromStack', windll.iphlpapi))
+	def NhpAllocateAndGetInterfaceInfoFromStack(bOrder = True, hHeap = None, dwFlags = 0):
+		ppTable = POINTER(IP_INTERFACE_NAME_INFO())
+		pdwCount = c_ulong()
+		result = _NhpAllocateAndGetInterfaceInfoFromStack(ppTable, byref(pdwCount), bOrder, hHeap, dwFlags)
+		return result, pdwCount, ppTable
+
+_GetBestInterface = WINFUNCTYPE(c_ulong, c_ulong, c_void_p)(('GetBestInterface', windll.iphlpapi))
+def GetBestInterface(dwDestAddr = 0):
+	pdwBestIfIndex = c_ulong()
+	result = _GetBestInterface(dwDestAddr, byref(pdwBestIfIndex))
+	return result, pdwBestIfIndex
+
+class sockaddr(Structure):
+	_fields_ = [('sa_family', c_ushort), ('sa_data', c_char * 14)]
+_GetBestInterfaceEx = WINFUNCTYPE(c_ulong, POINTER(sockaddr), c_void_p)(('GetBestInterfaceEx', windll.iphlpapi))
+def GetBestInterfaceEx(pDestAddr = sockaddr()):
+	pdwBestIfIndex = c_ulong()
+	result = _GetBestInterfaceEx(pDestAddr, byref(pdwBestIfIndex))
+	return result, pdwBestIfIndex
+
+# Gets the best (longest matching prefix) route for the given destination
+# If the source address is also specified (i.e. is not 0x00000000), and
+# there are multiple "best" routes to the given destination, the returned
+# route will be one that goes out over the interface which has an address
+# that matches the source address
+_GetBestRoute = WINFUNCTYPE(c_ulong, c_ulong, c_ulong, PMIB_IPFORWARDROW)(('GetBestRoute', windll.iphlpapi))
+def GetBestRoute(dwDestAddr = 0, dwSourceAddr = 0):
+	pBestRoute = MIB_IPFORWARDROW()
+	result = _GetBestRoute(dwDestAddr, dwSourceAddr, pBestRoute)
+	return result, pBestRoute
+
+class _STRUCTURE(Structure):
+	_fields_ = [('Offset', c_ulong), ('OffsetHigh', c_ulong)]
+class _UNION(Union):
+	_fields_ = [('s', _STRUCTURE), ('Pointer', c_void_p)]
+	_anonymous_ = ('s',)
+class OVERLAPPED(Structure):
+	_fields_ = [('Internal', POINTER(c_ulong)),
+	('InternalHigh', POINTER(c_ulong)),
+	('u', _UNION),
+	('hEvent', c_ushort)]
+	_anonymous_ = ('u',)
+LPOVERLAPPED = POINTER(OVERLAPPED)
+_NotifyAddrChange = WINFUNCTYPE(c_ulong, LPOVERLAPPED, c_void_p)(('NotifyAddrChange', windll.iphlpapi))
+def NotifyAddrChange(overlapped = OVERLAPPED()):
+	Handle = c_ulong()
+	result = _NotifyAddrChange(byref(Handle), overlapped)
+	return result, Handle
+_NotifyRouteChange = WINFUNCTYPE(c_ulong, LPOVERLAPPED, c_void_p)(('NotifyRouteChange', windll.iphlpapi))
+def NotifyRouteChange(overlapped = OVERLAPPED()):
+	Handle = c_ulong()
+	result = _NotifyRouteChange(byref(Handle), overlapped)
+	return result, Handle
+CancelIPChangeNotify = WINFUNCTYPE(c_bool, LPOVERLAPPED)(('CancelIPChangeNotify', windll.iphlpapi))
+_GetAdapterIndex = WINFUNCTYPE(c_ulong, c_wchar_p, c_void_p)(('GetAdapterIndex', windll.iphlpapi))
+def GetAdapterIndex(AdapterName = '', IfIndex = None):
+	if IfIndex is None:
+		IfIndex = c_ulong()
+	result = _GetAdapterIndex(AdapterName, byref(IfIndex))
+	return result, IfIndex
+_AddIPAddress = WINFUNCTYPE(c_ulong, c_ulong, c_ulong, c_ulong, c_void_p, c_void_p)(('AddIPAddress', windll.iphlpapi))
+def AddIPAddress(Address, IpMask = 0, IfIndex = 0):
+	NTEContext = c_ulong()
+	NTEInstance = c_ulong()
+	result = _AddIPAddress(Address, IpMask, IfIndex, byref(NTEContext), byref(NTEInstance))
+	return result, NTEContext, NTEInstance
+DeleteIPAddress = WINFUNCTYPE(c_ulong, c_ulong)(('DeleteIPAddress', windll.iphlpapi))
+
+if NTDDI_VERSION >= NTDDI_WIN2KSP1:
+	_GetNetworkParams = WINFUNCTYPE(c_ulong, PFIXED_INFO, c_void_p)(('GetNetworkParams', windll.iphlpapi))
+	def GetNetworkParams():
+		pFixedInfo = FIXED_INFO()
+		pOutBufLen = c_ulong()
+		result = _GetNetworkParams(pFixedInfo, byref(pOutBufLen))
+		return result, pFixedInfo, pOutBufLen
+
+_GetAdaptersInfo = WINFUNCTYPE(c_ulong, PIP_ADAPTER_INFO, c_void_p)(('GetAdaptersInfo', windll.iphlpapi))
+def GetAdaptersInfo(SizePointer = None):
+	AdapterInfo = IP_ADAPTER_INFO()
+	if SizePointer is None:
+		SizePointer = c_ulong()
+	result = _GetAdaptersInfo(AdapterInfo, byref(SizePointer))
+	return result, AdapterInfo, pOutBufLen
+
+GetAdapterOrderMap = WINFUNCTYPE(PIP_ADAPTER_ORDER_MAP)(('GetAdapterOrderMap', windll.iphlpapi))
 
 
 if __name__ == '__main__':
