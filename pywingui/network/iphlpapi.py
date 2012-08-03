@@ -432,7 +432,11 @@ if NTDDI_VERSION >= NTDDI_WIN2KSP1:
 		pFixedInfo = FIXED_INFO()
 		pOutBufLen = c_ulong()
 		result = _GetNetworkParams(pFixedInfo, byref(pOutBufLen))
-		return result, pFixedInfo, pOutBufLen
+		if result == 111:#ERROR_BUFFER_OVERFLOW
+			from pywingui.windows import GlobalAlloc
+			pFixedInfo = cast(GlobalAlloc(0, pOutBufLen), PFIXED_INFO)[0]
+			result = _GetNetworkParams(pFixedInfo, byref(pOutBufLen))
+		return result, pFixedInfo, pOutBufLen.value
 
 _GetAdaptersInfo = WINFUNCTYPE(c_ulong, PIP_ADAPTER_INFO, c_void_p)(('GetAdaptersInfo', windll.iphlpapi))
 def GetAdaptersInfo(SizePointer = None):

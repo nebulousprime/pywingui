@@ -285,17 +285,20 @@ if NTDDI_VERSION >= NTDDI_WIN2KSP1:
 	IP_PER_ADAPTER_INFO = IP_PER_ADAPTER_INFO_W2KSP1
 	PIP_PER_ADAPTER_INFO = PIP_PER_ADAPTER_INFO_W2KSP1
 
-class FIXED_INFO(Structure):
+class FIXED_INFO_W2KSP1(Structure):
 	_fields_ = [('HostName', c_char * (MAX_HOSTNAME_LEN + 4)),
 	('DomainName', c_char * (MAX_DOMAIN_NAME_LEN + 4)),
 	('CurrentDnsServer', PIP_ADDR_STRING),
 	('DnsServerList', IP_ADDR_STRING),
-	('NodeType', c_uint),
+	('NodeType', c_int),
 	('ScopeId', c_char * (MAX_SCOPE_ID_LEN + 4)),
 	('EnableRouting', c_uint),
 	('EnableProxy', c_uint),
 	('EnableDns', c_uint)]
-PFIXED_INFO = POINTER(FIXED_INFO)
+PFIXED_INFO_W2KSP1 = POINTER(FIXED_INFO_W2KSP1)
+if NTDDI_VERSION >= NTDDI_WIN2KSP1:
+	FIXED_INFO = FIXED_INFO_W2KSP1
+	PFIXED_INFO = PFIXED_INFO_W2KSP1
 
 class IP_INTERFACE_NAME_INFO_W2KSP1(Structure):
 	_fields_ = [('Index', c_ulong),# Interface Index

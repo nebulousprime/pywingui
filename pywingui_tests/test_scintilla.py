@@ -150,6 +150,10 @@ class Console(PyScintilla, code.InteractiveConsole):
 			prompt = sys.ps1
 		self.AddText(prompt)
 
+	def Eval(self, value):
+		#~ print(eval(value))
+		self.write(str(eval(value))+'\n')
+
 	def OnCharAdded(self, event):
 		ch = self.GetNotification(event).ch
 		if ch == 10: #line added
@@ -192,7 +196,9 @@ class MainForm(form.Form):
 					(MF_STRING, "&Paste\tCtrl+V", form.ID_PASTE),
 					(MF_STRING, "&Delete\tDel", form.ID_CLEAR),
 					(MF_SEPARATOR,),
-					(MF_STRING, "Select &All\tCtrl+A", form.ID_SELECTALL)])]
+					(MF_STRING, "Select &All\tCtrl+A", form.ID_SELECTALL)])
+					]
+	_editors_count_ = 0
 
 	def OnCreate(self, event):
 		aSplitter = splitter.Splitter(parent = self,
@@ -202,25 +208,32 @@ class MainForm(form.Form):
 		aEditor =  Editor(parent = aSplitter, orExStyle = WS_EX_CLIENTEDGE)
 		aConsole = Console(parent = aSplitter, orExStyle = WS_EX_CLIENTEDGE)
 
-		aSplitter.Add(0, aEditor)
-		aSplitter.Add(1, aConsole)
+		aSplitter.Add(self._editors_count_, aEditor)
+		self._editors_count_ += 1
+		aSplitter.Add(self._editors_count_, aConsole)
 
 		self.controls.Add(form.CTRL_VIEW, aSplitter)
 		self.controls.Add(form.CTRL_STATUSBAR, comctl.StatusBar(parent = self))
 		self.controls.Add(CTRL_EDITOR, aEditor)
 		self.controls.Add(aConsole)
-
+		self.console = aConsole
 
 	def OnNew(self, event):
-		form = MainForm()
-		form.ShowWindow()
+		#~ form = MainForm()
+		#~ form.ShowWindow()
+		aSplitter = self.controls[form.CTRL_VIEW]
+		aEditor =  Editor(parent = aSplitter, orExStyle = WS_EX_CLIENTEDGE)
+		self._editors_count_ += 1
+		aSplitter.Add(self._editors_count_, aEditor)
+		self.controls.Add('%s_%d' % (CTRL_EDITOR, self._editors_count_), aEditor)
 
 	cmd_handler(form.ID_NEW)(OnNew)
 
 	editor = property(lambda self: self.controls[CTRL_EDITOR])
 
 	def OnEval(self, event):
-		self.console.Eval()
+		if self.editor.GetLength():
+			self.console.Eval(self.editor.GetText())
 
 	cmd_handler(ID_EVAL)(OnEval)
 
@@ -231,34 +244,21 @@ class MainForm(form.Form):
 
 	msg_handler(WM_ACTIVATE)(OnActivate)
 
-	_msg_map_ = MSG_MAP(\
-		[
-		 CMD_ID_HANDLER(form.ID_UNDO,
-						lambda self, event: self.editor.Undo()),
-		 form.CMD_UI_UPDATE(form.ID_UNDO,
-							lambda self, event: event.Enable(self.editor.CanUndo())),
-		 CMD_ID_HANDLER(form.ID_REDO,
-						lambda self, event: self.editor.Redo()),
-		 form.CMD_UI_UPDATE(form.ID_REDO,
-							lambda self, event: event.Enable(self.editor.CanRedo())),
-		 CMD_ID_HANDLER(form.ID_CUT,
-						lambda self, event: self.editor.Cut()),
-		 form.CMD_UI_UPDATE(form.ID_CUT,
-							lambda self, event: event.Enable(self.editor.HasSelection())),
-		 CMD_ID_HANDLER(form.ID_COPY,
-						lambda self, event: self.editor.Copy()),
-		 form.CMD_UI_UPDATE(form.ID_COPY,
-							lambda self, event: event.Enable(self.editor.HasSelection())),
-		 CMD_ID_HANDLER(form.ID_PASTE,
-						lambda self, event: self.editor.Paste()), 
-		 form.CMD_UI_UPDATE(form.ID_PASTE,
-							lambda self, event: event.Enable(self.editor.CanPaste())),
-		 CMD_ID_HANDLER(form.ID_CLEAR,
-						lambda self, event: self.editor.Clear()), 
-		 form.CMD_UI_UPDATE(form.ID_CLEAR,
-							lambda self, event: event.Enable(self.editor.HasSelection())),
-		 CMD_ID_HANDLER(form.ID_SELECTALL,
-						lambda self, event: self.editor.SelectAll())])
+	_msg_map_ = MSG_MAP([
+		CMD_ID_HANDLER(form.ID_UNDO, lambda self, event: self.editor.Undo()),
+		form.CMD_UI_UPDATE(form.ID_UNDO, lambda self, event: event.Enable(self.editor.CanUndo())),
+		CMD_ID_HANDLER(form.ID_REDO, lambda self, event: self.editor.Redo()),
+		form.CMD_UI_UPDATE(form.ID_REDO, lambda self, event: event.Enable(self.editor.CanRedo())),
+		CMD_ID_HANDLER(form.ID_CUT, lambda self, event: self.editor.Cut()),
+		form.CMD_UI_UPDATE(form.ID_CUT, lambda self, event: event.Enable(self.editor.HasSelection())),
+		CMD_ID_HANDLER(form.ID_COPY, lambda self, event: self.editor.Copy()),
+		form.CMD_UI_UPDATE(form.ID_COPY, lambda self, event: event.Enable(self.editor.HasSelection())),
+		CMD_ID_HANDLER(form.ID_PASTE, lambda self, event: self.editor.Paste()), 
+		form.CMD_UI_UPDATE(form.ID_PASTE, lambda self, event: event.Enable(self.editor.CanPaste())),
+		CMD_ID_HANDLER(form.ID_CLEAR, lambda self, event: self.editor.Clear()), 
+		form.CMD_UI_UPDATE(form.ID_CLEAR, lambda self, event: event.Enable(self.editor.HasSelection())),
+		CMD_ID_HANDLER(form.ID_SELECTALL, lambda self, event: self.editor.SelectAll())
+		])
 
 if __name__ == '__main__':
 	mainForm = MainForm()        

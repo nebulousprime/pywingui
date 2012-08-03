@@ -90,6 +90,15 @@ class Scintilla(Window):
 	def StyleClearAll(self):
 		self.SendScintillaMessage(SCI_STYLECLEARALL, 0, 0)
 
+	def GetLength(self):
+		return self.SendScintillaMessage(SCI_GETLENGTH, 0, 0)
+
+	def GetText(self):
+		buff_length = self.GetLength() + 1
+		buff = create_string_buffer(buff_length)
+		self.SendScintillaMessage(SCI_GETTEXT, buff_length, byref(buff))
+		return str(buff.value)
+
 	def GetSelText(self):
 		start = self.SendScintillaMessage(SCI_GETSELECTIONSTART, 0, 0)
 		end = self.SendScintillaMessage(SCI_GETSELECTIONEND, 0, 0)
