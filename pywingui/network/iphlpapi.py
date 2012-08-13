@@ -417,7 +417,7 @@ def GetAdapterIndex(AdapterName = '', IfIndex = None):
 	if IfIndex is None:
 		IfIndex = c_ulong()
 	result = _GetAdapterIndex(AdapterName, byref(IfIndex))
-	return result, IfIndex
+	return result, IfIndex.value
 _AddIPAddress = WINFUNCTYPE(c_ulong, c_ulong, c_ulong, c_ulong, c_void_p, c_void_p)(('AddIPAddress', windll.iphlpapi))
 def AddIPAddress(Address, IpMask = 0, IfIndex = 0):
 	NTEContext = c_ulong()
@@ -444,7 +444,7 @@ def GetAdaptersInfo(SizePointer = None):
 	if SizePointer is None:
 		SizePointer = c_ulong()
 	result = _GetAdaptersInfo(AdapterInfo, byref(SizePointer))
-	return result, AdapterInfo, pOutBufLen
+	return result, AdapterInfo, SizePointer.value
 
 GetAdapterOrderMap = WINFUNCTYPE(PIP_ADAPTER_ORDER_MAP)(('GetAdapterOrderMap', windll.iphlpapi))
 

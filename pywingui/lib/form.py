@@ -89,7 +89,7 @@ class Form(Window):
     _window_style_ex_ = WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | \
                         WS_EX_WINDOWEDGE | WS_EX_APPWINDOW
 
-    _window_background_ = gdi.GetStockObject(WHITE_BRUSH)
+    _window_background_ = gdi.GetStockObject(gdi.WHITE_BRUSH)
     _form_accels_ = []
 
     _form_exit_ = EXIT_ONDESTROY

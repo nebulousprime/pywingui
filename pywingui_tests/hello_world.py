@@ -26,7 +26,7 @@ from pywingui import gdi
 
 class MyWindow(Window):
     _window_title_ = "Hello World"
-    _window_background_ = gdi.GetStockObject(WHITE_BRUSH)
+    _window_background_ = gdi.GetStockObject(gdi.WHITE_BRUSH)
     _window_class_style_ = CS_HREDRAW | CS_VREDRAW 
 
     #@msg_handler(WM_PAINT) #python 2.4 style decorator

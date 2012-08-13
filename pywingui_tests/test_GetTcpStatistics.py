@@ -14,8 +14,8 @@ class Form(form.Form):
 	_form_menu_ = [(MF_POPUP, '&File', [(MF_STRING, '&Exit', form.ID_EXIT)])]
 	_window_title_ = 'GetTcpStatistics Example'
 
-	def __init__(self):
-		form.Form.__init__(self)      
+	def __init__(self, *args, **kwargs):
+		form.Form.__init__(self, *args, **kwargs)      
 		#~ self.list_view.SetItemCount(len(captions))
 		#~ self.list_view.SetRedraw(1)
 		lvcolumn = comctl.LVCOLUMN(comctl.LVCF_TEXT|comctl.LVCF_WIDTH, 0, 300, 'item')
@@ -52,7 +52,7 @@ class Form(form.Form):
 		self.controls.Add(form.CTRL_STATUSBAR, comctl.StatusBar(parent = self))
 
 if __name__ == '__main__':
-	mainForm = Form()
+	mainForm = Form(rcPos = RECT(0, 0, 420, 240))
 	mainForm.ShowWindow()
 
 	application = Application()

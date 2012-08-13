@@ -14,11 +14,11 @@ class Form(form.Form):
 	_form_menu_ = [(MF_POPUP, '&File', [(MF_STRING, '&Exit', form.ID_EXIT)])]
 	_window_title_ = 'GetIpStatistics Example'
 
-	def __init__(self):
-		form.Form.__init__(self)      
+	def __init__(self, *args, **kwargs):
+		form.Form.__init__(self, *args, **kwargs)      
 		#~ self.list_view.SetItemCount(len(captions))
 		#~ self.list_view.SetRedraw(1)
-		lvcolumn = comctl.LVCOLUMN(comctl.LVCF_TEXT|comctl.LVCF_WIDTH, 0, 400, 'item')
+		lvcolumn = comctl.LVCOLUMN(comctl.LVCF_TEXT|comctl.LVCF_WIDTH, 0, 500, 'item')
 		self.list_view.InsertColumn(0, lvcolumn)
 		lvcolumn = comctl.LVCOLUMN(comctl.LVCF_TEXT|comctl.LVCF_WIDTH, 0, 100, 'value')
 		self.list_view.InsertColumn(1, lvcolumn)
@@ -38,7 +38,10 @@ class Form(form.Form):
 		if dwRetval != NO_ERROR:
 			print('GetIpStatistics call failed with %d' % dwRetval)
 		else:
-			items[0].pszText = '%d' % pStats.dwForwarding
+			if hasattr(pStats, 'dwForwarding'):
+				items[0].pszText = '%d' % pStats.dwForwarding
+			else:
+				items[0].pszText = '(%d) %d' % (pStats.u.dwOldFieldName, pStats.u.enumNewFieldName)
 			items[1].pszText = '%d' % pStats.dwDefaultTTL
 			items[2].pszText = '%d' % pStats.dwInReceives
 			items[3].pszText = '%d' % pStats.dwInHdrErrors
@@ -70,7 +73,7 @@ class Form(form.Form):
 		self.controls.Add(form.CTRL_STATUSBAR, comctl.StatusBar(parent = self))
 
 if __name__ == '__main__':
-	mainForm = Form()
+	mainForm = Form(rcPos = RECT(0, 0, 640, 480))
 	mainForm.ShowWindow()
 
 	application = Application()

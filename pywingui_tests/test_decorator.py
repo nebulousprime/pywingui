@@ -57,7 +57,7 @@ class Tree(tree.Tree):
 class CrossWindow(Window):
     _window_style_ = WS_VISIBLE | WS_CHILD
     _window_style_ex_ = 0
-    _window_background_ = gdi.GetStockObject(WHITE_BRUSH)
+    _window_background_ = gdi.GetStockObject(gdi.WHITE_BRUSH)
     #make windows automatically invalidate window on resize, forces repaint of client area:
     _window_class_style_ = CS_HREDRAW | CS_VREDRAW 
 

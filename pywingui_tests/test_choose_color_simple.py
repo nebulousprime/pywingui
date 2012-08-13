@@ -6,7 +6,7 @@ from pywingui.comdlg import ChooseColor, CHOOSECOLOR, COLORREF, LPCOLORREF, CC_F
 
 class MyWindow(Window):
 	_window_title_ = 'Simple ChooseColor Example'
-	_window_background_ = gdi.GetStockObject(WHITE_BRUSH)
+	_window_background_ = gdi.GetStockObject(gdi.WHITE_BRUSH)
 	_window_class_style_ = CS_HREDRAW | CS_VREDRAW
 	rgbCurrent = 0# initial color selection
 	cc = CHOOSECOLOR()# common dialog box structure 

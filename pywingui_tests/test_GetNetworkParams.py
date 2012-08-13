@@ -1,4 +1,4 @@
-captions = ['Number of incoming ICMP messages', 'Number of incoming ICMP errors received', 'Number of outgoing ICMP messages', 'Number of outgoing ICMP errors sent']
+captions = ['Host Name', 'Domain Name', 'DNS Servers']
 
 from pywingui.windows import *
 from pywingui.wtl import *
@@ -6,13 +6,13 @@ from pywingui import comctl
 from pywingui.lib import form
 from pywingui.error import NO_ERROR
 
-from pywingui.network.iphlpapi import GetIcmpStatistics
+from pywingui.network.iphlpapi import GetNetworkParams
 
 comctl.InitCommonControls(comctl.ICC_USEREX_CLASSES)
 
 class Form(form.Form):
 	_form_menu_ = [(MF_POPUP, '&File', [(MF_STRING, '&Exit', form.ID_EXIT)])]
-	_window_title_ = 'GetIpStatistics Example'
+	_window_title_ = 'GetNetworkParams Example'
 
 	def __init__(self, *args, **kwargs):
 		form.Form.__init__(self, *args, **kwargs)      
@@ -34,14 +34,18 @@ class Form(form.Form):
 			item.pszText = 'value %d' % i
 			self.list_view.SetItem(item)
 			items.append(item)
-		dwRetval, pStats = GetIcmpStatistics()
+		dwRetval, FixedInfo, buf_len = GetNetworkParams()
 		if dwRetval != NO_ERROR:
-			print('GetIcmpStatistics failed with error %d' % dwRetval)
+			print('GetNetworkParams failed with error %d' % dwRetval)
 		else:
-			items[0].pszText = '%d' % pStats.stats.icmpInStats.dwMsgs
-			items[1].pszText = '%d' % pStats.stats.icmpInStats.dwErrors
-			items[2].pszText = '%d' % pStats.stats.icmpOutStats.dwMsgs
-			items[3].pszText = '%d' % pStats.stats.icmpOutStats.dwErrors
+			items[0].pszText = FixedInfo.HostName
+			items[1].pszText = FixedInfo.DomainName
+			dns_server_list = FixedInfo.DnsServerList.IpAddress.String
+			pIPAddr = FixedInfo.DnsServerList.Next
+			while pIPAddr:
+				dns_server_list += '; ' + pIPAddr[0].IpAddress.String
+				pIPAddr = pIPAddr.Next
+			items[2].pszText = dns_server_list
 			for item in items:
 				self.list_view.SetItem(item)
 

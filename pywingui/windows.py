@@ -140,11 +140,10 @@ class WNDCLASSEX(Structure):
 class POINT(Structure):
     _fields_ = [("x", LONG),
                 ("y", LONG)]
-
     def __str__(self):
         return "POINT {x: %d, y: %d}" % (self.x, self.y)
-
 POINTL = POINT
+LPPOINT = POINTER(POINT)
 
 class POINTS(Structure):
     _fields_ = [("x", SHORT),
@@ -391,7 +390,7 @@ VK_DELETE  = 0x2E
 
 CS_HREDRAW = 2
 CS_VREDRAW = 1
-WHITE_BRUSH = 0
+#~ WHITE_BRUSH = 0
 
 MIIM_STATE= 1
 MIIM_ID= 2
