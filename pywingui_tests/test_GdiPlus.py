@@ -30,8 +30,8 @@ class main_window(Window):
 		self.Drawing_a_Shaded_Rectangle(hdc, rect)
 		status, graphics = gdiplus.GdipCreateFromHDC(hdc)
 		status, pen = gdiplus.GdipCreatePen1(gdiplus.MakeARGB(100, 0, 0, 255), 30.0)
-		status = gdiplus.GdipDrawLine(graphics, pen, 0.0, 0.0, float(rect.width), float(rect.height))
-		status = gdiplus.GdipDrawLine(graphics, pen, float(rect.width), 0.0, 0.0, float(rect.height))
+		status = gdiplus.GdipDrawLineI(graphics, pen, 0, 0, rect.width, rect.height)
+		status = gdiplus.GdipDrawLineI(graphics, pen, rect.width, 0, 0, rect.height)
 		self.EndPaint(ps)
 
 	msg_handler(WM_DESTROY)(OnDestroy)

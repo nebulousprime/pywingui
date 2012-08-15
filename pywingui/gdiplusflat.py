@@ -1,4 +1,4 @@
-# gdiplusflat.py
+# gdiplusflat.py created from gdiplusflat.h
 # Copyright (c) 2012 Maxim Kolosov
 
 GDIPVER = 0x0100
@@ -66,11 +66,11 @@ NotificationHookProc = WINFUNCTYPE(c_int, c_void_p)
 NotificationUnhookProc = WINFUNCTYPE(None, c_void_p)
 
 class GdiplusStartupInput(Structure):
+	'startup_input = GdiplusStartupInput(1, None, False, False)'
 	_fields_ = [('GdiplusVersion', c_uint),
 	('DebugEventCallback', DebugEventProc),
 	('SuppressBackgroundThread', c_bool),
 	('SuppressExternalCodecs', c_bool)]
-#~ startup_input = GdiplusStartupInput(1, None, False, False)
 
 class GdiplusStartupOutput(Structure):
 	_fields_ = [('NotificationHook', NotificationHookProc),
@@ -121,11 +121,164 @@ GdipCreateFromHWNDICM = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCreateFromH
 GdipDeleteGraphics = WINFUNCTYPE(c_int, c_void_p)(('GdipDeleteGraphics', windll.gdiplus))
 
 #GpStatus WINGDIPAPI GdipGetDC(GpGraphics* graphics, HDC * hdc);
-GdipGetDC = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetDC', windll.gdiplus))
+_GdipGetDC = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetDC', windll.gdiplus))
+def GdipGetDC(graphics):
+	hdc = c_void_p()
+	status = _GdipGetDC(graphics, byref(hdc))
+	return status, hdc
 
 #GpStatus WINGDIPAPI GdipReleaseDC(GpGraphics* graphics, HDC hdc);
 GdipReleaseDC = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipReleaseDC', windll.gdiplus))
 
+#GpStatus WINGDIPAPI GdipSetCompositingMode(GpGraphics *graphics, CompositingMode compositingMode);
+GdipSetCompositingMode = WINFUNCTYPE(c_int, c_void_p, c_int)(('GdipSetCompositingMode', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetCompositingMode(GpGraphics *graphics, CompositingMode *compositingMode);
+_GdipGetCompositingMode = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetCompositingMode', windll.gdiplus))
+def GdipGetCompositingMode(graphics):
+	compositingMode = c_int()
+	status = _GdipGetCompositingMode(graphics, byref(compositingMode))
+	return status, compositingMode.value
+
+#GpStatus WINGDIPAPI GdipSetRenderingOrigin(GpGraphics *graphics, INT x, INT y);
+GdipSetRenderingOrigin = WINFUNCTYPE(c_int, c_void_p, c_int, c_int)(('GdipSetRenderingOrigin', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetRenderingOrigin(GpGraphics *graphics, INT *x, INT *y);
+_GdipGetRenderingOrigin = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p)(('GdipGetRenderingOrigin', windll.gdiplus))
+def GdipGetRenderingOrigin(graphics):
+	x, y = c_int(), c_int()
+	status = _GdipGetRenderingOrigin(graphics, byref(x), byref(y))
+	return status, x.value, y.value
+
+#GpStatus WINGDIPAPI GdipSetCompositingQuality(GpGraphics *graphics, CompositingQuality compositingQuality);
+GdipSetCompositingQuality = WINFUNCTYPE(c_int, c_void_p, c_int)(('GdipSetCompositingQuality', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetCompositingQuality(GpGraphics *graphics, CompositingQuality *compositingQuality);
+_GdipGetCompositingQuality = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetCompositingQuality', windll.gdiplus))
+def GdipGetCompositingQuality(graphics):
+	compositingQuality = c_int()
+	status = _GdipGetCompositingQuality(graphics, byref(compositingQuality))
+	return status, compositingQuality.value
+
+#GpStatus WINGDIPAPI GdipSetSmoothingMode(GpGraphics *graphics, SmoothingMode smoothingMode);
+GdipSetSmoothingMode = WINFUNCTYPE(c_int, c_void_p, c_int)(('GdipSetSmoothingMode', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetSmoothingMode(GpGraphics *graphics, SmoothingMode *smoothingMode);
+_GdipGetSmoothingMode = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetSmoothingMode', windll.gdiplus))
+def GdipGetSmoothingMode(graphics):
+	smoothingMode = c_int()
+	status = _GdipGetSmoothingMode(graphics, byref(smoothingMode))
+	return status, smoothingMode.value
+
+#GpStatus WINGDIPAPI GdipSetPixelOffsetMode(GpGraphics* graphics, PixelOffsetMode pixelOffsetMode);
+GdipSetPixelOffsetMode = WINFUNCTYPE(c_int, c_void_p, c_int)(('GdipSetPixelOffsetMode', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetPixelOffsetMode(GpGraphics *graphics, PixelOffsetMode *pixelOffsetMode);
+_GdipGetPixelOffsetMode = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetPixelOffsetMode', windll.gdiplus))
+def GdipGetPixelOffsetMode(graphics):
+	pixelOffsetMode = c_int()
+	status = _GdipGetPixelOffsetMode(graphics, byref(pixelOffsetMode))
+	return status, pixelOffsetMode.value
+
+#GpStatus WINGDIPAPI GdipSetTextRenderingHint(GpGraphics *graphics, TextRenderingHint mode);
+GdipSetTextRenderingHint = WINFUNCTYPE(c_int, c_void_p, c_int)(('GdipSetTextRenderingHint', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetTextRenderingHint(GpGraphics *graphics, TextRenderingHint *mode);
+_GdipGetTextRenderingHint = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetTextRenderingHint', windll.gdiplus))
+def GdipGetTextRenderingHint(graphics):
+	mode = c_int()
+	status = _GdipGetTextRenderingHint(graphics, byref(mode))
+	return status, mode.value
+
+#GpStatus  WINGDIPAPI GdipSetTextContrast(GpGraphics *graphics, UINT contrast);
+GdipSetTextContrast = WINFUNCTYPE(c_int, c_void_p, c_uint)(('GdipSetTextContrast', windll.gdiplus))
+
+#GpStatus  WINGDIPAPI GdipGetTextContrast(GpGraphics *graphics, UINT * contrast);
+_GdipGetTextContrast = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetTextContrast', windll.gdiplus))
+def GdipGetTextContrast(graphics):
+	contrast = c_uint()
+	status = _GdipGetTextContrast(graphics, byref(contrast))
+	return status, contrast.value
+
+#GpStatus WINGDIPAPI GdipSetInterpolationMode(GpGraphics *graphics, InterpolationMode interpolationMode);
+GdipSetInterpolationMode = WINFUNCTYPE(c_int, c_void_p, c_int)(('GdipSetInterpolationMode', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetInterpolationMode(GpGraphics *graphics, InterpolationMode *interpolationMode);
+_GdipGetInterpolationMode = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetInterpolationMode', windll.gdiplus))
+def GdipGetInterpolationMode(graphics):
+	interpolationMode = c_int()
+	status = _GdipGetInterpolationMode(graphics, byref(interpolationMode))
+	return status, interpolationMode.value
+
+#GpStatus WINGDIPAPI GdipSetWorldTransform(GpGraphics *graphics, GpMatrix *matrix);
+GdipSetWorldTransform = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipSetWorldTransform', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipResetWorldTransform(GpGraphics *graphics);
+GdipResetWorldTransform = WINFUNCTYPE(c_int, c_void_p)(('GdipResetWorldTransform', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipMultiplyWorldTransform(GpGraphics *graphics, GDIPCONST GpMatrix *matrix, GpMatrixOrder order);
+GdipMultiplyWorldTransform = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int)(('GdipMultiplyWorldTransform', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipTranslateWorldTransform(GpGraphics *graphics, REAL dx, REAL dy, GpMatrixOrder order);
+GdipTranslateWorldTransform = WINFUNCTYPE(c_int, c_void_p, c_float, c_float, c_int)(('GdipTranslateWorldTransform', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipScaleWorldTransform(GpGraphics *graphics, REAL sx, REAL sy, GpMatrixOrder order);
+GdipScaleWorldTransform = WINFUNCTYPE(c_int, c_void_p, c_float, c_float, c_int)(('GdipScaleWorldTransform', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipRotateWorldTransform(GpGraphics *graphics, REAL angle, GpMatrixOrder order);
+GdipRotateWorldTransform = WINFUNCTYPE(c_int, c_void_p, c_float, c_int)(('GdipRotateWorldTransform', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetWorldTransform(GpGraphics *graphics, GpMatrix *matrix);
+GdipGetWorldTransform = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetWorldTransform', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipResetPageTransform(GpGraphics *graphics);
+GdipResetPageTransform = WINFUNCTYPE(c_int, c_void_p)(('GdipResetPageTransform', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetPageUnit(GpGraphics *graphics, GpUnit *unit);
+GdipGetPageUnit = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetPageUnit', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetPageScale(GpGraphics *graphics, REAL *scale);
+GdipGetPageScale = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetPageScale', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipSetPageUnit(GpGraphics *graphics, GpUnit unit);
+GdipSetPageUnit = WINFUNCTYPE(c_int, c_void_p, c_int)(('GdipSetPageUnit', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipSetPageScale(GpGraphics *graphics, REAL scale);
+GdipSetPageScale = WINFUNCTYPE(c_int, c_void_p, c_float)(('GdipSetPageScale', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetDpiX(GpGraphics *graphics, REAL* dpi);
+GdipGetDpiX = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetDpiX', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetDpiY(GpGraphics *graphics, REAL* dpi);
+GdipGetDpiY = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetDpiY', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipTransformPoints(GpGraphics *graphics, GpCoordinateSpace destSpace, GpCoordinateSpace srcSpace, GpPointF *points, INT count);
+GdipTransformPoints = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, c_void_p, c_int)(('GdipTransformPoints', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipTransformPointsI(GpGraphics *graphics, GpCoordinateSpace destSpace, GpCoordinateSpace srcSpace, GpPoint *points, INT count);
+GdipTransformPointsI = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, c_void_p, c_int)(('GdipTransformPointsI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetNearestColor(GpGraphics *graphics, ARGB* argb);
+GdipGetNearestColor = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetNearestColor', windll.gdiplus))
+
+# Creates the Win9x Halftone Palette (even on NT) with correct Desktop colors
+#HPALETTE WINGDIPAPI GdipCreateHalftonePalette();
+GdipCreateHalftonePalette = WINFUNCTYPE(c_void_p)(('GdipCreateHalftonePalette', windll.gdiplus))
 
 #GpStatus WINGDIPAPI GdipDrawLine(GpGraphics *graphics, GpPen *pen, REAL x1, REAL y1, REAL x2, REAL y2);
 GdipDrawLine = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_float, c_float, c_float, c_float)(('GdipDrawLine', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawLineI(GpGraphics *graphics, GpPen *pen, INT x1, INT y1, INT x2, INT y2);
+GdipDrawLineI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int, c_int, c_int)(('GdipDrawLineI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawLines(GpGraphics *graphics, GpPen *pen, GDIPCONST GpPointF *points, INT count);
+GdipDrawLines = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('GdipDrawLines', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawLinesI(GpGraphics *graphics, GpPen *pen, GDIPCONST GpPoint *points, INT count);
+GdipDrawLinesI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('GdipDrawLinesI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawArc(GpGraphics *graphics, GpPen *pen, REAL x, REAL y, REAL width, REAL height, REAL startAngle, REAL sweepAngle);
+GdipDrawArc = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_float, c_float, c_float, c_float, c_float, c_float)(('GdipDrawArc', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawArcI(GpGraphics *graphics, GpPen *pen, INT x, INT y, INT width, INT height, REAL startAngle, REAL sweepAngle);
+GdipDrawArcI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int, c_int, c_int, c_float, c_float)(('GdipDrawArcI', windll.gdiplus))
