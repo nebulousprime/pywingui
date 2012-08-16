@@ -83,6 +83,7 @@ GdiplusStartup = WINFUNCTYPE(c_int, c_void_p, POINTER(GdiplusStartupInput), c_vo
 GdiplusShutdown = WINFUNCTYPE(None, c_void_p)(('GdiplusShutdown', windll.gdiplus))
 
 
+#=========
 # Pen APIs
 
 #GpStatus WINGDIPAPI GdipCreatePen1(ARGB color, REAL width, GpUnit unit, GpPen **pen);
@@ -93,9 +94,98 @@ def GdipCreatePen1(color = MakeARGB(255, 255, 255, 255), width = 1.0, unit = Uni
 	return status, pen
 
 #GpStatus WINGDIPAPI GdipCreatePen2(GpBrush *brush, REAL width, GpUnit unit, GpPen **pen);
-GdipCreatePen2 = WINFUNCTYPE(c_int, c_void_p, c_float, c_int, c_void_p)(('GdipCreatePen2', windll.gdiplus))
+_GdipCreatePen2 = WINFUNCTYPE(c_int, c_void_p, c_float, c_int, c_void_p)(('GdipCreatePen2', windll.gdiplus))
+def GdipCreatePen2(color = None, width = 1.0, unit = UnitWorld):
+	pen = c_void_p()
+	status = _GdipCreatePen2(color, width, unit, byref(pen))
+	return status, pen
+
+#GpStatus WINGDIPAPI GdipClonePen(GpPen *pen, GpPen **clonepen);
+_GdipClonePen = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipClonePen', windll.gdiplus))
+def GdipClonePen(pen):
+	clonepen = c_void_p()
+	status = _GdipClonePen(pen, byref(clonepen))
+	return status, clonepen
+
+#GpStatus WINGDIPAPI GdipDeletePen(GpPen *pen);
+GdipDeletePen = WINFUNCTYPE(c_int, c_void_p)(('GdipDeletePen', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipSetPenWidth(GpPen *pen, REAL width);
+GdipSetPenWidth = WINFUNCTYPE(c_int, c_void_p, c_float)(('GdipSetPenWidth', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetPenWidth(GpPen *pen, REAL *width);
+_GdipGetPenWidth = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetPenWidth', windll.gdiplus))
+def GdipGetPenWidth(pen):
+	width = c_float()
+	status = _GdipGetPenWidth(pen, byref(width))
+	return status, width.value
+
+#GpStatus WINGDIPAPI GdipSetPenUnit(GpPen *pen, GpUnit unit);
+GdipSetPenUnit = WINFUNCTYPE(c_int, c_void_p, c_int)(('GdipSetPenUnit', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetPenUnit(GpPen *pen, GpUnit *unit);
+_GdipGetPenUnit = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetPenUnit', windll.gdiplus))
+def GdipGetPenUnit(pen):
+	unit = c_int()
+	status = _GdipGetPenUnit(pen, byref(unit))
+	return status, unit.value
 
 
+#=========
+# Image APIs
+
+#GpStatus WINGDIPAPI GdipLoadImageFromStream(IStream* stream, GpImage **image);
+_GdipLoadImageFromStream = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipLoadImageFromStream', windll.gdiplus))
+def GdipLoadImageFromStream(stream):
+	image = c_void_p()
+	status = _GdipLoadImageFromStream(stream, byref(image))
+	return status, image
+
+#GpStatus WINGDIPAPI GdipLoadImageFromFile(GDIPCONST WCHAR* filename, GpImage **image);
+_GdipLoadImageFromFile = WINFUNCTYPE(c_int, c_wchar_p, c_void_p)(('GdipLoadImageFromFile', windll.gdiplus))
+def GdipLoadImageFromFile(filename = ''):
+	image = c_void_p()
+	status = _GdipLoadImageFromFile(filename, byref(image))
+	return status, image
+
+#GpStatus WINGDIPAPI GdipLoadImageFromStreamICM(IStream* stream, GpImage **image);
+_GdipLoadImageFromStreamICM = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipLoadImageFromStreamICM', windll.gdiplus))
+def GdipLoadImageFromStreamICM(stream):
+	image = c_void_p()
+	status = _GdipLoadImageFromStreamICM(stream, byref(image))
+	return status, image
+
+#GpStatus WINGDIPAPI GdipLoadImageFromFileICM(GDIPCONST WCHAR* filename, GpImage **image);
+_GdipLoadImageFromFileICM = WINFUNCTYPE(c_int, c_wchar_p, c_void_p)(('GdipLoadImageFromFileICM', windll.gdiplus))
+def GdipLoadImageFromFileICM(filename = ''):
+	image = c_void_p()
+	status = _GdipLoadImageFromFileICM(filename, byref(image))
+	return status, image
+
+#GpStatus WINGDIPAPI GdipCloneImage(GpImage *image, GpImage **cloneImage);
+_GdipCloneImage = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCloneImage', windll.gdiplus))
+def GdipCloneImage(image):
+	cloneImage = c_void_p()
+	status = _GdipCloneImage(image, byref(cloneImage))
+	return status, cloneImage
+
+#GpStatus WINGDIPAPI GdipDisposeImage(GpImage *image);
+GdipDisposeImage = WINFUNCTYPE(c_int, c_void_p)(('GdipDisposeImage', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipSaveImageToFile(GpImage *image, GDIPCONST WCHAR* filename, GDIPCONST CLSID* clsidEncoder, GDIPCONST EncoderParameters* encoderParams);
+GdipSaveImageToFile = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_void_p)(('GdipSaveImageToFile', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipSaveImageToStream(GpImage *image, IStream* stream, GDIPCONST CLSID* clsidEncoder, GDIPCONST EncoderParameters* encoderParams);
+GdipSaveImageToStream = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_void_p)(('GdipSaveImageToStream', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipSaveAdd(GpImage *image, GDIPCONST EncoderParameters* encoderParams);
+GdipSaveAdd = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipSaveAdd', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipSaveAddImage(GpImage *image, GpImage* newImage, GDIPCONST EncoderParameters* encoderParams);
+GdipSaveAddImage = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p)(('GdipSaveAddImage', windll.gdiplus))
+
+
+#===========
 # Graphics APIs
 
 #GpStatus WINGDIPAPI GdipFlush(GpGraphics *graphics, GpFlushIntention intention);
@@ -282,3 +372,45 @@ GdipDrawArc = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_float, c_float, c_float, 
 
 #GpStatus WINGDIPAPI GdipDrawArcI(GpGraphics *graphics, GpPen *pen, INT x, INT y, INT width, INT height, REAL startAngle, REAL sweepAngle);
 GdipDrawArcI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int, c_int, c_int, c_float, c_float)(('GdipDrawArcI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawBezier(GpGraphics *graphics, GpPen *pen, REAL x1, REAL y1, REAL x2, REAL y2, REAL x3, REAL y3, REAL x4, REAL y4);
+GdipDrawBezier = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_float, c_float, c_float, c_float, c_float, c_float, c_float, c_float)(('GdipDrawBezier', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawBezierI(GpGraphics *graphics, GpPen *pen, INT x1, INT y1, INT x2, INT y2, INT x3, INT y3, INT x4, INT y4);
+GdipDrawBezierI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int, c_int, c_int, c_int, c_int, c_int, c_int)(('GdipDrawBezierI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawBeziers(GpGraphics *graphics, GpPen *pen, GDIPCONST GpPointF *points, INT count);
+GdipDrawBeziers = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('GdipDrawBeziers', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawBeziersI(GpGraphics *graphics, GpPen *pen, GDIPCONST GpPoint *points, INT count);
+GdipDrawBeziersI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('GdipDrawBeziersI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawRectangle(GpGraphics *graphics, GpPen *pen, REAL x, REAL y, REAL width, REAL height);
+GdipDrawRectangle = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_float, c_float, c_float, c_float)(('GdipDrawRectangle', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawRectangleI(GpGraphics *graphics, GpPen *pen, INT x, INT y, INT width, INT height);
+GdipDrawRectangleI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int, c_int, c_int)(('GdipDrawRectangleI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawRectangles(GpGraphics *graphics, GpPen *pen, GDIPCONST GpRectF *rects, INT count);
+GdipDrawRectangles = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('GdipDrawRectangles', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawRectanglesI(GpGraphics *graphics, GpPen *pen, GDIPCONST GpRect *rects, INT count);
+GdipDrawRectanglesI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('GdipDrawRectanglesI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawEllipse(GpGraphics *graphics, GpPen *pen, REAL x, REAL y, REAL width, REAL height);
+GdipDrawEllipse = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_float, c_float, c_float, c_float)(('GdipDrawEllipse', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawEllipseI(GpGraphics *graphics, GpPen *pen, INT x, INT y, INT width, INT height);
+GdipDrawEllipseI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int, c_int, c_int)(('GdipDrawEllipseI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawPie(GpGraphics *graphics, GpPen *pen, REAL x, REAL y, REAL width, REAL height, REAL startAngle, REAL sweepAngle);
+GdipDrawPie = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_float, c_float, c_float, c_float)(('GdipDrawPie', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawPieI(GpGraphics *graphics, GpPen *pen, INT x, INT y, INT width, INT height, REAL startAngle, REAL sweepAngle);
+GdipDrawPieI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int, c_int, c_int, c_float, c_float)(('GdipDrawPieI', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawPolygon(GpGraphics *graphics, GpPen *pen, GDIPCONST GpPointF *points, INT count);
+GdipDrawPolygon = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('GdipDrawPolygon', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawPolygonI(GpGraphics *graphics, GpPen *pen, GDIPCONST GpPoint *points, INT count);
+GdipDrawPolygonI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('GdipDrawPolygonI', windll.gdiplus))

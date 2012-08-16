@@ -8,6 +8,9 @@ from pywingui.wtl import *
 from pywingui.winuser import *
 from pywingui.version_microsoft import WINVER
 
+#VOID CALLBACK TimerProc(_In_  HWND hwnd, _In_  UINT uMsg, _In_  UINT_PTR idEvent, _In_  DWORD dwTime);
+#~ TimerProc = WINFUNCTYPE(None, c_void_p, c_uint, c_void_p, c_ulong)
+
 class main_window(Window):
 	_window_title_ = __doc__
 	_window_background_ = gdi.GetStockObject(gdi.LTGRAY_BRUSH)
@@ -19,6 +22,9 @@ class main_window(Window):
 		(10, 200), (200, 200))# 2 figure (line)
 	pts = (c_ulong*set_size)(4, 5, 2)# count points in every figure
 
+	#~ def timer(self, hwnd, uMsg, idEvent, dwTime):
+		#~ print hwnd, uMsg, idEvent, dwTime
+
 	def OnDestroy(self, event):
 		application.Quit()
 
@@ -29,28 +35,35 @@ class main_window(Window):
 		rect = self.GetClientRect()
 		self.Drawing_a_Shaded_Rectangle(hdc, rect)
 		status, graphics = gdiplus.GdipCreateFromHDC(hdc)
-		status, pen = gdiplus.GdipCreatePen1(gdiplus.MakeARGB(100, 0, 0, 255), 30.0)
+		status, pen = gdiplus.GdipCreatePen1(gdiplus.MakeARGB(100, randint(0, 255), randint(0, 255), randint(0, 255)), 30.0)
 		status = gdiplus.GdipDrawLineI(graphics, pen, 0, 0, rect.width, rect.height)
 		status = gdiplus.GdipDrawLineI(graphics, pen, rect.width, 0, 0, rect.height)
+		x, y = rect.width/3, rect.height/3
+		status = gdiplus.GdipDrawEllipseI(graphics, pen, x, y, x, y)
 		self.EndPaint(ps)
+
+	def OnTimer(self, event):
+		self.InvalidateRect(self.GetClientRect(), False)
+		#~ self.UpdateWindow()
 
 	msg_handler(WM_DESTROY)(OnDestroy)
 	msg_handler(WM_PAINT)(OnPaint)
+	msg_handler(WM_TIMER)(OnTimer)
 
 	def Drawing_a_Shaded_Rectangle(self, hdc, rc):
 		vert = (gdi.TRIVERTEX*2)()
 		gRect = gdi.GRADIENT_RECT()
 		vert[0].x      = 0
 		vert[0].y      = 0
-		vert[0].Red    = randint(0x0000, 0xffff)#0xff00
-		vert[0].Green  = randint(0x0000, 0xffff)#0xff00
-		vert[0].Blue   = randint(0x0000, 0xffff)#0x0000
+		vert[0].Red    = randint(0x0000, 0xffff)
+		vert[0].Green  = randint(0x0000, 0xffff)
+		vert[0].Blue   = randint(0x0000, 0xffff)
 		vert[0].Alpha  = 0x8000
 		vert[1].x      = rc.width
 		vert[1].y      = rc.height
-		vert[1].Red    = randint(0x0000, 0xffff)#0x0000
-		vert[1].Green  = randint(0x0000, 0xffff)#0x0000
-		vert[1].Blue   = randint(0x0000, 0xffff)#0xff00
+		vert[1].Red    = randint(0x0000, 0xffff)
+		vert[1].Green  = randint(0x0000, 0xffff)
+		vert[1].Blue   = randint(0x0000, 0xffff)
 		vert[1].Alpha  = 0x8000
 		gRect.UpperLeft  = 0
 		gRect.LowerRight = 1
@@ -62,7 +75,10 @@ if __name__ == '__main__':
 	startup_input = gdiplus.GdiplusStartupInput(1, cast(None, gdiplus.DebugEventProc), False, False)
 	gdiplus.GdiplusStartup(byref(gdiplusToken), startup_input, None)
 
+	seed()
+
 	mw = main_window(rcPos = RECT(0, 0, 320, 240))
+	mw.SetTimer(0, 500)
 	application = Application()
 	application.Run()
 
