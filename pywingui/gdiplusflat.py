@@ -84,6 +84,48 @@ GdiplusShutdown = WINFUNCTYPE(None, c_void_p)(('GdiplusShutdown', windll.gdiplus
 
 
 #=========
+# Brush APIs
+
+#GpStatus WINGDIPAPI GdipCloneBrush(GpBrush *brush, GpBrush **cloneBrush);
+_GdipCloneBrush = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCloneBrush', windll.gdiplus))
+def GdipCloneBrush(brush):
+	cloneBrush = c_void_p()
+	status = _GdipCloneBrush(brush, byref(cloneBrush))
+	return status, cloneBrush
+
+#GpStatus WINGDIPAPI GdipDeleteBrush(GpBrush *brush);
+GdipDeleteBrush = WINFUNCTYPE(c_int, c_void_p)(('GdipDeleteBrush', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetBrushType(GpBrush *brush, GpBrushType *type);
+_GdipGetBrushType = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetBrushType', windll.gdiplus))
+def GdipGetBrushType(brush):
+	type_brush = c_int()
+	status = _GdipGetBrushType(brush, byref(type_brush))
+	return status, type_brush.value
+
+
+#========
+# SolidBrush APIs
+
+#GpStatus WINGDIPAPI GdipCreateSolidFill(ARGB color, GpSolidFill **brush);
+_GdipCreateSolidFill = WINFUNCTYPE(c_int, c_ulong, c_void_p)(('GdipCreateSolidFill', windll.gdiplus))
+def GdipCreateSolidFill(color = 128):
+	brush = c_void_p()
+	status = _GdipCreateSolidFill(color, byref(brush))
+	return status, brush
+
+#GpStatus WINGDIPAPI GdipSetSolidFillColor(GpSolidFill *brush, ARGB color);
+GdipSetSolidFillColor = WINFUNCTYPE(c_int, c_void_p, c_ulong)(('GdipSetSolidFillColor', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetSolidFillColor(GpSolidFill *brush, ARGB *color);
+_GdipGetSolidFillColor = WINFUNCTYPE(c_int, c_ulong, c_void_p)(('GdipGetSolidFillColor', windll.gdiplus))
+def GdipGetSolidFillColor(brush):
+	color = c_ulong()
+	status = _GdipGetSolidFillColor(brush, byref(color))
+	return status, color.value
+
+
+#========
 # Pen APIs
 
 #GpStatus WINGDIPAPI GdipCreatePen1(ARGB color, REAL width, GpUnit unit, GpPen **pen);
@@ -414,3 +456,11 @@ GdipDrawPolygon = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('Gdip
 
 #GpStatus WINGDIPAPI GdipDrawPolygonI(GpGraphics *graphics, GpPen *pen, GDIPCONST GpPoint *points, INT count);
 GdipDrawPolygonI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int)(('GdipDrawPolygonI', windll.gdiplus))
+
+
+#...........
+#GpStatus WINGDIPAPI GdipFillEllipse(GpGraphics *graphics, GpBrush *brush, REAL x, REAL y, REAL width, REAL height);
+GdipFillEllipse = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_float, c_float, c_float, c_float)(('GdipFillEllipse', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipFillEllipseI(GpGraphics *graphics, GpBrush *brush, INT x, INT y, INT width, INT height);
+GdipFillEllipseI = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int, c_int, c_int, c_int)(('GdipFillEllipseI', windll.gdiplus))
