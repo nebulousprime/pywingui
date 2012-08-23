@@ -51,7 +51,9 @@ NET_STRING_ANY_ADDRESS_NO_SCOPE = NET_STRING_NAMED_ADDRESS | NET_STRING_IP_ADDRE
 NET_STRING_ANY_SERVICE = NET_STRING_NAMED_SERVICE | NET_STRING_IP_SERVICE
 NET_STRING_ANY_SERVICE_NO_SCOPE = NET_STRING_NAMED_SERVICE | NET_STRING_IP_SERVICE_NO_SCOPE
 
-from socket import AF_INET
+#from socket import AF_INET
+AF_UNSPEC = 0
+AF_INET = 2
 
 from ctypes import *
 
@@ -439,14 +441,49 @@ if NTDDI_VERSION >= NTDDI_WIN2KSP1:
 		return result, pFixedInfo, pOutBufLen.value
 
 _GetAdaptersInfo = WINFUNCTYPE(c_ulong, PIP_ADAPTER_INFO, c_void_p)(('GetAdaptersInfo', windll.iphlpapi))
-def GetAdaptersInfo(SizePointer = None):
+def GetAdaptersInfo(ulOutBufLen = None):
 	AdapterInfo = IP_ADAPTER_INFO()
-	if SizePointer is None:
-		SizePointer = c_ulong()
-	result = _GetAdaptersInfo(AdapterInfo, byref(SizePointer))
-	return result, AdapterInfo, SizePointer.value
+	if ulOutBufLen is None:
+		ulOutBufLen = c_ulong(sizeof(IP_ADAPTER_INFO))
+	result = _GetAdaptersInfo(AdapterInfo, byref(ulOutBufLen))
+	if result == 111:#ERROR_BUFFER_OVERFLOW
+		result = _GetAdaptersInfo(AdapterInfo, byref(ulOutBufLen))
+	return result, AdapterInfo, ulOutBufLen.value
 
 GetAdapterOrderMap = WINFUNCTYPE(PIP_ADAPTER_ORDER_MAP)(('GetAdapterOrderMap', windll.iphlpapi))
+
+#===============================
+# The following functions require Winsock2.
+
+#ULONG WINAPI GetAdaptersAddresses(IN ULONG Family, IN ULONG Flags, IN PVOID Reserved, __out_bcount_opt(*SizePointer) PIP_ADAPTER_ADDRESSES AdapterAddresses, IN OUT PULONG SizePointer);
+_GetAdaptersAddresses = WINFUNCTYPE(c_ulong, c_ulong, c_ulong, c_void_p, PIP_ADAPTER_ADDRESSES, c_void_p)(('GetAdaptersAddresses', windll.iphlpapi))
+from iptypes import GAA_FLAG_INCLUDE_PREFIX
+def GetAdaptersAddresses(family = GAA_FLAG_INCLUDE_PREFIX, flags = AF_UNSPEC, reserved = None):
+	AdapterAddresses = IP_ADAPTER_ADDRESSES()
+	ulOutBufLen = c_ulong(sizeof(IP_ADAPTER_INFO))
+	result = _GetAdaptersAddresses(family, flags, reserved, AdapterAddresses, byref(ulOutBufLen))
+	if result == 111:#ERROR_BUFFER_OVERFLOW
+		result = _GetAdaptersAddresses(AdapterAddresses, byref(ulOutBufLen))
+	return result, AdapterAddresses, ulOutBufLen.value
+
+if NTDDI_VERSION >= NTDDI_WIN2KSP1:
+	#DWORD WINAPI GetPerAdapterInfo(ULONG IfIndex, PIP_PER_ADAPTER_INFO pPerAdapterInfo, PULONG pOutBufLen);
+	GetPerAdapterInfo = WINFUNCTYPE(c_ulong, c_ulong, PIP_PER_ADAPTER_INFO, c_void_p)(('GetPerAdapterInfo', windll.iphlpapi))
+
+#DWORD WINAPI IpReleaseAddress(PIP_ADAPTER_INDEX_MAP  AdapterInfo);
+IpReleaseAddress = WINFUNCTYPE(c_ulong, PIP_ADAPTER_INDEX_MAP)(('IpReleaseAddress', windll.iphlpapi))
+
+#DWORD WINAPI IpRenewAddress(PIP_ADAPTER_INDEX_MAP  AdapterInfo);
+IpRenewAddress = WINFUNCTYPE(c_ulong, PIP_ADAPTER_INDEX_MAP)(('IpRenewAddress', windll.iphlpapi))
+
+#DWORD WINAPI SendARP(IPAddr DestIP, IPAddr SrcIP, PVOID pMacAddr, PULONG  PhyAddrLen);
+_SendARP = WINFUNCTYPE(c_ulong, c_ulong, c_ulong, c_void_p, c_void_p)(('SendARP', windll.iphlpapi))
+def SendARP(SrcIP = 0):
+	DestIP = 0
+	pMacAddr = (c_ulong*2)()#default for src ip
+	PhyAddrLen = c_ulong(6)#for 6-byte hardware addresses
+	result = _SendARP(DestIP, SrcIP, byref(pMacAddr), byref(PhyAddrLen))
+	return result, DestIP, SrcIP, pMacAddr, PhyAddrLen.value
 
 
 if __name__ == '__main__':
