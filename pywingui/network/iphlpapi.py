@@ -441,12 +441,14 @@ if NTDDI_VERSION >= NTDDI_WIN2KSP1:
 		return result, pFixedInfo, pOutBufLen.value
 
 _GetAdaptersInfo = WINFUNCTYPE(c_ulong, PIP_ADAPTER_INFO, c_void_p)(('GetAdaptersInfo', windll.iphlpapi))
-def GetAdaptersInfo(ulOutBufLen = None):
-	AdapterInfo = IP_ADAPTER_INFO()
-	if ulOutBufLen is None:
-		ulOutBufLen = c_ulong(sizeof(IP_ADAPTER_INFO))
+def GetAdaptersInfo():
+	#~ AdapterInfo = IP_ADAPTER_INFO()
+	ulOutBufLen = c_ulong(sizeof(IP_ADAPTER_INFO))
+	AdapterInfo = cast(windll.kernel32.HeapAlloc(windll.kernel32.GetProcessHeap(), 0, ulOutBufLen), PIP_ADAPTER_INFO)[0]
 	result = _GetAdaptersInfo(AdapterInfo, byref(ulOutBufLen))
 	if result == 111:#ERROR_BUFFER_OVERFLOW
+		windll.kernel32.HeapFree(windll.kernel32.GetProcessHeap(), 0, pointer(AdapterInfo))
+		AdapterInfo = cast(windll.kernel32.HeapAlloc(windll.kernel32.GetProcessHeap(), 0, ulOutBufLen), PIP_ADAPTER_INFO)[0]
 		result = _GetAdaptersInfo(AdapterInfo, byref(ulOutBufLen))
 	return result, AdapterInfo, ulOutBufLen.value
 
@@ -459,11 +461,15 @@ GetAdapterOrderMap = WINFUNCTYPE(PIP_ADAPTER_ORDER_MAP)(('GetAdapterOrderMap', w
 _GetAdaptersAddresses = WINFUNCTYPE(c_ulong, c_ulong, c_ulong, c_void_p, PIP_ADAPTER_ADDRESSES, c_void_p)(('GetAdaptersAddresses', windll.iphlpapi))
 from iptypes import GAA_FLAG_INCLUDE_PREFIX
 def GetAdaptersAddresses(family = GAA_FLAG_INCLUDE_PREFIX, flags = AF_UNSPEC, reserved = None):
-	AdapterAddresses = IP_ADAPTER_ADDRESSES()
+	#~ AdapterAddresses = IP_ADAPTER_ADDRESSES()
+	WORKING_BUFFER_SIZE = 15000
+	AdapterAddresses = cast(windll.kernel32.HeapAlloc(windll.kernel32.GetProcessHeap(), 0, WORKING_BUFFER_SIZE), PIP_ADAPTER_ADDRESSES)[0]
 	ulOutBufLen = c_ulong(sizeof(IP_ADAPTER_INFO))
 	result = _GetAdaptersAddresses(family, flags, reserved, AdapterAddresses, byref(ulOutBufLen))
 	if result == 111:#ERROR_BUFFER_OVERFLOW
-		result = _GetAdaptersAddresses(AdapterAddresses, byref(ulOutBufLen))
+		windll.kernel32.HeapFree(windll.kernel32.GetProcessHeap(), 0, pointer(AdapterAddresses))
+		AdapterAddresses = cast(windll.kernel32.HeapAlloc(windll.kernel32.GetProcessHeap(), 0, WORKING_BUFFER_SIZE), PIP_ADAPTER_ADDRESSES)[0]
+		result = _GetAdaptersAddresses(family, flags, reserved, AdapterAddresses, byref(ulOutBufLen))
 	return result, AdapterAddresses, ulOutBufLen.value
 
 if NTDDI_VERSION >= NTDDI_WIN2KSP1:
