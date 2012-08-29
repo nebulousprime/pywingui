@@ -20,9 +20,9 @@ class Form(form.Form):
 		form.Form.__init__(self, *args, **kwargs)      
 		#~ self.list_view.SetItemCount(len(captions))
 		#~ self.list_view.SetRedraw(1)
-		lvcolumn = comctl.LVCOLUMN(comctl.LVCF_TEXT|comctl.LVCF_WIDTH, 0, 120, 'item')
+		lvcolumn = comctl.LVCOLUMN(comctl.LVCF_TEXT|comctl.LVCF_WIDTH, 0, 150, 'item')
 		self.list_view.InsertColumn(0, lvcolumn)
-		lvcolumn = comctl.LVCOLUMN(comctl.LVCF_TEXT|comctl.LVCF_WIDTH, 0, 400, 'value')
+		lvcolumn = comctl.LVCOLUMN(comctl.LVCF_TEXT|comctl.LVCF_WIDTH, 0, 350, 'value')
 		self.list_view.InsertColumn(1, lvcolumn)
 		item_flags = comctl.LVIF_TEXT|comctl.LVIF_DI_SETITEM
 		items = []
@@ -50,12 +50,13 @@ class Form(form.Form):
 			items[2].pszText = adapter_addresses.Description
 			items[3].pszText = adapter_addresses.FriendlyName
 			physical_address_as_string, i = '', 0
-			for value in adapter_addresses.PhysicalAddress:# MAC Address
-				if i <= adapter_addresses.PhysicalAddressLength:
-					physical_address_as_string += '%.2X-' % value
-				else:
-					physical_address_as_string += '%.2X' % value
-				i += 1
+			if adapter_addresses.PhysicalAddressLength:
+				for value in adapter_addresses.PhysicalAddress:# MAC Address
+					if i <= adapter_addresses.PhysicalAddressLength:
+						physical_address_as_string += '%.2X-' % value
+					else:
+						physical_address_as_string += '%.2X' % value
+					i += 1
 			items[4].pszText = physical_address_as_string
 			items[5].pszText = '%d' % adapter_addresses.PhysicalAddressLength
 			items[6].pszText = '%d' % adapter_addresses.Flags
