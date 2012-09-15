@@ -14,7 +14,7 @@ def EvalItem(item, parent):
         else:
             parent.AppendMenu(MF_STRING, item[2], item[1])
     elif item[0] == MF_SEPARATOR:
-        parent.AppendMenu(MF_SEPARATOR, 0, 0)
+        parent.AppendMenu(MF_SEPARATOR)
     
 def EvalPopupMenu(item, managed = False):
     popupMenu = PopupMenu(managed = managed)

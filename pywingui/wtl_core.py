@@ -20,6 +20,7 @@
 ## WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
 from windows import *
 from ctypes import *
+from winuser import MAKEINTRESOURCE, LoadIcon, LoadCursor
 
 import sys
 import weakref
@@ -51,7 +52,8 @@ class HandleMap(dict):
 		return dict.__getitem__(self, handle)() # weak refs are 'called' to return the referred object
 
 	def get(self, k, d = None):
-		if self.has_key(k):
+		#~ if self.has_key(k):
+		if k in self:
 			return self[k]
 		else:
 			return d
@@ -79,8 +81,11 @@ def globalWndProc(hWnd, nMsg, wParam, lParam):
 			#establish the mapping between the windows HANDLE and the Window instance
 			#the window instance is to be found in the createHndlMap by looking up
 			#the key that was given as a parameter to CreateWindowEx
+			#~ print createHndlMap
 			createStruct = CREATESTRUCT.from_address(int(lParam))
-			window = createHndlMap.get(int(createStruct.lpCreateParams), None)
+			#~ window = createHndlMap.get(int(createStruct.lpCreateParams), None)
+			window = createHndlMap.get(createStruct.lpCreateParams, None)
+			#~ window = createHndlMap.get(cast(lParam, POINTER(CREATESTRUCT)).lpCreateParams, None)
 			if window:
 				#it is a venster window being created, establish the mapping:
 				WindowsObject.__init__(window, hWnd)
@@ -99,7 +104,10 @@ def globalWndProc(hWnd, nMsg, wParam, lParam):
 
 		if not handled:
 			#still not handled, perform default processing
-			return DefWindowProc(hWnd, nMsg, wParam, lParam) #windows default processing
+			try:
+				return DefWindowProc(hWnd, nMsg, wParam, lParam) #windows default processing
+			except:
+				print('ERROR perform default processing: DefWindowProc(%d, %d, %d, %d)' % (hWnd, nMsg, wParam, lParam))
 		else:
 			return result
 	except:
@@ -139,6 +147,7 @@ def windowFromHandle(handle):
 
 
 class WindowsObject(object):
+	m_handle = 0
 	def __init__(self, handle, managed = True):
 		"""managed objects are stored in a global map so that they can
 		be looked up by their handle, also this allows for calling the
@@ -229,7 +238,8 @@ class MSG_MAP(list):
 class WindowType(type):
 	def __init__(cls, name, bases, dct):
 		#make sure every window class has its own msg map
-		if not dct.has_key('_msg_map_'):
+		#~ if not dct.has_key('_msg_map_'):
+		if not '_msg_map_' in dct:
 			cls._msg_map_ = MSG_MAP([])
 		super(WindowType, cls).__init__(name, bases, dct)
 		#see if decorators were used to map events to handlers,
@@ -238,7 +248,7 @@ class WindowType(type):
 			if hasattr(item, 'handler'):
 				cls._msg_map_.append(item.handler)
 
-hInstance = GetModuleHandle(NULL)
+hInstance = GetModuleHandle(None)
 wndClasses = []
 RCDEFAULT = RECT(top = CW_USEDEFAULT, left = CW_USEDEFAULT, right = 0, bottom = 0)   
 
@@ -250,8 +260,8 @@ class Window(WindowsObject):
 	_window_title_ = ''
 	_window_style_ = WS_OVERLAPPEDWINDOW | WS_VISIBLE
 	_window_style_ex_ = 0
-	_window_icon_ = LoadIcon(NULL, IDI_APPLICATION)
-	_window_icon_sm_ = LoadIcon(NULL, IDI_APPLICATION)
+	_window_icon_ = LoadIcon(NULL, MAKEINTRESOURCE(IDI_APPLICATION))
+	_window_icon_sm_ = LoadIcon(NULL, MAKEINTRESOURCE(IDI_APPLICATION))
 	_window_background_ = 0
 	_window_class_style_ = 0
 	_window_style_clip_children_and_siblings_ = True
@@ -276,10 +286,10 @@ class Window(WindowsObject):
 		#determine whether we are going to subclass an existing window class
 		#or create a new windowclass
 		self._issubclassed_ = self._window_class_ and windowClassExists
-
+		atom = 0
 		if not self._issubclassed_:
 			#if no _window_class_ is given, generate a new one
-			className = self._window_class_ or "venster_wtl_%s" % str(id(self.__class__))
+			className = self._window_class_ or "venster_wtl_%d" % id(self.__class__)
 			cls = WNDCLASSEX()
 			cls.cbSize = sizeof(cls)
 			cls.lpszClassName = className
@@ -289,10 +299,11 @@ class Window(WindowsObject):
 			cls.hbrBackground = self._window_background_
 			cls.hIcon = handle(self._window_icon_)
 			cls.hIconSm = handle(self._window_icon_sm_)
-			cls.hCursor = LoadCursor(NULL, IDC_ARROW)
+			cls.hCursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW))
 			#cls structure needs to stay on heap
 			wndClasses.append(cls)
-			atom = RegisterClassEx(byref(cls))
+			atom = RegisterClassEx(pointer(cls))
+			#~ print('atom %d' % atom)
 		else:
 			#subclass existing window class.
 			className = self._window_class_
@@ -335,7 +346,15 @@ class Window(WindowsObject):
 		#and window instance will be established by processing the WM_NCCREATE msg
 		#and looking up the instance in the createhndlMap
 		createHndlMap[id(self)] = self
-		hWnd = CreateWindowEx(exStyle, className, title, style, left, top, right - left, bottom - top, handle(parent), handle(menu), hInstance, id(self))	   
+		wm_create_param = id(self)
+
+		if className == 'msctls_trackbar32':
+			wm_create_param = 0
+		hWnd = 0
+		if atom:
+			hWnd = CreateWindowEx_atom(exStyle, atom, title, style, left, top, right - left, bottom - top, handle(parent), handle(menu), hInstance, wm_create_param)
+		else:
+			hWnd = CreateWindowEx(exStyle, className, title, style, left, top, right - left, bottom - top, handle(parent), handle(menu), hInstance, wm_create_param)
 
 		del createHndlMap[id(self)]
 
@@ -352,7 +371,8 @@ class Window(WindowsObject):
 		def __init__(self, receiver, window, msg_map, nMsg = [WM_NOTIFY]):
 			self.nMsg = dict([(x, 1) for x in nMsg])
 			self.newProc = WNDPROC(self.WndProc)
-			self.oldProc = window.SubClass(self.newProc)
+			if window:
+				self.oldProc = window.SubClass(self.newProc)
 			self._msg_map_ = msg_map
 			self.receiver = receiver
 

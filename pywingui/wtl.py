@@ -68,14 +68,19 @@ class DecoratedWindow(wtl_core.Window):
 	def SetWindowText(self, txt):
 		SetWindowText(self.handle, txt)
 
-	def SetText(self, txt):
-		self.SendMessage(WM_SETTEXT, 0, txt)
+	def SetText(self, text):
+		txt = create_unicode_buffer(text)
+		if not UNICODE:
+			txt = create_string_buffer(text)
+		self.SendMessage(WM_SETTEXT, 0, addressof(txt))
 
 	def GetText(self):
 		textLength = self.SendMessage(WM_GETTEXTLENGTH) + 1
-		textBuff = ' ' * textLength
-		self.SendMessage(WM_GETTEXT, textLength, textBuff)
-		return textBuff[:-1]
+		textBuff = create_unicode_buffer(textLength)
+		if not UNICODE:
+			textBuff = create_string_buffer(textLength)
+		self.SendMessage(WM_GETTEXT, textLength, byref(textBuff))
+		return textBuff.value
 
 	def MoveWindow(self, x, y, nWidth, nHeight, bRepaint):
 		MoveWindow(self.handle, x, y, nWidth, nHeight, bRepaint)
@@ -288,7 +293,7 @@ class IconEx(wtl_core.WindowsObject):
 		wtl_core.WindowsObject.__init__(self, CreateIcon(hInstance, nWidth, nHeight, cPlanes, cBitsPixel, lpbANDbits, lpbXORbits))
 
 class MenuBase(object):
-	def AppendMenu(self, flags, idNewItem, lpNewItem):
+	def AppendMenu(self, flags = 0, idNewItem = 0, lpNewItem = ''):
 		if flags == MF_STRING or flags == MF_SEPARATOR:
 			AppendMenu(self.handle, flags, idNewItem, lpNewItem)
 		elif flags & MF_POPUP:

@@ -7,7 +7,7 @@ try:
 #except Exception, e:
 except:# for compatibility with Python 3 version
 	MessageBox(0, "The Scintilla DLL could not be loaded.", "Error loading Scintilla", MB_OK | MB_ICONERROR)
-	raise e
+	#~ raise e
 
 from scintilla_constants import *
 
@@ -17,7 +17,7 @@ class SCNotification(Structure):
 				("ch", c_int),
 				("modifiers", c_int),
 				("modificationType", c_int),
-				("text", c_char_p),
+				("text", c_wchar_p),
 				("length", c_int),                
 				("linesAdded", c_int),
 				("message", c_int),
@@ -52,7 +52,8 @@ class Scintilla(Window):
 	def SendScintillaMessage(self, msg, wParam, lParam):
 		#TODO use fast path,e.g. retreive direct message fn from
 		#scintilla as described in scintilla docs
-		return self.SendMessage(msg, wParam, lParam)
+		return windll.user32.SendMessageA(self.handle, msg, wParam, lParam)
+		#~ return self.SendMessage(msg, wParam, lParam)
 
 	def SetText(self, txt):
 		self.SendScintillaMessage(SCI_SETTEXT, 0, txt)

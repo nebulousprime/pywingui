@@ -26,53 +26,53 @@ from pywingui.lib import splitter
 from pywingui.lib import form
 from pywingui.lib import list
 
+from pywingui.comctl import InitCommonControls, ICC_LISTVIEW_CLASSES
+InitCommonControls(ICC_LISTVIEW_CLASSES)
+
 def createTestChild(parent):
-
-    lst = list.List(parent = parent, orExStyle = WS_EX_CLIENTEDGE)
-    lst.InsertColumns([("blaat", 100), ("col2", 150)])
-    for i in range(20):
-        lst.InsertRow(i, ["blaat %d" % i, "blaat col2 %d" % i])
-
-    return lst
+	lst = list.List(parent = parent, orExStyle = WS_EX_CLIENTEDGE)
+	lst.InsertColumns([("blaat", 100), ("col2", 150)])
+	for i in range(20):
+		lst.InsertRow(i, ["blaat %d" % i, "blaat col2 %d" % i])
+	return lst
 
 class MyForm(form.Form):
-    _window_title_ = "Splitter Window Test"
-    
-    def OnCreate(self, event):
-        aSplitter1 = splitter.Splitter(parent = self,
-                                       splitPos = self.clientRect.width / 2)
+	_window_title_ = "Splitter Window Test"
 
-        aSplitter2 = splitter.Splitter(parent = aSplitter1,
-                                       orientation = splitter.HORIZONTAL,
-                                       splitPos = self.clientRect.width / 4)
+	def OnCreate(self, event):
+		aSplitter1 = splitter.Splitter(parent = self, splitPos = self.clientRect.width / 2)
 
-        aSplitter3 = splitter.Splitter(parent = aSplitter1,
-                                       orientation = splitter.HORIZONTAL,
-                                       splitPos = self.clientRect.width / 4)
+		aSplitter2 = splitter.Splitter(parent = aSplitter1, orientation = splitter.HORIZONTAL, splitPos = self.clientRect.width / 4)
 
+		aSplitter3 = splitter.Splitter(parent = aSplitter1, orientation = splitter.HORIZONTAL, splitPos = self.clientRect.width / 4)
 
-        child1 = createTestChild(aSplitter1)
-        child2 = createTestChild(aSplitter1)
-        child3 = createTestChild(aSplitter1)
-        child4 = createTestChild(aSplitter1)
-        
-        aSplitter2.Add(0, child1)
-        aSplitter2.Add(1, child2)
+		child1 = createTestChild(aSplitter1)
+		child2 = createTestChild(aSplitter1)
+		child3 = createTestChild(aSplitter1)
+		child4 = createTestChild(aSplitter1)
 
-        aSplitter3.Add(0, child3)
-        aSplitter3.Add(1, child4)
+		aSplitter2.Add(0, child1)
+		aSplitter2.Add(1, child2)
 
-        aSplitter1.Add(0, aSplitter2)
-        aSplitter1.Add(1, aSplitter3)
-        
-        self.controls.Add(child1)
-        self.controls.Add(child2)
-        self.controls.Add(child3)
-        self.controls.Add(child4)
-        self.controls.Add(aSplitter2)
-        self.controls.Add(aSplitter3)
+		aSplitter3.Add(0, child3)
+		aSplitter3.Add(1, child4)
 
-        self.controls.Add(form.CTRL_VIEW, aSplitter1)
+		aSplitter1.Add(0, aSplitter2)
+		aSplitter1.Add(1, aSplitter3)
+
+		self.controls.Add(child1)
+		self.controls.Add(child2)
+		self.controls.Add(child3)
+		self.controls.Add(child4)
+		self.controls.Add(aSplitter2)
+		self.controls.Add(aSplitter3)
+
+		self.controls.Add(form.CTRL_VIEW, aSplitter1)
+
+	def OnDestroy(self, event):
+		application.Quit()
+	msg_handler(WM_DESTROY)(OnDestroy)
+
 
 if __name__ == '__main__':
     mainForm = MyForm()

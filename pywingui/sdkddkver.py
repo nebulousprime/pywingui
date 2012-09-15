@@ -149,4 +149,4 @@ if __name__ == '__main__':
 	print('NTDDI_LONGHORN\t%s,\t%d' % (hex(NTDDI_LONGHORN), NTDDI_LONGHORN))
 	print('= NTDDI_VERSION\t%s,\t%d' % (hex(NTDDI_VERSION), NTDDI_VERSION))
 	from version_microsoft import major, minor, build, platform, text
-	print major, minor, build, platform, text
+	print('%d, %d, %d, %d, %s' % (major, minor, build, platform, text))

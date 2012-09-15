@@ -153,12 +153,52 @@ if WINVER >= 0x0400:
 	IDI_INFORMATION = IDI_ASTERISK
 
 if UNICODE:
-	LoadIcon = WINFUNCTYPE(HICON, HINSTANCE, c_wchar_p)(('LoadIconW', windll.user32))
+	SetWindowText = WINFUNCTYPE(c_bool, c_void_p, c_wchar_p)(('SetWindowTextW', windll.user32))
+	GetWindowText = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int)(('GetWindowTextW', windll.user32))
+	GetWindowTextLength = WINFUNCTYPE(c_int, c_void_p)(('GetWindowTextLengthW', windll.user32))
+	#~ LoadIcon = WINFUNCTYPE(HICON, HINSTANCE, c_wchar_p)(('LoadIconW', windll.user32))
+	_LoadIcon = WINFUNCTYPE(c_void_p, c_void_p, c_wchar_p)(('LoadIconW', windll.user32))
+	_LoadIconP = windll.user32.LoadIconW
+	_LoadCursor = WINFUNCTYPE(c_void_p, c_void_p, c_wchar_p)(('LoadCursorW', windll.user32))
+	_LoadCursorP = windll.user32.LoadCursorW
+	_LoadImage = WINFUNCTYPE(c_void_p, c_void_p, c_wchar_p, c_uint, c_int, c_int, c_uint)(('LoadImageW', windll.user32))
+	_LoadImageP = windll.user32.LoadImageW
 else:
-	LoadIcon = WINFUNCTYPE(HICON, HINSTANCE, c_char_p)(('LoadIconA', windll.user32))
+	SetWindowText = WINFUNCTYPE(c_bool, c_void_p, c_char_p)(('SetWindowTextA', windll.user32))
+	GetWindowText = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int)(('GetWindowTextA', windll.user32))
+	GetWindowTextLength = WINFUNCTYPE(c_int, c_void_p)(('GetWindowTextLengthA', windll.user32))
+	#~ LoadIcon = WINFUNCTYPE(HICON, HINSTANCE, c_char_p)(('LoadIconA', windll.user32))
+	_LoadIcon = WINFUNCTYPE(c_void_p, c_void_p, c_char_p)(('LoadIconA', windll.user32))
+	_LoadIconP = windll.user32.LoadIconA
+	_LoadCursor = WINFUNCTYPE(c_void_p, c_void_p, c_char_p)(('LoadCursorA', windll.user32))
+	_LoadCursorP = windll.user32.LoadCursorA
+	_LoadImage = WINFUNCTYPE(c_void_p, c_void_p, c_char_p, c_uint, c_int, c_int, c_uint)(('LoadImageA', windll.user32))
+	_LoadImageP = windll.user32.LoadImageA
 
 CreateIcon = WINFUNCTYPE(HICON, HINSTANCE, c_int, c_int, c_byte, c_byte, c_void_p, c_void_p)(('CreateIcon', windll.user32))
 
 InvalidateRect = WINFUNCTYPE(c_byte, c_void_p, POINTER(RECT), c_byte)(('InvalidateRect', windll.user32))
 InvalidateRgn = WINFUNCTYPE(c_byte, c_void_p, c_void_p, c_byte)(('InvalidateRect', windll.user32))
 
+#Static Control Constants
+SS_LEFT = 0x00000000L
+#~ SS_SIMPLE = 0x0000000BL
+SS_SIMPLE = 0x0000000B
+
+def LoadIcon(hInstance = None, file_or_resource = 0):
+	if isinstance(file_or_resource,  int):
+		return _LoadIconP(hInstance, file_or_resource)
+	else:
+		return _LoadIcon(hInstance, file_or_resource)
+
+def LoadCursor(hInstance = None, file_or_resource = 0):
+	if isinstance(file_or_resource,  int):
+		return _LoadCursorP(hInstance, file_or_resource)
+	else:
+		return _LoadCursor(hInstance, file_or_resource)
+
+def LoadImage(hInstance = None, file_or_resource = 0, img_type = 0, x = 0, y = 0, uFlags = 0):
+	if isinstance(file_or_resource,  int):
+		return _LoadImageP(hInstance, file_or_resource, img_type, x, y, uFlags)
+	else:
+		return _LoadImage(hInstance, file_or_resource, img_type, x, y, uFlags)

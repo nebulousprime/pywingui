@@ -28,7 +28,7 @@ class MyForm(form.Form):
     """sample showing how a form can be prevented from closing by
     overriding the OnClose method of Form"""
     
-    _window_icon_ = _window_icon_sm_ = Icon("blinky.ico")
+    _window_icon_ = _window_icon_sm_ = Icon(lpszName = 'blinky.ico')
     _window_title_ = "Test close" 
 
     _form_menu_ = [(MF_POPUP, "&File",

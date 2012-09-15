@@ -11,8 +11,6 @@ from random import seed, randint
 from pywingui import gdiplusflat as gdiplus
 from pywingui import gdi
 from pywingui.wtl import *
-from pywingui.winuser import *
-from pywingui.version_microsoft import WINVER
 
 class main_window(Window):
 	_window_title_ = __doc__
@@ -20,10 +18,6 @@ class main_window(Window):
 	_window_icon_ = _window_icon_sm_ = Icon(lpIconName = IDI_ASTERISK)
 	pt_size = 11# count points
 	set_size = 3# count figures
-	pt = (POINT*pt_size)((10, 10), (100, 10), (50, 100), (10, 10),# 0 figure (triangle)
-		(10, 110), (200, 110), (200, 180), (10, 180), (10, 110),# 1 figure (parallelogram)
-		(10, 200), (200, 200))# 2 figure (line)
-	pts = (c_ulong*set_size)(4, 5, 2)# count points in every figure
 	graphics = 0
 	full_redraw_counter = 0
 

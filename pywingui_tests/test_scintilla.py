@@ -203,9 +203,10 @@ class MainForm(form.Form):
 	def OnCreate(self, event):
 		aSplitter = splitter.Splitter(parent = self,
 									  orientation = splitter.HORIZONTAL,
-									  splitPos = int(self.clientRect.height * 0.6))
+									  splitPos = int(self.clientRect.height * 0.7))
 
 		aEditor =  Editor(parent = aSplitter, orExStyle = WS_EX_CLIENTEDGE)
+		aEditor.SetText(open(__file__, 'r').read())
 		aConsole = Console(parent = aSplitter, orExStyle = WS_EX_CLIENTEDGE)
 
 		aSplitter.Add(self._editors_count_, aEditor)

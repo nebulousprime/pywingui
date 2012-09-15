@@ -22,6 +22,7 @@
 from pywingui.windows import *
 from pywingui.wtl import *
 from pywingui import gdi
+from pywingui.winuser import MAKEINTRESOURCE
 
 HORIZONTAL = 1
 VERTICAL = 2
@@ -32,18 +33,18 @@ class Splitter(Window):
     _window_background_ = gdi.GetSysColorBrush(COLOR_BTNFACE)
 
     def __init__(self, *args, **kwargs):
-        self.splitWidth = kwargs.get('splitWidth', 4)
-        self.splitPos = kwargs.get('splitPos', 100)
-        self.orientation = kwargs.get('orientation', VERTICAL)
-        if kwargs.has_key('splitPos'): del kwargs['splitPos']
-        if kwargs.has_key('splitWidth'): del kwargs['splitWidth']
-        if kwargs.has_key('orientation'): del kwargs['orientation']
+        self.splitWidth = kwargs.pop('splitWidth', 4)
+        self.splitPos = kwargs.pop('splitPos', 100)
+        self.orientation = kwargs.pop('orientation', VERTICAL)
+        #~ if kwargs.has_key('splitPos'): del kwargs['splitPos']
+        #~ if kwargs.has_key('splitWidth'): del kwargs['splitWidth']
+        #~ if kwargs.has_key('orientation'): del kwargs['orientation']
 
         #TODO wrap cursor type: (and then dispose)
         if self.orientation == VERTICAL:
-            self.hcursor = LoadCursor(NULL, IDC_SIZEWE)
+            self.hcursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_SIZEWE))
         elif self.orientation == HORIZONTAL:
-            self.hcursor = LoadCursor(NULL, IDC_SIZENS)
+            self.hcursor = LoadCursor(NULL, MAKEINTRESOURCE(IDC_SIZENS))
 
         brushPat = (c_ushort * 8)()
         for i in range(8):
@@ -63,16 +64,16 @@ class Splitter(Window):
 
     def dispose(self):
         del self.m_views
-        
+
     def Add(self, index, ctrl):
         #make sure splitter window is at bottom
         self.SetWindowPos(HWND_BOTTOM, 0, 0, 0, 0,
                           SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOREDRAW|SWP_NOSIZE)
         self.m_views[index] = ctrl
-        
+
     def OnSize(self, event):
         self.Layout(*event.size)
-        
+
     def Layout(self, cx, cy):
         if len(self.m_views) < 2: return
         

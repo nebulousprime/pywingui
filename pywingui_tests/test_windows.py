@@ -25,7 +25,11 @@ from pywingui.windows import *
 from pywingui.gdi import *
 
 WND_CLASS_NAME = "TestWindowClass"
-hInstance = GetModuleHandle(0)
+hInstance = None
+try:
+	hInstance = windll.kernel32.GetModuleHandleA(0)
+except:
+	hInstance = windll.kernel32.GetModuleHandleW(0)
 
 def wndProc(hWnd, nMsg, wParam, lParam):
     if nMsg == WM_DESTROY:

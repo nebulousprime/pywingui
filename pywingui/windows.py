@@ -35,7 +35,7 @@ WIN32_IE = 0x0550
 
 
 DWORD = c_ulong
-HANDLE = c_ulong
+HANDLE = c_void_p
 UINT = c_uint
 BOOL = c_int
 HWND = HANDLE
@@ -54,7 +54,7 @@ HRGN = HANDLE
 ULONG = DWORD
 ULONG_PTR = DWORD
 UINT_PTR = DWORD
-LONG_PTR = DWORD
+LONG_PTR = c_long
 INT = c_int
 LPCTSTR = c_char_p
 LPTSTR = c_char_p
@@ -92,23 +92,23 @@ LRESULT = LONG_PTR
 
 #### Windows version detection ##############################
 class OSVERSIONINFO(Structure):
-    _fields_ = [("dwOSVersionInfoSize", DWORD),
-                ("dwMajorVersion", DWORD),
-                ("dwMinorVersion", DWORD),
-                ("dwBuildNumber", DWORD),
-                ("dwPlatformId", DWORD),
-                ("szCSDVersion", TCHAR * 128)]
+	_fields_ = [("dwOSVersionInfoSize", DWORD),
+	("dwMajorVersion", DWORD),
+	("dwMinorVersion", DWORD),
+	("dwBuildNumber", DWORD),
+	("dwPlatformId", DWORD),
+	("szCSDVersion", TCHAR * 128)]
 
-    def isMajorMinor(self, major, minor):
-        return (self.dwMajorVersion, self.dwMinorVersion) == (major, minor)
-    
+	def isMajorMinor(self, major, minor):
+		return (self.dwMajorVersion, self.dwMinorVersion) == (major, minor)
+
 GetVersion = windll.kernel32.GetVersionExA
 versionInfo = OSVERSIONINFO()
 versionInfo.dwOSVersionInfoSize = sizeof(versionInfo)
 GetVersion(byref(versionInfo))
 
 def MAKELONG(w1, w2):
-    return w1 | (w2 << 16)
+	return w1 | (w2 << 16)
 
 MAKELPARAM = MAKELONG
 
@@ -124,31 +124,31 @@ EnumChildProc = WINFUNCTYPE(c_int, HWND, LPARAM)
 MSGBOXCALLBACK = WINFUNCTYPE(c_int, HWND, LPARAM) #TODO look up real def
 
 class WNDCLASSEX(Structure):
-    _fields_ = [("cbSize", UINT),
-                ("style",  UINT),
-                ("lpfnWndProc", WNDPROC),
-                ("cbClsExtra", INT),
-                ("cbWndExtra", INT),
-                ("hInstance", HINSTANCE),
-                ("hIcon", HICON),
-                ("hCursor", HCURSOR),
-                ("hbrBackground", HBRUSH),
-                ("lpszMenuName", LPCTSTR),
-                ("lpszClassName", LPCTSTR),
-                ("hIconSm", HICON)]
+	_fields_ = [("cbSize", UINT),
+	("style",  UINT),
+	("lpfnWndProc", WNDPROC),
+	("cbClsExtra", INT),
+	("cbWndExtra", INT),
+	("hInstance", HINSTANCE),
+	("hIcon", c_void_p),#HICON
+	("hCursor", HCURSOR),
+	("hbrBackground", HBRUSH)]
+	if UNICODE:
+		_fields_ += [("lpszMenuName", c_wchar_p), ("lpszClassName", c_wchar_p)]
+	else:
+		_fields_ += [("lpszMenuName", c_char_p), ("lpszClassName", c_char_p)]
+	_fields_.append(("hIconSm", c_void_p))#HICON
 
 class POINT(Structure):
-    _fields_ = [("x", LONG),
-                ("y", LONG)]
-    def __str__(self):
-        return "POINT {x: %d, y: %d}" % (self.x, self.y)
+	_fields_ = [("x", LONG), ("y", LONG)]
+	def __str__(self):
+		return "POINT {x: %d, y: %d}" % (self.x, self.y)
 POINTL = POINT
 LPPOINT = POINTER(POINT)
 
 class POINTS(Structure):
-    _fields_ = [("x", SHORT),
-                ("y", SHORT)]
-    
+	_fields_ = [("x", SHORT), ("y", SHORT)]
+
 
 PtInRect = windll.user32.PtInRect
 
@@ -186,12 +186,10 @@ class RECT(Structure):
 RECTL = RECT        
 
 class SIZE(Structure):
-    _fields_ = [('cx', LONG),
-                ('cy', LONG)]
-        
+	_fields_ = [('cx', LONG), ('cy', LONG)]
+
 SIZEL = SIZE        
-        
-    
+
 ##class MSG(Structure):
 ##    _fields_ = [("hWnd", HWND),
 ##                ("message", UINT),
@@ -206,91 +204,95 @@ SIZEL = SIZE
 
 #Hack: we need to use the same MSG type as comtypes.ole uses!
 from ctypes.wintypes import MSG
-        
+
 class ACCEL(Structure):
-    _fields_ = [("fVirt", BYTE),
-                ("key", WORD),
-                ("cmd", WORD)]
-    
+	_fields_ = [("fVirt", BYTE),
+	("key", WORD),
+	("cmd", WORD)]
+
 class CREATESTRUCT(Structure):
-    _fields_ = [("lpCreateParams", LPVOID),
-                ("hInstance", HINSTANCE),
-                ("hMenu", HMENU),
-                ("hwndParent", HWND),
-                ("cx", INT),
-                ("cy", INT),
-                ("x", INT),
-                ("y", INT),
-                ("style", LONG),
-                ("lpszName", LPCTSTR),
-                ("lpszClass", LPCTSTR),
-                ("dwExStyle", DWORD)]
-
-
+	_fields_ = [("lpCreateParams", LPVOID),
+	("hInstance", HINSTANCE),
+	("hMenu", HMENU),
+	("hwndParent", HWND),
+	("cx", INT),
+	("cy", INT),
+	("x", INT),
+	("y", INT),
+	("style", LONG)]
+	if UNICODE:
+		_fields_ += [("lpszName", c_wchar_p), ("lpszClass", c_wchar_p)]
+	else:
+		_fields_ += [("lpszName", c_char_p), ("lpszClass", c_char_p)]
+	_fields_.append(("dwExStyle", DWORD))
 
 class NMHDR(Structure):
-    _fields_ = [("hwndFrom", HWND),
-                ("idFrom", UINT),
-                ("code", UINT)]
+	_fields_ = [("hwndFrom", HWND),
+	("idFrom", UINT),
+	("code", UINT)]
 
 class PAINTSTRUCT(Structure):
-    _fields_ = [("hdc", HDC),
-                ("fErase", BOOL),
-                ("rcPaint", RECT),
-                ("fRestore", BOOL),
-                ("fIncUpdate", BOOL),
-                ("rgbReserved", c_char * 32)]
+	_fields_ = [("hdc", HDC),
+	("fErase", BOOL),
+	("rcPaint", RECT),
+	("fRestore", BOOL),
+	("fIncUpdate", BOOL),
+	("rgbReserved", c_byte * 32)]
 
     
 class MENUITEMINFO(Structure):
-    _fields_ = [("cbSize", UINT),
-                ("fMask", UINT),
-                ("fType", UINT),
-                ("fState", UINT),                
-                ("wID", UINT),
-                ("hSubMenu", HMENU),
-                ("hbmpChecked", HBITMAP),
-                ("hbmpUnchecked", HBITMAP),
-                ("dwItemData", ULONG_PTR),
-                ("dwTypeData", LPTSTR),                
-                ("cch", UINT),
-                ("hbmpItem", HBITMAP)]
+	_fields_ = [("cbSize", UINT),
+	("fMask", UINT),
+	("fType", UINT),
+	("fState", UINT),
+	("wID", UINT),
+	("hSubMenu", HMENU),
+	("hbmpChecked", HBITMAP),
+	("hbmpUnchecked", HBITMAP),
+	("dwItemData", ULONG_PTR)]
+	if UNICODE:
+		_fields_.append(("dwTypeData", c_wchar_p))
+	else:
+		_fields_.append(("dwTypeData", c_char_p))
+	_fields_.append(("cch", UINT))
+	if WINVER >= 0x0500:
+		_fields_.append(("hbmpItem", HBITMAP))
 
 class DLGTEMPLATE(Structure):
-    _pack_ = 2
-    _fields_ = [
-        ("style", DWORD),
-        ("exStyle", DWORD),
-        ("cDlgItems", WORD),
-        ("x", c_short),
-        ("y", c_short),
-        ("cx", c_short),
-        ("cy", c_short)
-    ]
+	_pack_ = 2
+	_fields_ = [
+		("style", DWORD),
+		("exStyle", DWORD),
+		("cDlgItems", WORD),
+		("x", c_short),
+		("y", c_short),
+		("cx", c_short),
+		("cy", c_short)
+	]
 
 class DLGITEMTEMPLATE(Structure):
-    _pack_ = 2
-    _fields_ = [
-        ("style", DWORD),
-        ("exStyle", DWORD),
-        ("x", c_short),
-        ("y", c_short),
-        ("cx", c_short),
-        ("cy", c_short),
-        ("id", WORD)
-    ]
+	_pack_ = 2
+	_fields_ = [
+		("style", DWORD),
+		("exStyle", DWORD),
+		("x", c_short),
+		("y", c_short),
+		("cx", c_short),
+		("cy", c_short),
+		("id", WORD)
+	]
 
 class COPYDATASTRUCT(Structure):
-    _fields_ = [
-        ("dwData", ULONG_PTR),
-        ("cbData", DWORD),
-        ("lpData", PVOID)]
-    
+	_fields_ = [
+		("dwData", ULONG_PTR),
+		("cbData", DWORD),
+		("lpData", PVOID)]
+
 def LOWORD(dword):
-    return dword & 0x0000ffff
+	return dword & 0x0000ffff
 
 def HIWORD(dword):
-    return dword >> 16
+	return dword >> 16
 
 TRUE = 1
 FALSE = 0
@@ -412,48 +414,61 @@ MFT_SEPARATOR =0x800
 MFT_RIGHTORDER= 0x2000L
 MFT_STRING = 0
 
-MF_ENABLED    =0
-MF_GRAYED     =1
-MF_DISABLED   =2
-MF_BITMAP     =4
-MF_CHECKED    =8
-MF_MENUBARBREAK= 32
-MF_MENUBREAK  =64
-MF_OWNERDRAW  =256
-MF_POPUP      =16
-MF_SEPARATOR  =0x800
-MF_STRING     =0
-MF_UNCHECKED  =0
-MF_DEFAULT    =4096
-MF_SYSMENU    =0x2000
-MF_HELP       =0x4000
-MF_END        =128
-MF_RIGHTJUSTIFY=       0x4000
-MF_MOUSESELECT =       0x8000
-MF_INSERT= 0
-MF_CHANGE= 128
-MF_APPEND= 256
-MF_DELETE= 512
-MF_REMOVE= 4096
-MF_USECHECKBITMAPS= 512
-MF_UNHILITE= 0
-MF_HILITE= 128
-MF_BYCOMMAND=  0
-MF_BYPOSITION= 1024
-MF_UNCHECKED=  0
-MF_HILITE =    128
-MF_UNHILITE =  0
+# Menu flags for Add/Check/EnableMenuItem()
+MF_INSERT          = 0x00000000L
+MF_CHANGE          = 0x00000080L
+MF_APPEND          = 0x00000100L
+MF_DELETE          = 0x00000200L
+MF_REMOVE          = 0x00001000L
+MF_BYCOMMAND       = 0x00000000L
+MF_BYPOSITION      = 0x00000400L
+MF_SEPARATOR       = 0x00000800L
+MF_ENABLED         = 0x00000000L
+MF_GRAYED          = 0x00000001L
+MF_DISABLED        = 0x00000002L
+MF_UNCHECKED       = 0x00000000L
+MF_CHECKED         = 0x00000008L
+MF_USECHECKBITMAPS = 0x00000200L
+MF_STRING          = 0x00000000L
+MF_BITMAP          = 0x00000004L
+MF_OWNERDRAW       = 0x00000100L
+MF_POPUP           = 0x00000010L
+MF_MENUBARBREAK    = 0x00000020L
+MF_MENUBREAK       = 0x00000040L
+MF_UNHILITE        = 0x00000000L
+MF_HILITE          = 0x00000080L
+if WINVER >= 0x0400:
+	MF_DEFAULT = 0x00001000L
+MF_SYSMENU = 0x00002000L
+MF_HELP    = 0x00004000L
+if WINVER >= 0x0400:
+	MF_RIGHTJUSTIFY = 0x00004000L
+MF_MOUSESELECT = 0x00008000L
+if WINVER >= 0x0400:
+	MF_END = 0x00000080L  # Obsolete -- only used by old RES files
+
+if WINVER >= 0x0400:
+	MFT_STRING         = MF_STRING
+	MFT_BITMAP         = MF_BITMAP
+	MFT_MENUBARBREAK   = MF_MENUBARBREAK
+	MFT_MENUBREAK      = MF_MENUBREAK
+	MFT_OWNERDRAW      = MF_OWNERDRAW
+	MFT_RADIOCHECK     = 0x00000200L
+	MFT_SEPARATOR      = MF_SEPARATOR
+	MFT_RIGHTORDER     = 0x00002000L
+	MFT_RIGHTJUSTIFY   = MF_RIGHTJUSTIFY
+
+	# Menu flags for Add/Check/EnableMenuItem()
+	MFS_GRAYED         = 0x00000003L
+	MFS_DISABLED       = MFS_GRAYED
+	MFS_CHECKED        = MF_CHECKED
+	MFS_HILITE         = MF_HILITE
+	MFS_ENABLED        = MF_ENABLED
+	MFS_UNCHECKED      = MF_UNCHECKED
+	MFS_UNHILITE       = MF_UNHILITE
+	MFS_DEFAULT        = MF_DEFAULT
 
 LOCALE_SYSTEM_DEFAULT =  0x800
-
-MFS_GRAYED        =  0x00000003L
-MFS_DISABLED      =  MFS_GRAYED
-MFS_CHECKED       =  MF_CHECKED
-MFS_HILITE        =  MF_HILITE
-MFS_ENABLED       =  MF_ENABLED
-MFS_UNCHECKED     =  MF_UNCHECKED
-MFS_UNHILITE      =  MF_UNHILITE
-MFS_DEFAULT       =  MF_DEFAULT
 
 WS_BORDER	= 0x800000
 WS_CAPTION	= 0xc00000
@@ -936,31 +951,82 @@ SIZE_T = c_ulong
 def ZeroMemory(Destination, Length):
 	memset(addressof(Destination), 0, Length)
 
-GetModuleHandle = windll.kernel32.GetModuleHandleA
 PostQuitMessage= windll.user32.PostQuitMessage
-DefWindowProc = windll.user32.DefWindowProcA
-CallWindowProc = windll.user32.CallWindowProcA
 GetDCEx = windll.user32.GetDCEx
 GetDC = windll.user32.GetDC
 ReleaseDC = windll.user32.ReleaseDC
-LoadIcon = windll.user32.LoadIconA
 DestroyIcon = windll.user32.DestroyIcon
-LoadCursor = windll.user32.LoadCursorA
-LoadCursor.restype = ValidHandle
-LoadImage = windll.user32.LoadImageA
-LoadImage.restype = ValidHandle
 
-RegisterClassEx = windll.user32.RegisterClassExA
+RegisterClassEx = WINFUNCTYPE(c_void_p, POINTER(WNDCLASSEX))(('RegisterClassExW', windll.user32))
+GetModuleHandle = WINFUNCTYPE(c_void_p, c_wchar_p)(('GetModuleHandleW', windll.kernel32))
+DefWindowProc = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_long)(('DefWindowProcW', windll.user32))
+CallWindowProc = WINFUNCTYPE(c_long, c_void_p, c_void_p, c_uint, c_uint, c_long)(('CallWindowProcW', windll.user32))
+CreateWindowEx = WINFUNCTYPE(ValidHandle, c_ulong, c_wchar_p, c_wchar_p, c_ulong, c_int, c_int, c_int, c_int, c_void_p, c_void_p, c_void_p, c_void_p)(('CreateWindowExW', windll.user32))
+CreateWindowEx_atom = WINFUNCTYPE(ValidHandle, c_ulong, c_void_p, c_wchar_p, c_ulong, c_int, c_int, c_int, c_int, c_void_p, c_void_p, c_void_p, c_void_p)(('CreateWindowExW', windll.user32))
+AppendMenu = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_wchar_p)(('AppendMenuW', windll.user32))
+GetMessage = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_uint, c_uint)(('GetMessageW', windll.user32))
+SendMessage = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_void_p)(('SendMessageW', windll.user32))
+PostMessage = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_long)(('PostMessageW', windll.user32))
+DispatchMessage = WINFUNCTYPE(c_long, c_void_p)(('DispatchMessageW', windll.user32))
+RegisterWindowMessage = windll.user32.RegisterWindowMessageW
+SetWindowLong = windll.user32.SetWindowLongW
+SetClassLong = windll.user32.SetClassLongW
+GetClassLong = windll.user32.GetClassLongW
+CreateAcceleratorTable = windll.user32.CreateAcceleratorTableW
+ExpandEnvironmentStrings = windll.kernel32.ExpandEnvironmentStringsW
+LoadLibrary = WINFUNCTYPE(c_void_p, c_wchar_p)(('LoadLibraryW', windll.kernel32))
+FindResource = windll.kernel32.FindResourceW
+FindWindow = windll.user32.FindWindowW
+SetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('SetMenuItemInfoW', windll.user32))
+GetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('GetMenuItemInfoW', windll.user32))
+SetWindowsHookEx = windll.user32.SetWindowsHookExW
+MessageBox = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_wchar_p, c_uint)(('MessageBoxW', windll.user32))
+RegisterClipboardFormat = windll.user32.RegisterClipboardFormatW
+DialogBoxParam = windll.user32.DialogBoxParamW
+CreateDialogIndirectParam = windll.user32.CreateDialogIndirectParamW
+DialogBoxIndirectParam = windll.user32.DialogBoxIndirectParamW
+GetClassName = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_int)(('GetClassNameW', windll.user32))
+GetClassInfo = WINFUNCTYPE(c_bool, c_void_p, c_wchar_p, c_void_p)(('GetClassInfoW', windll.user32))
+CreateEvent = WINFUNCTYPE(c_void_p, c_void_p, c_bool, c_bool, c_wchar_p)(('CreateEventW', windll.kernel32))
+OpenEvent = WINFUNCTYPE(c_void_p, c_ulong, c_bool, c_wchar_p)(('OpenEventW', windll.kernel32))
+if not UNICODE:
+	RegisterClassEx = WINFUNCTYPE(c_void_p, POINTER(WNDCLASSEX))(('RegisterClassExA', windll.user32))
+	GetModuleHandle = WINFUNCTYPE(c_void_p, c_char_p)(('GetModuleHandleA', windll.kernel32))
+	DefWindowProc = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_long)(('DefWindowProcA', windll.user32))
+	CallWindowProc = WINFUNCTYPE(c_long, c_void_p, c_void_p, c_uint, c_uint, c_long)(('CallWindowProcA', windll.user32))
+	CreateWindowEx = CreateWindowEx_atom = windll.user32.CreateWindowExA
+	AppendMenu = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_char_p)(('AppendMenuA', windll.user32))
+	GetMessage = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_uint, c_uint)(('GetMessageA', windll.user32))
+	SendMessage = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_void_p)(('SendMessageA', windll.user32))
+	PostMessage = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_long)(('PostMessageA', windll.user32))
+	DispatchMessage = WINFUNCTYPE(c_long, c_void_p)(('DispatchMessageA', windll.user32))
+	RegisterWindowMessage = windll.user32.RegisterWindowMessageA
+	SetWindowLong = windll.user32.SetWindowLongA
+	SetClassLong = windll.user32.SetClassLongA
+	GetClassLong = windll.user32.GetClassLongA
+	CreateAcceleratorTable = windll.user32.CreateAcceleratorTableA
+	ExpandEnvironmentStrings = windll.kernel32.ExpandEnvironmentStringsA
+	LoadLibrary = WINFUNCTYPE(c_void_p, c_char_p)(('LoadLibraryA', windll.kernel32))
+	FindResource = windll.kernel32.FindResourceA
+	FindWindow = windll.user32.FindWindowA
+	SetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('SetMenuItemInfoA', windll.user32))
+	GetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('GetMenuItemInfoA', windll.user32))
+	SetWindowsHookEx = windll.user32.SetWindowsHookExA
+	MessageBox = WINFUNCTYPE(c_int, c_void_p, c_char_p, c_char_p, c_uint)(('MessageBoxA', windll.user32))
+	RegisterClipboardFormat = windll.user32.RegisterClipboardFormatA
+	DialogBoxParam = windll.user32.DialogBoxParamA
+	CreateDialogIndirectParam = windll.user32.CreateDialogIndirectParamA
+	DialogBoxIndirectParam = windll.user32.DialogBoxIndirectParamA
+	GetClassName = WINFUNCTYPE(c_int, c_void_p, c_char_p, c_int)(('GetClassNameA', windll.user32))
+	GetClassInfo = WINFUNCTYPE(c_bool, c_void_p, c_char_p, c_void_p)(('GetClassInfoA', windll.user32))
+	CreateEvent = WINFUNCTYPE(c_void_p, c_void_p, c_bool, c_bool, c_char_p)(('CreateEventA', windll.kernel32))
+	OpenEvent = WINFUNCTYPE(c_void_p, c_ulong, c_bool, c_char_p)(('OpenEventA', windll.kernel32))
+
 SetCursor = windll.user32.SetCursor
-
-CreateWindowEx = windll.user32.CreateWindowExA
-CreateWindowEx.restype = ValidHandle
 
 ShowWindow = windll.user32.ShowWindow
 UpdateWindow = windll.user32.UpdateWindow
-GetMessage = windll.user32.GetMessageA
 TranslateMessage = windll.user32.TranslateMessage
-DispatchMessage = windll.user32.DispatchMessageA
 GetWindowRect = windll.user32.GetWindowRect
 MoveWindow = windll.user32.MoveWindow
 DestroyWindow = windll.user32.DestroyWindow
@@ -968,18 +1034,11 @@ CloseWindow = windll.user32.CloseWindow
 CreateMenu = windll.user32.CreateMenu
 CreatePopupMenu = windll.user32.CreatePopupMenu
 DestroyMenu = windll.user32.DestroyMenu
-AppendMenu = windll.user32.AppendMenuA
 EnableMenuItem = windll.user32.EnableMenuItem
-SendMessage = windll.user32.SendMessageA
-PostMessage = windll.user32.PostMessageA
 GetClientRect = windll.user32.GetClientRect
 GetWindowRect = windll.user32.GetWindowRect
 IsDialogMessage = windll.user32.IsDialogMessage
-RegisterWindowMessage = windll.user32.RegisterWindowMessageA
 GetParent = windll.user32.GetParent
-SetWindowLong = windll.user32.SetWindowLongA
-SetClassLong = windll.user32.SetClassLongA
-GetClassLong = windll.user32.GetClassLongA
 SetWindowPos = windll.user32.SetWindowPos
 #InvalidateRect = windll.user32.InvalidateRect
 BeginPaint = windll.user32.BeginPaint
@@ -994,19 +1053,9 @@ GetMessagePos = windll.user32.GetMessagePos
 BeginDeferWindowPos = windll.user32.BeginDeferWindowPos
 DeferWindowPos = windll.user32.DeferWindowPos
 EndDeferWindowPos = windll.user32.EndDeferWindowPos
-CreateAcceleratorTable = windll.user32.CreateAcceleratorTableA
 DestroyAcceleratorTable = windll.user32.DestroyAcceleratorTable
 TranslateAccelerator = windll.user32.TranslateAccelerator
 
-
-ExpandEnvironmentStrings = windll.kernel32.ExpandEnvironmentStringsA
-GetModuleHandle = windll.kernel32.GetModuleHandleA
-GetModuleHandle.restype = ValidHandle
-LoadLibrary = windll.kernel32.LoadLibraryA
-LoadLibrary.restype = ValidHandle
-FindResource = windll.kernel32.FindResourceA
-FindResource.restype = ValidHandle
-FindWindow = windll.user32.FindWindowA
 GetForegroundWindow = windll.user32.GetForegroundWindow
 ChildWindowFromPoint = windll.user32.ChildWindowFromPoint
 
@@ -1014,19 +1063,12 @@ TrackPopupMenuEx = windll.user32.TrackPopupMenuEx
 
 GetMenuItemCount = windll.user32.GetMenuItemCount
 GetMenuItemCount.restype = Fail
-GetMenuItemInfo = windll.user32.GetMenuItemInfoA
-GetMenuItemInfo.restype = ValidHandle
 GetSubMenu = windll.user32.GetSubMenu
-SetMenuItemInfo = windll.user32.SetMenuItemInfoA
 
-SetWindowsHookEx = windll.user32.SetWindowsHookExA
 CallNextHookEx = windll.user32.CallNextHookEx
 UnhookWindowsHookEx = windll.user32.UnhookWindowsHookEx
 
 GetCurrentThreadId = windll.kernel32.GetCurrentThreadId
-
-MessageBox = windll.user32.MessageBoxA
-SetWindowText = windll.user32.SetWindowTextA
 
 GetFocus = windll.user32.GetFocus
 
@@ -1054,20 +1096,15 @@ OpenClipboard = windll.user32.OpenClipboard
 EmptyClipboard = windll.user32.EmptyClipboard
 SetClipboardData = windll.user32.SetClipboardData
 GetClipboardData = windll.user32.GetClipboardData
-RegisterClipboardFormat = windll.user32.RegisterClipboardFormatA
 CloseClipboard = windll.user32.CloseClipboard
 EnumClipboardFormats = windll.user32.EnumClipboardFormats
 IsClipboardFormatAvailable = windll.user32.IsClipboardFormatAvailable
-DialogBoxParam = windll.user32.DialogBoxParamA
 GetDlgItem = windll.user32.GetDlgItem
-GetClassName = windll.user32.GetClassNameA
 EndDialog = windll.user32.EndDialog
 ShowScrollBar = windll.user32.ShowScrollBar
 GetDesktopWindow = windll.user32.GetDesktopWindow
 SetFocus = windll.user32.SetFocus
 MultiByteToWideChar = windll.kernel32.MultiByteToWideChar
-CreateDialogIndirectParam = windll.user32.CreateDialogIndirectParamA
-DialogBoxIndirectParam = windll.user32.DialogBoxIndirectParamA
 EnumChildWindows = windll.user32.EnumChildWindows
 GetMenu = windll.user32.GetMenu
 
@@ -1079,10 +1116,7 @@ IsIconic = windll.user32.IsIconic
 GetCursorPos = windll.user32.GetCursorPos
 SetForegroundWindow = windll.user32.SetForegroundWindow
 SetMenuDefaultItem = windll.user32.SetMenuDefaultItem
-GetClassInfo = windll.user32.GetClassInfoA
 
-OpenEvent = windll.kernel32.OpenEventA
-CreateEvent = windll.kernel32.CreateEventA
 LockWindowUpdate = windll.user32.LockWindowUpdate
 
 # RedrawWindow() flags

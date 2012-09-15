@@ -29,18 +29,18 @@ from pywingui.lib import form
 
 
 comctl.InitCommonControls(comctl.ICC_LISTVIEW_CLASSES | comctl.ICC_COOL_CLASSES |\
-                          comctl.ICC_USEREX_CLASSES)
+                          comctl.ICC_USEREX_CLASSES | comctl.ICC_BAR_CLASSES)
 
 class Canvas(Window):
     _window_style_ = WS_CHILD | WS_VISIBLE
     _window_background_ = GetStockObject(WHITE_BRUSH)
-    
+
     def __init__(self, *args, **kwargs):
         Window.__init__(self, *args, **kwargs)
         self.dragging = False
         self.lastDragEnd = None
         self.selectedControls = []
-        
+
 ##     def WndProc(self, hWnd, nMsg, wParam, lParam):
 ##         print "canvas: ", msgFormatter.format(nMsg, wParam, lParam)
 ##         return Window.WndProc(self, hWnd, nMsg, wParam, lParam)
@@ -53,20 +53,20 @@ class Canvas(Window):
             else:
                 self.selectedControls = [child]
             self.Invalidate()
-            
+
         self.dragStart = event.clientPosition
         self.lastDragEnd = None
         self.dragging = True
         self.SetCapture()
 
     msg_handler(WM_LBUTTONDOWN)(OnLeftButtonDown)
-    
+
     def DragEnd(self):
         if self.lastDragEnd:
             hdc = self.GetDCEx(NULL, DCX_PARENTCLIP)
             self.DrawRect(hdc)
             self.ReleaseDC(hdc)
-           
+
         ReleaseCapture()
         self.dragging = False
         self.lastDragEnd = None
@@ -79,7 +79,7 @@ class Canvas(Window):
         endY = max(self.dragStart.y, self.lastDragEnd.y)
         #draw the rubberband
         DrawFocusRect(hdc, byref(RECT(startX, startY, endX, endY)))
-        
+
     def OnLeftButtonUp(self, event):
         self.DragEnd()
 
@@ -102,7 +102,7 @@ class Canvas(Window):
         self.ReleaseDC(hdc)
 
     msg_handler(WM_MOUSEMOVE)(OnMouseMove)
-    
+
     def OnCancelMode(self, event):
         self.DragEnd()
 
@@ -121,7 +121,7 @@ class Canvas(Window):
                 RECT(rc.right - 3, rc.top - 2, rc.right + 3, rc.top + 4),
                 RECT(rc.right - 3, rc.bottom -2, rc.right +3, rc.bottom + 4),
                 RECT(rc.left -2, rc.bottom - 2, rc.left + 4, rc.bottom + 4)]
-        
+
     def DrawSelectRect(self, hdc, rc):
         """draws a marker around a selected item"""
         oldPen = SelectObject(hdc, self.hatchPen.handle)
@@ -133,7 +133,7 @@ class Canvas(Window):
         SelectObject(hdc, oldPen)
         for dragRc in self.GetDragRects(rc):
             FillRect(hdc, byref(dragRc), self.rectBrush.handle)
-        
+
     def OnPaint(self, event):
         ps = PAINTSTRUCT()
         hdc = self.BeginPaint(ps)
@@ -150,12 +150,12 @@ class Canvas(Window):
     msg_handler(WM_PAINT)(OnPaint)
 
     defaultCursor = LoadCursor(NULL, IDC_ARROW)
-    
+
     cursors = [LoadCursor(NULL, IDC_SIZENWSE),
                LoadCursor(NULL, IDC_SIZENESW),
                LoadCursor(NULL, IDC_SIZENWSE),
                LoadCursor(NULL, IDC_SIZENESW)]
-    
+
     def OnSetCursor(self, event):
         pt = event.position #in screen coords
         try:
@@ -181,7 +181,7 @@ class intercept(object):
         self.source = source
         for childWindow in source.EnumChildWindows():
             intercept(target, childWindow)
-        
+
     def WndProc(self, hWnd, nMsg, wParam, lParam):
 ##        print "control: ", msgFormatter.format(nMsg, wParam, lParam)
         callTarget = False
@@ -196,17 +196,17 @@ class intercept(object):
             callTarget = True
         elif nMsg == WM_SETCURSOR:
             callTarget = True
-            
+
         if callTarget:
             handled, result = self.target.WndProc(hWnd, nMsg, wParam, lParam)
             return result
         else:
             return CallWindowProc(self.oldProc, hWnd, nMsg, wParam, lParam)
-        
+
 class Form(form.Form):
     _form_accels_ = [(FCONTROL|FVIRTKEY, ord("N"), form.ID_NEW),
                       (FCONTROL|FVIRTKEY, ord("O"), form.ID_OPEN),]
-    
+
     _form_menu_ = [(MF_POPUP, "&File", 
                     [(MF_STRING, "&New\tCtrl+N", form.ID_NEW),
                      (MF_SEPARATOR, ),
@@ -215,7 +215,7 @@ class Form(form.Form):
                    ]
 
     _window_title_ = "Venster Resource Editor"
-    
+
     def __init__(self):
         form.Form.__init__(self)      
 
@@ -225,20 +225,20 @@ class Form(form.Form):
         self.controls.Add(form.CTRL_STATUSBAR, comctl.StatusBar(parent = self))
 
     canvas = property(lambda self: self.controls[form.CTRL_VIEW])
-    
+
     def OnNew(self, event):
 ##         self.button = comctl.Button("Click Me!", parent = self.canvas,
 ##                                     rcPos = RECT(100, 100, 250, 325))
-        
+
 ##         intercept(self.canvas, self.button)
 
         self.combo = comctl.ComboBox(parent = self.canvas,
                                      rcPos = RECT(275, 100, 500, 125))
 
         intercept(self.canvas, self.combo)
-        
+
     cmd_handler(form.ID_NEW)(OnNew)
-   
+
 if __name__ == '__main__':
     mainForm = Form()
     mainForm.ShowWindow()

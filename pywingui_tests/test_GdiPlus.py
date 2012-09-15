@@ -5,8 +5,8 @@ from random import seed, randint
 from pywingui import gdiplusflat as gdiplus
 from pywingui import gdi
 from pywingui.wtl import *
-from pywingui.winuser import *
-from pywingui.version_microsoft import WINVER
+#~ from pywingui.winuser import *
+#~ from pywingui.version_microsoft import WINVER
 
 #VOID CALLBACK TimerProc(_In_  HWND hwnd, _In_  UINT uMsg, _In_  UINT_PTR idEvent, _In_  DWORD dwTime);
 #~ TimerProc = WINFUNCTYPE(None, c_void_p, c_uint, c_void_p, c_ulong)

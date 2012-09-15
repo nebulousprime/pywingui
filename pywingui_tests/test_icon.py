@@ -77,7 +77,7 @@ XORmaskIcon = (BYTE*128)(
 
 class MyWindow(Window):
 	_window_title_ = 'Custom Icon example window (Maxim Kolosov), based on MSDN CreateIcon example'
-	_window_background_ = GetStockObject(gdi.WHITE_BRUSH)
+	_window_background_ = GetStockObject(WHITE_BRUSH)
 	_window_icon_ = _window_icon_sm_ = IconEx(NULL, 32, 32, 1, 1, ANDmaskIcon, XORmaskIcon)
 
 	def OnDestroy(self, event):

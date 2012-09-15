@@ -21,12 +21,42 @@
 
 from windows import *
 from wtl import *
+from sdkddkver import _WIN32_IE, NTDDI_VERSION, NTDDI_LONGHORN
+from winuser import SetWindowText
 
 ATL_IDW_BAND_FIRST = 0xEB00
 HTREEITEM = HANDLE
 HIMAGELIST = HANDLE
 
 UINT_MAX = (1l << 32)
+
+ODT_HEADER   = 100
+ODT_TAB      = 101
+ODT_LISTVIEW = 102
+
+#====== Ranges for control message IDs =================
+
+LVM_FIRST = 0x1000 # ListView messages
+TV_FIRST  = 0x1100 # TreeView messages
+HDM_FIRST = 0x1200 # Header messages
+TCM_FIRST = 0x1300 # Tab control messages
+
+if WINVER >= 0x0400:
+	PGM_FIRST = 0x1400 # Pager control messages
+
+	if WINVER >= 0x0501:
+		ECM_FIRST = 0x1500 # Edit control messages
+		BCM_FIRST = 0x1600 # Button control messages
+		CBM_FIRST = 0x1700 # Combobox control messages
+
+	CCM_FIRST      = 0x2000 # Common control shared messages
+	CCM_LAST       = (CCM_FIRST + 0x200)
+	CCM_SETBKCOLOR = (CCM_FIRST + 1) # lParam is bkColor
+	CCM_SETCOLORSCHEME   = (CCM_FIRST + 2) # lParam is color scheme
+	CCM_GETCOLORSCHEME   = (CCM_FIRST + 3) # fills in COLORSCHEME pointed to by lParam
+	CCM_GETDROPTARGET    = (CCM_FIRST + 4)
+	CCM_SETUNICODEFORMAT = (CCM_FIRST + 5)
+	CCM_GETUNICODEFORMAT = (CCM_FIRST + 6)
 
 LVCF_FMT     =1
 LVCF_WIDTH   =2
@@ -258,15 +288,21 @@ CCS_NOPARENTALIGN = 8
 CCS_NORESIZE = 4
 CCS_TOP = 1
 
-RBBS_BREAK = 1
-RBBS_FIXEDSIZE = 2
-RBBS_CHILDEDGE = 4
-RBBS_HIDDEN = 8
-RBBS_NOVERT = 16
-RBBS_FIXEDBMP = 32
-RBBS_VARIABLEHEIGHT = 64
-RBBS_GRIPPERALWAYS = 128
-RBBS_NOGRIPPER = 256
+RBBS_BREAK     = 0x00000001 # break to new line
+RBBS_FIXEDSIZE = 0x00000002 # band can't be sized
+RBBS_CHILDEDGE = 0x00000004 # edge around top & bottom of child window
+RBBS_HIDDEN    = 0x00000008 # don't show
+RBBS_NOVERT    = 0x00000010 # don't show when vertical
+RBBS_FIXEDBMP  = 0x00000020 # bitmap doesn't move during band resize
+if _WIN32_IE >= 0x0400:
+	RBBS_VARIABLEHEIGHT = 0x00000040 # allow autosizing of this child vertically
+	RBBS_GRIPPERALWAYS  = 0x00000080 # always show the gripper
+	RBBS_NOGRIPPER      = 0x00000100 # never show the gripper
+	if _WIN32_IE >= 0x0500:
+		RBBS_USECHEVRON = 0x00000200 # display drop-down button for this band if it's sized smaller than ideal width
+		if _WIN32_IE >= 0x0501:
+			RBBS_HIDETITLE = 0x00000400 # keep band title hidden
+			RBBS_TOPALIGN  = 0x00000800 # keep band in top row
 
 RBS_TOOLTIPS = 256
 RBS_VARHEIGHT = 512
@@ -393,41 +429,52 @@ TBS_ENABLESELRANGE =      0x0020
 TBS_FIXEDLENGTH =         0x0040
 TBS_NOTHUMB =             0x0080
 TBS_TOOLTIPS =            0x0100
+if WINVER >= 0x0500:
+	TBS_REVERSED = 0x0200 # Accessibility hint: the smaller number (usually the min value) means "high" and the larger number (usually the max value) means "low"
+if WINVER >= 0x0501:
+	TBS_DOWNISLEFT = 0x0400 # Down=Left and Up=Right (default is Down=Right and Up=Left)
+if WINVER >= 0x0600:
+	TBS_NOTIFYBEFOREMOVE = 0x0800 # Trackbar should notify parent before repositioning the slider due to user action (enables snapping)
+if NTDDI_VERSION >= NTDDI_LONGHORN:
+	TBS_TRANSPARENTBKGND = 0x1000 # Background is painted by the parent via WM_PRINTCLIENT
 
 # trackbar messages
-TBM_GETPOS =              (WM_USER)
-TBM_GETRANGEMIN =         (WM_USER+1)
-TBM_GETRANGEMAX =         (WM_USER+2)
-TBM_GETTIC =              (WM_USER+3)
-TBM_SETTIC =              (WM_USER+4)
-TBM_SETPOS =              (WM_USER+5)
-TBM_SETRANGE =            (WM_USER+6)
-TBM_SETRANGEMIN =         (WM_USER+7)
-TBM_SETRANGEMAX =         (WM_USER+8)
-TBM_CLEARTICS =           (WM_USER+9)
-TBM_SETSEL =              (WM_USER+10)
-TBM_SETSELSTART =         (WM_USER+11)
-TBM_SETSELEND =           (WM_USER+12)
-TBM_GETPTICS =            (WM_USER+14)
-TBM_GETTICPOS =           (WM_USER+15)
-TBM_GETNUMTICS =          (WM_USER+16)
-TBM_GETSELSTART =         (WM_USER+17)
-TBM_GETSELEND =           (WM_USER+18)
-TBM_CLEARSEL =            (WM_USER+19)
-TBM_SETTICFREQ =          (WM_USER+20)
-TBM_SETPAGESIZE =         (WM_USER+21)
-TBM_GETPAGESIZE =         (WM_USER+22)
-TBM_SETLINESIZE =         (WM_USER+23)
-TBM_GETLINESIZE =         (WM_USER+24)
-TBM_GETTHUMBRECT =        (WM_USER+25)
-TBM_GETCHANNELRECT =      (WM_USER+26)
-TBM_SETTHUMBLENGTH =      (WM_USER+27)
-TBM_GETTHUMBLENGTH =      (WM_USER+28)
-TBM_SETTOOLTIPS =         (WM_USER+29)
-TBM_GETTOOLTIPS =         (WM_USER+30)
-TBM_SETTIPSIDE =          (WM_USER+31)
-TBM_SETBUDDY =            (WM_USER+32) 
-TBM_GETBUDDY =            (WM_USER+33) 
+TBM_GETPOS =         (WM_USER)
+TBM_GETRANGEMIN =    (WM_USER+1)
+TBM_GETRANGEMAX =    (WM_USER+2)
+TBM_GETTIC =         (WM_USER+3)
+TBM_SETTIC =         (WM_USER+4)
+TBM_SETPOS =         (WM_USER+5)
+TBM_SETRANGE =       (WM_USER+6)
+TBM_SETRANGEMIN =    (WM_USER+7)
+TBM_SETRANGEMAX =    (WM_USER+8)
+TBM_CLEARTICS =      (WM_USER+9)
+TBM_SETSEL =         (WM_USER+10)
+TBM_SETSELSTART =    (WM_USER+11)
+TBM_SETSELEND =      (WM_USER+12)
+TBM_GETPTICS =       (WM_USER+14)
+TBM_GETTICPOS =      (WM_USER+15)
+TBM_GETNUMTICS =     (WM_USER+16)
+TBM_GETSELSTART =    (WM_USER+17)
+TBM_GETSELEND =      (WM_USER+18)
+TBM_CLEARSEL =       (WM_USER+19)
+TBM_SETTICFREQ =     (WM_USER+20)
+TBM_SETPAGESIZE =    (WM_USER+21)
+TBM_GETPAGESIZE =    (WM_USER+22)
+TBM_SETLINESIZE =    (WM_USER+23)
+TBM_GETLINESIZE =    (WM_USER+24)
+TBM_GETTHUMBRECT =   (WM_USER+25)
+TBM_GETCHANNELRECT = (WM_USER+26)
+TBM_SETTHUMBLENGTH = (WM_USER+27)
+TBM_GETTHUMBLENGTH = (WM_USER+28)
+TBM_SETTOOLTIPS =    (WM_USER+29)
+TBM_GETTOOLTIPS =    (WM_USER+30)
+TBM_SETTIPSIDE =     (WM_USER+31)
+TBM_SETBUDDY =       (WM_USER+32) 
+TBM_GETBUDDY =       (WM_USER+33) 
+if WINVER >= 0x0400:
+	TBM_SETUNICODEFORMAT = CCM_SETUNICODEFORMAT
+	TBM_GETUNICODEFORMAT = CCM_GETUNICODEFORMAT
 
 # trackbar top-side flags
 TBTS_TOP =                0
@@ -450,6 +497,8 @@ TBCD_TICS =    0x0001
 TBCD_THUMB =   0x0002
 TBCD_CHANNEL = 0x0003
 
+TRBN_THUMBPOSCHANGING = 1500
+
 STATUSCLASSNAME = "msctls_statusbar32"
 
 REBARCLASSNAMEW = u"ReBarWindow32"
@@ -464,8 +513,10 @@ TRACKBAR_CLASSW = u"msctls_trackbar32"
 TRACKBAR_CLASSA = "msctls_trackbar32"
 TRACKBAR_CLASS = TRACKBAR_CLASSA
 
-EDIT = "Edit"
+WC_EDIT = "Edit"
 BUTTON = "BUTTON"
+
+WC_STATIC = 'Static'
 
 WC_COMBOBOXW = u"ComboBox"
 WC_COMBOBOXA = "ComboBox"
@@ -609,21 +660,40 @@ LVCFMT_BITMAP_ON_RIGHT =4096
 LVCFMT_COL_HAS_IMAGES = 32768
 LVCFMT_IMAGE =2048
 
-ICC_LISTVIEW_CLASSES =1
-ICC_TREEVIEW_CLASSES =2
-ICC_BAR_CLASSES      =4
-ICC_TAB_CLASSES      =8
-ICC_UPDOWN_CLASS =16
-ICC_PROGRESS_CLASS =32
-ICC_HOTKEY_CLASS =64
-ICC_ANIMATE_CLASS= 128
-ICC_WIN95_CLASSES= 255
-ICC_DATE_CLASSES =256
-ICC_USEREX_CLASSES =512
-ICC_COOL_CLASSES =1024
-ICC_INTERNET_CLASSES =2048
-ICC_PAGESCROLLER_CLASS =4096
-ICC_NATIVEFNTCTL_CLASS= 8192
+#~ ICC_LISTVIEW_CLASSES =1
+#~ ICC_TREEVIEW_CLASSES =2
+#~ ICC_BAR_CLASSES      =4
+#~ ICC_TAB_CLASSES      =8
+#~ ICC_UPDOWN_CLASS =16
+#~ ICC_PROGRESS_CLASS =32
+#~ ICC_HOTKEY_CLASS =64
+#~ ICC_ANIMATE_CLASS= 128
+#~ ICC_WIN95_CLASSES= 255
+#~ ICC_DATE_CLASSES =256
+#~ ICC_USEREX_CLASSES =512
+#~ ICC_COOL_CLASSES =1024
+#~ ICC_INTERNET_CLASSES =2048
+#~ ICC_PAGESCROLLER_CLASS =4096
+#~ ICC_NATIVEFNTCTL_CLASS= 8192
+ICC_LISTVIEW_CLASSES = 0x00000001# listview, header
+ICC_TREEVIEW_CLASSES = 0x00000002# treeview, tooltips
+ICC_BAR_CLASSES      = 0x00000004# toolbar, statusbar, trackbar, tooltips
+ICC_TAB_CLASSES      = 0x00000008# tab, tooltips
+ICC_UPDOWN_CLASS     = 0x00000010# updown
+ICC_PROGRESS_CLASS   = 0x00000020# progress
+ICC_HOTKEY_CLASS     = 0x00000040# hotkey
+ICC_ANIMATE_CLASS    = 0x00000080# animate
+ICC_WIN95_CLASSES    = 0x000000FF
+ICC_DATE_CLASSES     = 0x00000100# month picker, date picker, time picker, updown
+ICC_USEREX_CLASSES   = 0x00000200# comboex
+ICC_COOL_CLASSES     = 0x00000400# rebar (coolbar) control
+if WINVER >= 0x0400:
+	ICC_INTERNET_CLASSES = 0x00000800
+	ICC_PAGESCROLLER_CLASS = 0x00001000# page scroller
+	ICC_NATIVEFNTCTL_CLASS = 0x00002000# native font control
+if WINVER >= 0x0501:
+	ICC_STANDARD_CLASSES = 0x00004000
+	ICC_LINK_CLASS       = 0x00008000
 
 TCN_FIRST  =  (UINT_MAX) -550
 TCN_LAST   =  (UINT_MAX) -580
@@ -711,7 +781,7 @@ ImageList_AddMasked = windll.comctl32.ImageList_AddMasked
 ImageList_AddIcon = windll.comctl32.ImageList_AddIcon
 ImageList_SetBkColor = windll.comctl32.ImageList_SetBkColor
 
-InitCommonControlsEx = windll.comctl32.InitCommonControlsEx
+InitCommonControlsEx = WINFUNCTYPE(c_bool, POINTER(INITCOMMONCONTROLSEX))(('InitCommonControlsEx', windll.comctl32))
 
 class Button(Window):
 	_window_class_ = BUTTON
@@ -752,8 +822,34 @@ class StatusBar(Window):
 	def Simple(self, fSimple):
 		self.SendMessage(SB_SIMPLE, fSimple, 0)
 
-	def SetText(self, txt):
-		self.SendMessage(SB_SETTEXT, (255 | SBT_NOBORDERS), txt)
+	def SetText(self, text = ''):
+		txt = create_unicode_buffer(text)
+		if not UNICODE:
+			txt = create_string_buffer(text)
+		self.SendMessage(SB_SETTEXT, (255 | SBT_NOBORDERS), addressof(txt))
+
+class StaticText(Window):
+	_window_class_ = WC_STATIC
+	_window_style_ = WS_CHILD | WS_VISIBLE# | SS_SIMPLE
+	_window_style_ex_ = 0
+
+	def __init__(self, *args, **kwargs):
+		Window.__init__(self, *args, **kwargs)
+
+	def _GetText(self, returned_size = 0):
+		text_length = GetWindowTextLength(self.handle) + 1
+		text = c_wchar_p(' ' * text_length)
+		if not UNICODE:
+			text = c_char_p(' ' * text_length)
+		returned_size = GetWindowText(self.handle, byref(text), text_length)
+		return text.value
+
+	def SetText(self, text = ''):
+		return SetWindowText(self.handle, text)
+		#~ txt = create_unicode_buffer(text)
+		#~ if not UNICODE:
+			#~ txt = create_string_buffer(text)
+		#~ return self.SendMessage(WM_SETTEXT, 0, addressof(txt))
 
 # Combo Box return Values
 CB_OKAY             = 0
@@ -828,9 +924,12 @@ class ComboBox(Window):
 	_window_class_ = WC_COMBOBOX
 	_window_style_ = WS_VISIBLE | WS_CHILD | WS_OVERLAPPED | WS_VSCROLL | WS_TABSTOP | CBS_DROPDOWNLIST
 
-	def AddString(self, value = ''):
+	def AddString(self, text = ''):
 		'return index of item is added'
-		return self.SendMessage(CB_ADDSTRING, 0, value)
+		txt = create_unicode_buffer(text)
+		if not UNICODE:
+			txt = create_string_buffer(text)
+		return self.SendMessage(CB_ADDSTRING, 0, addressof(txt))
 
 	def DeleteString(self, index = 0):
 		self.SendMessage(CB_DELETESTRING, index)
@@ -849,29 +948,35 @@ class ComboBoxEx(ComboBox):
 	_window_style_ = WS_VISIBLE | WS_CHILD | CBS_DROPDOWN
 
 class Edit(Window):
-	_window_class__ = EDIT
+	_window_class__ = WC_EDIT
 	_window_style_ = WS_VISIBLE | WS_CHILD
 
 class ListBox(Window):
 	_window_class_ = 'ListBox'
 	_window_style_ = WS_VISIBLE | WS_CHILD
 
-	def AddString (self, txt):
-		self.SendMessage(LB_ADDSTRING, 0, txt)
+	def AddString(self, text):
+		txt = create_unicode_buffer(text)
+		if not UNICODE:
+			txt = create_string_buffer(text)
+		self.SendMessage(LB_ADDSTRING, 0, addressof(txt))
 
-	def InsertString (self, idx, txt):
-		self.SendMessage(LB_INSERTSTRING, idx, txt)
+	def InsertString(self, idx, text):
+		txt = create_unicode_buffer(text)
+		if not UNICODE:
+			txt = create_string_buffer(text)
+		self.SendMessage(LB_INSERTSTRING, idx, addressof(txt))
 
-	def DeleteString (self, idx):
+	def DeleteString(self, idx):
 		self.SendMessage(LB_DELETESTRING, idx)
 
-	def ResetContent (self):
+	def ResetContent(self):
 		self.SendMessage(LB_RESETCONTENT)
 
-	def GetCount (self):
+	def GetCount(self):
 		return self.SendMessage(LB_GETCOUNT)
 
-	def SetTopIndex (self, idx):
+	def SetTopIndex(self, idx):
 		self.SendMessage (LB_SETTOPINDEX, idx)
 
 class ProgressBar(Window):
@@ -957,12 +1062,12 @@ class TabControl(Window):
 	_window_style_ = WS_VISIBLE | WS_CHILD | TCS_MULTILINE
 
 	def InsertItem(self, iItem, item):        
-		return self.SendMessage(TCM_INSERTITEM, iItem, byref(item))
+		return self.SendMessage(TCM_INSERTITEM, iItem, addressof(item))
 
 	def GetItem(self, index, mask):
 		item = TCITEM()
 		item.mask = mask
-		if self.SendMessage(TCM_GETITEM, index, byref(item)):
+		if self.SendMessage(TCM_GETITEM, index, addressof(item)):
 			return item
 		else:
 			raise "error"
@@ -988,10 +1093,10 @@ class TreeView(Window):
 		insertStruct.hInsertAfter = hInsertAfter
 		insertStruct.itemex = itemEx
 
-		return self.SendMessage(TVM_INSERTITEM, 0, byref(insertStruct))
+		return self.SendMessage(TVM_INSERTITEM, 0, addressof(insertStruct))
 
 	def GetItem(self, item):
-		return self.SendMessage(TVM_GETITEM, 0, byref(item))
+		return self.SendMessage(TVM_GETITEM, 0, addressof(item))
 
 	def SetImageList(self, imageList, iImage = TVSIL_NORMAL):
 		return self.SendMessage(TVM_SETIMAGELIST, iImage, handle(imageList))
@@ -1040,20 +1145,21 @@ class ListView(Window):
 		self.SetExtendedListViewStyle(self._listview_style_ex_, self._listview_style_ex_)
 
 	def InsertColumn(self, iCol, lvcolumn):
-		return self.SendMessage(LVM_INSERTCOLUMN, iCol, byref(lvcolumn))
+		return self.SendMessage(LVM_INSERTCOLUMN, iCol, addressof(lvcolumn))
 
 	def SetColumn(self, iCol, lvcolumn):
-		return self.SendMessage(LVM_SETCOLUMN, iCol, byref(lvcolumn))
+		return self.SendMessage(LVM_SETCOLUMN, iCol, addressof(lvcolumn))
 
 	def SetColumnWidth(self, iCol, width):
 		return self.SendMessage(LVM_SETCOLUMNWIDTH, iCol, width)
 
 	def InsertItem(self, item):
-		if item.iItem == -1: item.iItem = self.GetItemCount()
-		return self.SendMessage(LVM_INSERTITEM, 0, byref(item))
+		if item.iItem == -1:
+			item.iItem = self.GetItemCount()
+		return self.SendMessage(LVM_INSERTITEM, 0, addressof(item))
 
 	def SetItem(self, item):
-		return self.SendMessage(LVM_SETITEM, 0, byref(item))
+		return self.SendMessage(LVM_SETITEM, 0, addressof(item))
 
 	def DeleteAllItems(self):
 		return self.SendMessage(LVM_DELETEALLITEMS)
@@ -1064,7 +1170,7 @@ class ListView(Window):
 		item.mask = LVIF_STATE
 		item.state = state
 		item.stateMask = stateMask
-		return self.SendMessage(LVM_SETITEMSTATE, i, byref(item))
+		return self.SendMessage(LVM_SETITEMSTATE, i, addressof(item))
 
 	def GetItemState(self, i, stateMask):
 		return self.SendMessage(LVM_GETITEMSTATE, i, stateMask)
@@ -1076,7 +1182,7 @@ class ListView(Window):
 		item = LVITEM()
 		item.iItem = i
 		item.mask = LVIF_PARAM
-		self.SendMessage(LVM_GETITEM, 0, byref(item))
+		self.SendMessage(LVM_GETITEM, 0, addressof(item))
 		return item.lParam
 
 	def SetItemCount(self, cItems, dwFlags = 0):
@@ -1101,11 +1207,11 @@ class ToolBar(Window):
 
 	def GetRect(self, idCtrl):
 		rc = RECT()
-		self.SendMessage(TB_GETRECT, idCtrl, byref(rc))
+		self.SendMessage(TB_GETRECT, idCtrl, addressof(rc))
 		return rc
 
 	def HitTest(self, pt):
-		return self.SendMessage(TB_HITTEST, 0, byref(pt))
+		return self.SendMessage(TB_HITTEST, 0, addressof(pt))
 
 	def SetHotItem(self, idButton):
 		return self.SendMessage(TB_SETHOTITEM, idButton)
@@ -1114,7 +1220,7 @@ class ToolBar(Window):
 		return self.SendMessage(TB_GETHOTITEM)
 
 	def InsertButton(self, iButton, tbButton):
-		return self.SendMessage(TB_INSERTBUTTON, iButton, byref(tbButton))
+		return self.SendMessage(TB_INSERTBUTTON, iButton, addressof(tbButton))
 
 	def SetImageList(self, imageList, iImage = 0):
 		return self.SendMessage(TB_SETIMAGELIST, iImage, handle(imageList))
@@ -1136,7 +1242,7 @@ class Rebar(Window):
 		rebarInfo.cbSize = sizeof(REBARINFO)
 		rebarInfo.fMask = 0
 		rebarInfo.himl = NULL
-		self.SendMessage(RB_SETBARINFO, 0, byref(rebarInfo))
+		self.SendMessage(RB_SETBARINFO, 0, addressof(rebarInfo))
 
 class ImageList(WindowsObject):
 	__dispose__ = ImageList_Destroy
@@ -1160,8 +1266,11 @@ class ImageList(WindowsObject):
 		#breaks if there are no more because then an exception is thrown:
 		while 1:
 			try:
-				hIcon = LoadImage(hdll, i , IMAGE_ICON, cx, cy, uFlags)
-				self.AddIcon(hIcon)
+				hIcon = LoadImage(hdll, i, IMAGE_ICON, cx, cy, uFlags)
+				if hIcon:
+					self.AddIcon(hIcon)
+				else:
+					break
 			except:
 				break
 			i += 1
@@ -1170,4 +1279,4 @@ def InitCommonControls(dwICC):
 	iccex = INITCOMMONCONTROLSEX()
 	iccex.dwSize = sizeof(INITCOMMONCONTROLSEX)
 	iccex.dwICC = dwICC
-	InitCommonControlsEx(byref(iccex))
+	InitCommonControlsEx(iccex)
