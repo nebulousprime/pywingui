@@ -12,7 +12,7 @@ comctl.InitCommonControls(comctl.ICC_COOL_CLASSES | comctl.ICC_BAR_CLASSES | com
 
 class fern_canvas(Window):
 	_window_style_ = WS_CHILD | WS_VISIBLE | WS_TABSTOP
-	_window_background_ = gdi.GetStockObject(gdi.LTGRAY_BRUSH)
+	_window_background_ = gdi.GetStockObject(gdi.WHITE_BRUSH)
 	_window_style_ex_ = WS_EX_CLIENTEDGE
 
 	maxLevels = 6
@@ -72,6 +72,7 @@ class fern_canvas(Window):
 class track_bar(Window):
 	_window_style_ = WS_VISIBLE | WS_CHILD
 	_window_style_ex_ = WS_EX_STATICEDGE
+	_window_background_ = gdi.GetStockObject(gdi.LTGRAY_BRUSH)
 
 	def __init__(self, *args, **kwargs):
 		self.form = kwargs.pop('form', None)
@@ -137,10 +138,11 @@ class main_form(form.Form):
 		self.sp = splitter.Splitter(splitPos = self.clientRect.width / 2, parent = self)
 
 		self.fc = fern_canvas(parent = self.sp, orExStyle = WS_EX_STATICEDGE)
-		self.sp.Add(0, self.fc)
+		self.sp.Add(1, self.fc)
 		self.controls.Add(self.fc)
 
-		self.prop = Window(parent = self.sp, style = WS_CHILD | WS_VISIBLE, orExStyle = WS_EX_STATICEDGE)
+		self.prop = form.Form(parent = self.sp, style = WS_CHILD | WS_VISIBLE, orExStyle = WS_EX_STATICEDGE)
+		self.prop._window_background_ = gdi.GetStockObject(gdi.LTGRAY_BRUSH)
 
 		tb = track_bar(title = self.FMT_RECURSION % self.fc.maxLevels, rcPos = RECT(5, 0, 300, 50), parent = self.prop, form = self)
 		tb.SetRange(1, 10)
@@ -172,14 +174,13 @@ class main_form(form.Form):
 		tb.SetPos(int(self.fc.heightScale * 10))
 		self.controls.Add(tb)
 
-		self.sp.Add(1, self.prop)
+		self.sp.Add(0, self.prop)
 
 		self.controls.Add(form.CTRL_VIEW, self.sp)
 		self.controls.Add(form.CTRL_STATUSBAR, comctl.StatusBar(parent = self))
 
 	def OnDestroy(self, event):
 		application.Quit()
-
 	msg_handler(WM_DESTROY)(OnDestroy)
 
 if __name__ == '__main__':
