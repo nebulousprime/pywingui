@@ -15,12 +15,6 @@ class main_window(Window):
 	_window_title_ = __doc__
 	_window_background_ = gdi.GetStockObject(gdi.LTGRAY_BRUSH)
 	_window_icon_ = _window_icon_sm_ = Icon(lpIconName = IDI_ASTERISK)
-	pt_size = 11# count points
-	set_size = 3# count figures
-	pt = (POINT*pt_size)((10, 10), (100, 10), (50, 100), (10, 10),# 0 figure (triangle)
-		(10, 110), (200, 110), (200, 180), (10, 180), (10, 110),# 1 figure (parallelogram)
-		(10, 200), (200, 200))# 2 figure (line)
-	pts = (c_ulong*set_size)(4, 5, 2)# count points in every figure
 
 	#~ def timer(self, hwnd, uMsg, idEvent, dwTime):
 		#~ print hwnd, uMsg, idEvent, dwTime
@@ -38,8 +32,12 @@ class main_window(Window):
 		status, pen = gdiplus.GdipCreatePen1(gdiplus.MakeARGB(100, randint(0, 255), randint(0, 255), randint(0, 255)), 30.0)
 		status = gdiplus.GdipDrawLineI(graphics, pen, 0, 0, rect.width, rect.height)
 		status = gdiplus.GdipDrawLineI(graphics, pen, rect.width, 0, 0, rect.height)
+		points = [(rect.width/2, 0), (rect.width/2, rect.height), (0, rect.height), (0, rect.height/2), (rect.width, rect.height/2)]
+		lines = (POINT*len(points))(*points)
+		status = gdiplus.GdipDrawLinesI(graphics, pen, lines, len(lines))
 		x, y = rect.width/3, rect.height/3
 		status = gdiplus.GdipDrawEllipseI(graphics, pen, x, y, x, y)
+		status = gdiplus.GdipDrawRectangleI(graphics, pen, rect.left, rect.top, rect.right, rect.bottom)
 		self.EndPaint(ps)
 
 	def OnTimer(self, event):

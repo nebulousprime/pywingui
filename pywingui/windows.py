@@ -376,7 +376,9 @@ MSGS = [('WM_NULL', 0),
         ('WM_CTLCOLORSTATIC', 312),
         ('WM_TIMER', 0x0113),
         ('WM_CONTEXTMENU', 0x007B),
-        ('WM_COPYDATA', 0x004A)
+        ('WM_COPYDATA', 0x004A),
+        ('WM_ACTIVATEAPP', 0x001C),
+        ('WM_NCACTIVATE', 0x0086)
         ]
 
 #insert wm_* msgs as constants in this module:

@@ -37,8 +37,12 @@ class main_window(Window):
 		gdi.PolyPolyline(hdc, self.pt, self.pts, self.set_size)
 		self.EndPaint(ps)
 
+	def OnTimer(self, event):
+		self.InvalidateRect(self.GetClientRect(), False)
+
 	msg_handler(WM_DESTROY)(OnDestroy)
 	msg_handler(WM_PAINT)(OnPaint)
+	msg_handler(WM_TIMER)(OnTimer)
 
 	def Drawing_a_Shaded_Rectangle(self, hdc, rc):
 		vert = (gdi.TRIVERTEX*2)()
@@ -62,5 +66,6 @@ class main_window(Window):
 if __name__ == '__main__':
 	seed()
 	mw = main_window(rcPos = RECT(0, 0, 320, 240))
+	mw.SetTimer(0, 500)
 	application = Application()
 	application.Run()
