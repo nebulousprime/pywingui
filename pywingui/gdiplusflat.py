@@ -26,8 +26,36 @@ UnsupportedGdiplusVersion = 17
 GdiplusNotInitialized = 18
 PropertyNotFound = 19
 PropertyNotSupported = 20
-if GDIPVER >= 0x0110:
-    ProfileNotFound = 21
+ProfileNotFound = 21#if GDIPVER >= 0x0110:
+
+container_status = {Ok:'Ok',
+GenericError:'GenericError',
+InvalidParameter:'InvalidParameter',
+OutOfMemory:'OutOfMemory',
+ObjectBusy:'ObjectBusy',
+InsufficientBuffer:'InsufficientBuffer',
+NotImplemented:'NotImplemented',
+Win32Error:'Win32Error',
+WrongState:'WrongState',
+Aborted:'Aborted',
+FileNotFound:'FileNotFound',
+ValueOverflow:'ValueOverflow',
+AccessDenied:'AccessDenied',
+UnknownImageFormat:'UnknownImageFormat',
+FontFamilyNotFound:'FontFamilyNotFound',
+FontStyleNotFound:'FontStyleNotFound',
+NotTrueTypeFont:'NotTrueTypeFont',
+UnsupportedGdiplusVersion:'UnsupportedGdiplusVersion',
+GdiplusNotInitialized:'GdiplusNotInitialized',
+PropertyNotFound:'PropertyNotFound',
+PropertyNotSupported:'PropertyNotSupported',
+ProfileNotFound:'ProfileNotFound'}
+
+def status_as_string(status):
+	try:
+		return container_status[status]
+	except:
+		return 'UNKNOWN STATUS %d' % status
 
 # enum Unit constants
 Unit = 0
@@ -457,6 +485,32 @@ GdipSaveAdd = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipSaveAdd', windll.gdip
 
 #GpStatus WINGDIPAPI GdipSaveAddImage(GpImage *image, GpImage* newImage, GDIPCONST EncoderParameters* encoderParams);
 GdipSaveAddImage = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p)(('GdipSaveAddImage', windll.gdiplus))
+
+
+# Bitmap APIs
+
+#GpStatus WINGDIPAPI GdipCreateBitmapFromStream(IStream* stream, GpBitmap **bitmap);
+_GdipCreateBitmapFromStream = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCreateBitmapFromStream', windll.gdiplus))
+def GdipCreateBitmapFromStream(stream):
+	bitmap = c_void_p()
+	status = _GdipCreateBitmapFromStream(stream, byref(bitmap))
+	return status, bitmap
+
+#GpStatus WINGDIPAPI GdipCreateBitmapFromFile(GDIPCONST WCHAR* filename, GpBitmap **bitmap);
+_GdipCreateBitmapFromFile = WINFUNCTYPE(c_int, c_wchar_p, c_void_p)(('GdipCreateBitmapFromFile', windll.gdiplus))
+def GdipCreateBitmapFromFile(filename):
+	bitmap = c_void_p()
+	status = _GdipCreateBitmapFromFile(filename, byref(bitmap))
+	return status, bitmap
+
+#...........
+
+#GpStatus WINGDIPAPI GdipCreateBitmapFromHICON(HICON hicon, GpBitmap** bitmap);
+_GdipCreateBitmapFromHICON = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCreateBitmapFromHICON', windll.gdiplus))
+def GdipCreateBitmapFromHICON(hicon):
+	bitmap = c_void_p()
+	status = _GdipCreateBitmapFromHICON(hicon, byref(bitmap))
+	return status, bitmap
 
 
 #===========

@@ -60,9 +60,10 @@ FRERR_FINDREPLACECODES = 0x4000
 FRERR_BUFFERLENGTHZERO = 0x4001
 CCERR_CHOOSECOLORCODES = 0x5000
 
+from ctypes import *
 from windows import *
 from wtl import *
-from ctypes import *
+#~ from version_microsoft import WINVER, UNICODE
 
 # UINT_PTR CALLBACK OFNHookProc(
 # HWND hdlg,      // handle to child dialog box
@@ -73,32 +74,56 @@ OFNHookProc = WINFUNCTYPE(UINT_PTR, HWND, UINT, WPARAM, LPARAM)
 LPOFNHOOKPROC = OFNHookProc
 
 class OPENFILENAME(Structure):
-	_fields_ = [("lStructSize", DWORD),
-				("hwndOwner", HWND),
-				("hInstance", HINSTANCE),
-				("lpstrFilter", LPCTSTR),
-				("lpstrCustomFilter", LPTSTR),
-				("nMaxCustFilter", DWORD),
-				("nFilterIndex", DWORD),
-				("lpstrFile", LPTSTR),
-				("nMaxFile", DWORD),
-				("lpstrFileTitle", LPTSTR),
-				("nMaxFileTitle", DWORD),
-				("lpstrInitialDir", LPCTSTR),
-				("lpstrTitle", LPCTSTR),
-				("flags", DWORD),
-				("nFileOffset", WORD),
-				("nFileExtension", WORD),
-				("lpstrDefExt", LPCTSTR),
-				("lCustData", LPARAM),
-				("lpfnHook", LPOFNHOOKPROC),
-				("lpTemplateName", LPCTSTR),
-				("pvReserved", LPVOID),
-				("dwReserved", DWORD),
-				("flagsEx", DWORD)]
+	_fields_ = [('lStructSize', DWORD),
+		('hwndOwner', HWND),
+		('hInstance', HINSTANCE)]
+	if UNICODE:
+		_fields_ += [('lpstrFilter', c_wchar_p),
+			('lpstrCustomFilter', c_wchar_p)]
+	else:
+		_fields_ += [('lpstrFilter', c_char_p),
+			('lpstrCustomFilter', c_char_p)]
+	_fields_ += [('nMaxCustFilter', DWORD),
+		('nFilterIndex', DWORD)]
+	if UNICODE:
+		_fields_.append(('lpstrFile', c_wchar_p))
+	else:
+		_fields_.append(('lpstrFile', c_char_p))
+	_fields_.append(('nMaxFile', DWORD))
+	if UNICODE:
+		_fields_.append(('lpstrFileTitle', c_wchar_p))
+	else:
+		_fields_.append(('lpstrFileTitle', c_char_p))
+	_fields_.append(('nMaxFileTitle', DWORD))
+	if UNICODE:
+		_fields_ += [('lpstrInitialDir', c_wchar_p),
+			('lpstrTitle', c_wchar_p)]
+	else:
+		_fields_ += [('lpstrInitialDir', c_char_p),
+			('lpstrTitle', c_char_p)]
+	_fields_ += [('flags', DWORD),
+		('nFileOffset', WORD),
+		('nFileExtension', WORD)]
+	if UNICODE:
+		_fields_.append(('lpstrDefExt', c_wchar_p))
+	else:
+		_fields_.append(('lpstrDefExt', c_char_p))
+	_fields_ += [('lCustData', LPARAM),
+		('lpfnHook', LPOFNHOOKPROC)]
+	if UNICODE:
+		_fields_.append(('lpTemplateName', c_wchar_p))
+	else:
+		_fields_.append(('lpTemplateName', c_char_p))
+	_fields_ += [('pvReserved', LPVOID),
+		('dwReserved', DWORD),
+		('flagsEx', DWORD)]
 
-GetOpenFileName = windll.comdlg32.GetOpenFileNameA
-GetSaveFileName = windll.comdlg32.GetSaveFileNameA
+GetOpenFileName = WINFUNCTYPE(c_bool, POINTER(OPENFILENAME))(('GetOpenFileNameW', windll.comdlg32))
+if not UNICODE:
+	GetOpenFileName = WINFUNCTYPE(c_bool, POINTER(OPENFILENAME))(('GetOpenFileNameA', windll.comdlg32))
+GetSaveFileName = WINFUNCTYPE(c_bool, POINTER(OPENFILENAME))(('GetSaveFileNameW', windll.comdlg32))
+if not UNICODE:
+	GetSaveFileName = WINFUNCTYPE(c_bool, POINTER(OPENFILENAME))(('GetSaveFileNameA', windll.comdlg32))
 
 OFN_ALLOWMULTISELECT = 512
 OFN_CREATEPROMPT= 0x2000
@@ -134,13 +159,14 @@ class FileDialog(OPENFILENAME):
 
 	filter = property(None, SetFilter, None, "")
 	def DoModal(self, parent = None):
-		szPath = '\0' * 1024
+		#~ szPath = '\0' * 1024
 		if versionInfo.isMajorMinor(4, 0): #fix for NT4.0
 			self.lStructSize = OPENFILENAME_SIZE_VERSION_400
 		else:
 			self.lStructSize = sizeof(OPENFILENAME)
-		self.lpstrFile = szPath
+		#~ self.lpstrFile = szPath
 		self.nMaxFile = 1024
+		self.lpstrFile = '\0' * self.nMaxFile
 		self.hwndOwner = handle(parent)
 		try:
 			#the windows file dialogs change the current working dir of the app
@@ -149,10 +175,11 @@ class FileDialog(OPENFILENAME):
 			#hardcoded relative paths)
 			import os
 			cwd = os.getcwd()
-			if self.DoIt() != 0:
-				return szPath[:szPath.find('\0')].strip()
-			else:
-				return None
+			#~ if self.DoIt() != 0:
+				#~ return szPath[:szPath.find('\0')].strip()
+			#~ else:
+				#~ return None
+			return self.DoIt()
 		finally:
 			os.chdir(cwd) #return to old current working dir
 
@@ -187,14 +214,19 @@ LPCCHOOKPROC = CCHookProc
 
 class CHOOSECOLOR(Structure):
 	_fields_ = [('lStructSize', DWORD),
-				('hwndOwner', HWND),
-				('hInstance', HWND),
-				('rgbResult', COLORREF),
-				('lpCustColors', LPCOLORREF),
-				('Flags', DWORD),
-				('lCustData', LPARAM),
-				('lpfnHook', LPCCHOOKPROC),
-				('lpTemplateName', LPCTSTR)]
+		('hwndOwner', HWND),
+		('hInstance', HWND),
+		('rgbResult', COLORREF),
+		('lpCustColors', LPCOLORREF),
+		('Flags', DWORD),
+		('lCustData', LPARAM),
+		('lpfnHook', LPCCHOOKPROC)]
+	if UNICODE:
+		_fields_.append(('lpTemplateName', c_wchar_p))
+	else:
+		_fields_.append(('lpTemplateName', c_char_p))
 
-ChooseColor = WINFUNCTYPE(c_byte, POINTER(CHOOSECOLOR))(('ChooseColorA', windll.comdlg32))
+ChooseColor = WINFUNCTYPE(c_bool, POINTER(CHOOSECOLOR))(('ChooseColorW', windll.comdlg32))
+if not UNICODE:
+	ChooseColor = WINFUNCTYPE(c_bool, POINTER(CHOOSECOLOR))(('ChooseColorA', windll.comdlg32))
 

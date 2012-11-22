@@ -161,6 +161,7 @@ if UNICODE:
 	_LoadIconP = windll.user32.LoadIconW
 	_LoadCursor = WINFUNCTYPE(c_void_p, c_void_p, c_wchar_p)(('LoadCursorW', windll.user32))
 	_LoadCursorP = windll.user32.LoadCursorW
+	LoadCursorFromFile = WINFUNCTYPE(c_void_p, c_wchar_p)(('LoadCursorFromFileW', windll.user32))
 	_LoadImage = WINFUNCTYPE(c_void_p, c_void_p, c_wchar_p, c_uint, c_int, c_int, c_uint)(('LoadImageW', windll.user32))
 	_LoadImageP = windll.user32.LoadImageW
 else:
@@ -172,6 +173,7 @@ else:
 	_LoadIconP = windll.user32.LoadIconA
 	_LoadCursor = WINFUNCTYPE(c_void_p, c_void_p, c_char_p)(('LoadCursorA', windll.user32))
 	_LoadCursorP = windll.user32.LoadCursorA
+	LoadCursorFromFile = WINFUNCTYPE(c_void_p, c_char_p)(('LoadCursorFromFileA', windll.user32))
 	_LoadImage = WINFUNCTYPE(c_void_p, c_void_p, c_char_p, c_uint, c_int, c_int, c_uint)(('LoadImageA', windll.user32))
 	_LoadImageP = windll.user32.LoadImageA
 
@@ -202,3 +204,6 @@ def LoadImage(hInstance = None, file_or_resource = 0, img_type = 0, x = 0, y = 0
 		return _LoadImageP(hInstance, file_or_resource, img_type, x, y, uFlags)
 	else:
 		return _LoadImage(hInstance, file_or_resource, img_type, x, y, uFlags)
+
+AttachThreadInput = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_bool)(('AttachThreadInput', windll.user32))
+GetWindowThreadProcessId = WINFUNCTYPE(DWORD, c_void_p, c_void_p)(('GetWindowThreadProcessId', windll.user32))

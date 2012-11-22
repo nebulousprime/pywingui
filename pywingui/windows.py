@@ -23,6 +23,10 @@ from version_microsoft import WINVER, UNICODE
 
 from ctypes import *
 
+from sys import hexversion
+if hexversion < 0x02060000:
+	c_bool = c_byte
+
 #TODO auto ie/comctl detection
 WIN32_IE = 0x0550
 
@@ -1083,6 +1087,8 @@ GlobalFree = windll.kernel32.GlobalFree
 GlobalFlags = windll.kernel32.GlobalFlags
 GlobalHandle = windll.kernel32.GlobalHandle
 GlobalSize = windll.kernel32.GlobalSize
+
+GetCurrentThreadId = WINFUNCTYPE(DWORD)(('GetCurrentThreadId', windll.kernel32))
 
 LocalAlloc = windll.kernel32.LocalAlloc
 LocalReAlloc = windll.kernel32.LocalReAlloc
