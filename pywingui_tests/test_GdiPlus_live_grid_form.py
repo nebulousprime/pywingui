@@ -82,7 +82,7 @@ class live_grid_2d:
 		self.pen_points = None
 		status, self.path_lines = gdiplus.GdipCreatePath()
 		status, self.path_points = gdiplus.GdipCreatePath()
-		self.current_cell = RECT(0, 0, self.cellw, self.cellh)
+		self.current_cell = self.old_cell = RECT(0, 0, self.cellw, self.cellh)
 		self.current_point = POINT(0, 0)
 		#~ self.create_cells()
 		self.create_lines()
@@ -140,6 +140,7 @@ class live_grid_2d:
 		result = False
 		current_cell = self.get_current_cell()
 		if self.current_cell != current_cell:
+			self.old_cell = self.current_cell
 			self.current_cell = current_cell
 			result = True
 		return result
@@ -175,7 +176,7 @@ class live_grid_2d:
 
 	def draw_current_cell(self, graphics):
 		if self.current_image[0]:
-			status = gdiplus.GdipDrawImage(graphics, self.current_image[0], self.current_cell.left, self.current_cell.top)
+			status = gdiplus.GdipDrawImageRect(graphics, self.current_image[0], self.current_cell.left, self.current_cell.top, self.cellw, self.cellh)
 		status = gdiplus.GdipFillRectangle(graphics, self.brush_cell, self.current_cell.left, self.current_cell.top, self.cellw, self.cellh)
 
 	def draw_lines(self, graphics):
@@ -186,7 +187,7 @@ class live_grid_2d:
 
 	def draw_images(self, graphics):
 		for key, image in self.container_images.iteritems():
-			status = gdiplus.GdipDrawImage(graphics, image[0], key[0], key[1])
+			status = gdiplus.GdipDrawImageRect(graphics, image[0], key[0], key[1], self.cellw, self.cellh)
 
 	def draw(self, graphics):
 		self.draw_images(graphics)
@@ -211,9 +212,11 @@ class main_window(form.Form):
 	_window_background_ = gdi.GetStockObject(gdi.LTGRAY_BRUSH)
 	_window_icon_ = _window_icon_sm_ = Icon(lpIconName = IDI_ASTERISK)
 	color_background = gdiplus.MakeARGB(255, 155, 155, 255)
-	grid = live_grid_2d()
+	grid = live_grid_2d(cellw = 64, cellh = 64, size_point = 5.0)
 	current_operation = OPERATION_EMPTY
 	color_active_cell_paste = grid.color_active_cell
+	current_open_dir = getcwd()
+	current_open_filter_index = 1
 
 	_form_menu_ = [(MF_POPUP, "&File",
 					[(MF_STRING, "&New Grid\tCtrl+N", form.ID_NEW),
@@ -243,7 +246,6 @@ class main_window(form.Form):
 		status, graphics = gdiplus.GdipCreateFromHDC(hdc)
 		status = gdiplus.GdipGraphicsClear(graphics, self.color_background)
 		self.grid.draw(graphics)
-		gdiplus.GdipFlush(graphics, 0)
 		gdiplus.GdipDeleteGraphics(graphics)
 		self.EndPaint(ps)
 
@@ -272,25 +274,31 @@ class main_window(form.Form):
 	def OnMouseMove(self, event):
 		self.grid.current_point = GET_POINT_LPARAM(event.lParam)
 		if self.grid.is_cell_changed():
-			self.InvalidateRect(self.GetClientRect(), False)
+			hdc = self.GetDC()
+			status, graphics = gdiplus.GdipCreateFromHDC(hdc)
+			clip_rect = self.grid.current_cell + self.grid.old_cell
+			status = gdiplus.GdipSetClipRectI(graphics, clip_rect.left, clip_rect.top, clip_rect.width, clip_rect.height, gdiplus.CombineModeReplace)
+			status = gdiplus.GdipGraphicsClear(graphics, self.color_background)
+			self.grid.draw(graphics)
+			gdiplus.GdipDeleteGraphics(graphics)
+			self.ReleaseDC(hdc)
 
 	def OnOpenImage(self, event):
 		dlg = OpenFileDialog()
 		dlg.lpstrInitialDir = getcwd()
-		dlg.SetFilter('BMP Image(*.bmp)|*.bmp|PNG Image(*.png)|*.png|JPG Image(*.jpg)|*.jpg|Icon Image(*.ico)|*.ico|Cursor Image(*.cur)|*.cur|All files(*.*)|*.*')
+		dlg.lpstrInitialDir = self.current_open_dir
+		dlg.nFilterIndex = self.current_open_filter_index
+		dlg.SetFilter('BMP Image(*.bmp)|*.bmp|PNG Image(*.png)|*.png|JPG Image(*.jpg)|*.jpg|GIF Image(*.gif)|*.gif|Icon Image(*.ico)|*.ico|Cursor Image(*.cur)|*.cur|EMF Image(*.emf)|*.emf|WMF Image(*.wmf)|*.wmf|All files(*.*)|*.*')
 		if dlg.DoModal(self):
+			self.current_open_dir = dlg.lpstrFile
+			self.current_open_filter_index = dlg.nFilterIndex
 			status = -1
 			if dlg.nFilterIndex == 1:#BMP
 				status, image = gdiplus.GdipCreateBitmapFromFile(dlg.lpstrFile)
-			elif dlg.nFilterIndex == 4:#ICO
-				result, big_icon, small_icon = ExtractIconEx(dlg.lpstrFile, 0, 2)
-				hicon = small_icon
+			elif dlg.nFilterIndex in (5, 6):#ICO#CUR
+				hicon = ExtractIcon(None, dlg.lpstrFile, 0)
 				if hicon:
 					status, image = gdiplus.GdipCreateBitmapFromHICON(hicon)
-			elif dlg.nFilterIndex == 5:#CUR
-				hicursor = ExtractIcon(None, dlg.lpstrFile, 0)
-				if hicursor:
-					status, image = gdiplus.GdipCreateBitmapFromHICON(hicursor)
 			else:
 				status, image = gdiplus.GdipLoadImageFromFile(dlg.lpstrFile)
 			if status == gdiplus.Ok:
@@ -324,7 +332,7 @@ if __name__ == '__main__':
 	startup_input = gdiplus.GdiplusStartupInput(1, cast(None, gdiplus.DebugEventProc), False, False)
 	gdiplus.GdiplusStartup(byref(gdiplusToken), startup_input, None)
 
-	mw = main_window(rcPos = RECT(0, 0, 320, 240))
+	mw = main_window(rcPos = RECT(0, 0, 640, 480))
 	application = Application()
 	application.Run()
 

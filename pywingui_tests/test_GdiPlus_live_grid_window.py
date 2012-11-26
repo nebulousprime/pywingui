@@ -72,7 +72,7 @@ class live_grid_2d:
 		self.pen_points = None
 		status, self.path_lines = gdiplus.GdipCreatePath()
 		status, self.path_points = gdiplus.GdipCreatePath()
-		self.current_cell = RECT(0, 0, self.cellw, self.cellh)
+		self.current_cell = self.old_cell = RECT(0, 0, self.cellw, self.cellh)
 		self.current_point = POINT(0, 0)
 		#~ self.create_cells()
 		self.create_lines()
@@ -185,6 +185,7 @@ class live_grid_2d:
 		result = False
 		current_cell = self.get_current_cell()
 		if self.current_cell != current_cell:
+			self.old_cell = self.current_cell
 			self.current_cell = current_cell
 			result = True
 		return result
@@ -267,7 +268,6 @@ class main_window(Window):
 		status, graphics = gdiplus.GdipCreateFromHDC(hdc)
 		status = gdiplus.GdipGraphicsClear(graphics, self.color_background)
 		self.grid.draw(graphics)
-		gdiplus.GdipFlush(graphics, 0)
 		gdiplus.GdipDeleteGraphics(graphics)
 		self.EndPaint(ps)
 
@@ -290,7 +290,14 @@ class main_window(Window):
 		self.mouse_event = True
 		self.grid.current_point = GET_POINT_LPARAM(event.lParam)
 		if self.grid.is_cell_changed():
-			self.InvalidateRect(self.GetClientRect(), False)
+			hdc = self.GetDC()
+			status, graphics = gdiplus.GdipCreateFromHDC(hdc)
+			clip_rect = self.grid.current_cell + self.grid.old_cell
+			status = gdiplus.GdipSetClipRectI(graphics, clip_rect.left, clip_rect.top, clip_rect.width, clip_rect.height, gdiplus.CombineModeReplace)
+			status = gdiplus.GdipGraphicsClear(graphics, self.color_background)
+			self.grid.draw(graphics)
+			gdiplus.GdipDeleteGraphics(graphics)
+			self.ReleaseDC(hdc)
 
 	msg_handler(WM_DESTROY)(OnDestroy)
 	msg_handler(WM_PAINT)(OnPaint)

@@ -82,7 +82,7 @@ class DecoratedWindow(wtl_core.Window):
 		self.SendMessage(WM_GETTEXT, textLength, byref(textBuff))
 		return textBuff.value
 
-	def MoveWindow(self, x, y, nWidth, nHeight, bRepaint):
+	def MoveWindow(self, x, y, nWidth, nHeight, bRepaint = True):
 		MoveWindow(self.handle, x, y, nWidth, nHeight, bRepaint)
 
 	def GetParent(self):
@@ -132,16 +132,28 @@ class DecoratedWindow(wtl_core.Window):
 	def SetCapture(self):
 		SetCapture(self.handle)
 
+	def ExcludeUpdateRgn(self, hdc):
+		return ExcludeUpdateRgn(hdc, self.handle)
+
 	def Invalidate(self, bErase = True):
-		InvalidateRect(self.handle, None, bErase)
-		#~ InvalidateRect(self.handle, NULL, bErase)
+		return InvalidateRect(self.handle, None, bErase)
+		#~ return InvalidateRect(self.handle, NULL, bErase)
 
 	def InvalidateRect(self, rc = None, bErase = True):
-		InvalidateRect(self.handle, pointer(rc), bErase)
-		#~ InvalidateRect(self.handle, byref(rc), bErase)
+		return InvalidateRect(self.handle, pointer(rc), bErase)
+		#~ return InvalidateRect(self.handle, byref(rc), bErase)
 
 	def InvalidateRgn(self, hRgn = None, bErase = True):
-		InvalidateRgn(self.handle, hRgn, bErase)
+		return InvalidateRgn(self.handle, hRgn, bErase)
+
+	def Validate(self):
+		return ValidateRect(self.handle, None)
+
+	def ValidateRect(self, rc = None):
+		return ValidateRect(self.handle, pointer(rc))
+
+	def ValidateRgn(self, region = None):
+		return ValidateRgn(self.handle, region)
 
 	def GetDCEx(self, hrgnClip, flags):
 		return GetDCEx(self.handle, hrgnClip, flags)

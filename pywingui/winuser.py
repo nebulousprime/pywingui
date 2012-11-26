@@ -179,8 +179,13 @@ else:
 
 CreateIcon = WINFUNCTYPE(HICON, HINSTANCE, c_int, c_int, c_byte, c_byte, c_void_p, c_void_p)(('CreateIcon', windll.user32))
 
-InvalidateRect = WINFUNCTYPE(c_byte, c_void_p, POINTER(RECT), c_byte)(('InvalidateRect', windll.user32))
-InvalidateRgn = WINFUNCTYPE(c_byte, c_void_p, c_void_p, c_byte)(('InvalidateRect', windll.user32))
+#WINUSERAPI int WINAPI ExcludeUpdateRgn(__in HDC hDC, __in HWND hWnd);
+ExcludeUpdateRgn = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('ExcludeUpdateRgn', windll.user32))
+
+InvalidateRect = WINFUNCTYPE(c_bool, c_void_p, POINTER(RECT), c_bool)(('InvalidateRect', windll.user32))
+InvalidateRgn = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_bool)(('InvalidateRect', windll.user32))
+ValidateRect = WINFUNCTYPE(c_bool, c_void_p, POINTER(RECT))(('ValidateRect', windll.user32))
+ValidateRgn = WINFUNCTYPE(c_bool, c_void_p, c_void_p)(('ValidateRgn', windll.user32))
 
 #Static Control Constants
 SS_LEFT = 0x00000000L
@@ -207,3 +212,30 @@ def LoadImage(hInstance = None, file_or_resource = 0, img_type = 0, x = 0, y = 0
 
 AttachThreadInput = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_bool)(('AttachThreadInput', windll.user32))
 GetWindowThreadProcessId = WINFUNCTYPE(DWORD, c_void_p, c_void_p)(('GetWindowThreadProcessId', windll.user32))
+
+MoveWindow = WINFUNCTYPE(c_bool, c_void_p, c_int, c_int, c_int, c_int, c_bool)(('MoveWindow', windll.user32))
+
+SetCursor = windll.user32.SetCursor
+
+ShowWindow = windll.user32.ShowWindow
+UpdateWindow = windll.user32.UpdateWindow
+TranslateMessage = windll.user32.TranslateMessage
+GetWindowRect = windll.user32.GetWindowRect
+DestroyWindow = windll.user32.DestroyWindow
+CloseWindow = windll.user32.CloseWindow
+CreateMenu = windll.user32.CreateMenu
+CreatePopupMenu = windll.user32.CreatePopupMenu
+DestroyMenu = windll.user32.DestroyMenu
+EnableMenuItem = windll.user32.EnableMenuItem
+GetClientRect = windll.user32.GetClientRect
+GetWindowRect = windll.user32.GetWindowRect
+IsDialogMessage = windll.user32.IsDialogMessage
+GetParent = windll.user32.GetParent
+SetWindowPos = windll.user32.SetWindowPos
+BeginPaint = windll.user32.BeginPaint
+EndPaint = windll.user32.EndPaint
+SetCapture = windll.user32.SetCapture
+GetCapture = windll.user32.GetCapture
+ReleaseCapture = windll.user32.ReleaseCapture
+ScreenToClient = windll.user32.ScreenToClient
+ClientToScreen = windll.user32.ClientToScreen

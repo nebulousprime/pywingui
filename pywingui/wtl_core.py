@@ -18,9 +18,10 @@
 ## LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 ## OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 ## WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
-from windows import *
 from ctypes import *
-from winuser import MAKEINTRESOURCE, LoadIcon, LoadCursor
+from windows import *
+#~ from winuser import *
+from winuser import MAKEINTRESOURCE, LoadIcon, LoadCursor, DestroyWindow, TranslateMessage, DispatchMessage
 
 import sys
 import weakref

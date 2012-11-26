@@ -157,36 +157,65 @@ class POINTS(Structure):
 PtInRect = windll.user32.PtInRect
 
 class RECT(Structure):
-    _fields_ = [("left", LONG),
-                ("top", LONG),
-                ("right", LONG),
-                ("bottom", LONG)]
+	_fields_ = [("left", LONG),
+		("top", LONG),
+		("right", LONG),
+		("bottom", LONG)]
 
-    def __str__(self):
-        return "RECT {left: %d, top: %d, right: %d, bottom: %d}" % (self.left, self.top,
-                                                                    self.right, self.bottom)
+	def __str__(self):
+		return "RECT {left: %d, top: %d, right: %d, bottom: %d}" % (self.left, self.top, self.right, self.bottom)
 
-    def getHeight(self):
-        return self.bottom - self.top
+	def __add__(self, value):
+		left, top, right, bottom = 0, 0, 0, 0
+		if self.left > value.left:
+			left = value.left
+		else:
+			left = self.left
+		if self.top > value.top:
+			top = value.top
+		else:
+			top = self.top
+		if self.right < value.right:
+			right = value.right
+		else:
+			right = self.right
+		if self.bottom < value.bottom:
+			bottom = value.bottom
+		else:
+			bottom = self.bottom
+		return RECT(left, top, right, bottom)
 
-    height = property(getHeight, None, None, "")
+	def __iadd__(self, value):
+		if self.left > value.left:
+			self.left = value.left
+		if self.top > value.top:
+			self.top = value.top
+		if self.right < value.right:
+			self.right = value.right
+		if self.bottom < value.bottom:
+			self.bottom = value.bottom
 
-    def getWidth(self):
-        return self.right - self.left
+	def getHeight(self):
+		return self.bottom - self.top
 
-    width = property(getWidth, None, None, "")
+	height = property(getHeight, None, None, "")
 
-    def getSize(self):
-        return self.width, self.height
+	def getWidth(self):
+		return self.right - self.left
 
-    size = property(getSize, None, None, "")
-    
-    def ContainsPoint(self, pt):
-        """determines if this RECT contains the given POINT pt
-        returns True if pt is in this rect
-        """
-        return bool(PtInRect(byref(self), pt))
-        
+	width = property(getWidth, None, None, "")
+
+	def getSize(self):
+		return self.width, self.height
+
+	size = property(getSize, None, None, "")
+
+	def ContainsPoint(self, pt):
+		"""determines if this RECT contains the given POINT pt
+		returns True if pt is in this rect
+		"""
+		return bool(PtInRect(byref(self), pt))
+
 RECTL = RECT        
 
 class SIZE(Structure):
@@ -1027,33 +1056,6 @@ if not UNICODE:
 	GetClassInfo = WINFUNCTYPE(c_bool, c_void_p, c_char_p, c_void_p)(('GetClassInfoA', windll.user32))
 	CreateEvent = WINFUNCTYPE(c_void_p, c_void_p, c_bool, c_bool, c_char_p)(('CreateEventA', windll.kernel32))
 	OpenEvent = WINFUNCTYPE(c_void_p, c_ulong, c_bool, c_char_p)(('OpenEventA', windll.kernel32))
-
-SetCursor = windll.user32.SetCursor
-
-ShowWindow = windll.user32.ShowWindow
-UpdateWindow = windll.user32.UpdateWindow
-TranslateMessage = windll.user32.TranslateMessage
-GetWindowRect = windll.user32.GetWindowRect
-MoveWindow = windll.user32.MoveWindow
-DestroyWindow = windll.user32.DestroyWindow
-CloseWindow = windll.user32.CloseWindow
-CreateMenu = windll.user32.CreateMenu
-CreatePopupMenu = windll.user32.CreatePopupMenu
-DestroyMenu = windll.user32.DestroyMenu
-EnableMenuItem = windll.user32.EnableMenuItem
-GetClientRect = windll.user32.GetClientRect
-GetWindowRect = windll.user32.GetWindowRect
-IsDialogMessage = windll.user32.IsDialogMessage
-GetParent = windll.user32.GetParent
-SetWindowPos = windll.user32.SetWindowPos
-#InvalidateRect = windll.user32.InvalidateRect
-BeginPaint = windll.user32.BeginPaint
-EndPaint = windll.user32.EndPaint
-SetCapture = windll.user32.SetCapture
-GetCapture = windll.user32.GetCapture
-ReleaseCapture = windll.user32.ReleaseCapture
-ScreenToClient = windll.user32.ScreenToClient
-ClientToScreen = windll.user32.ClientToScreen
 
 GetMessagePos = windll.user32.GetMessagePos
 BeginDeferWindowPos = windll.user32.BeginDeferWindowPos
