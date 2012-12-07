@@ -216,7 +216,8 @@ class RECT(Structure):
 		"""
 		return bool(PtInRect(byref(self), pt))
 
-RECTL = RECT        
+RECTL = RECT
+LPRECT = POINTER(RECT)
 
 class SIZE(Structure):
 	_fields_ = [('cx', LONG), ('cy', LONG)]
@@ -724,27 +725,6 @@ DCX_VALIDATE= 0x200000
 
 GCL_STYLE = -26
 
-SB_HORZ       =      0
-SB_VERT       =      1
-SB_CTL        =      2
-SB_BOTH       =      3
-
-SB_LINEUP           =0
-SB_LINELEFT         =0
-SB_LINEDOWN         =1
-SB_LINERIGHT        =1
-SB_PAGEUP           =2
-SB_PAGELEFT         =2
-SB_PAGEDOWN         =3
-SB_PAGERIGHT        =3
-SB_THUMBPOSITION    =4
-SB_THUMBTRACK       =5
-SB_TOP              =6
-SB_LEFT             =6
-SB_BOTTOM           =7
-SB_RIGHT            =7
-SB_ENDSCROLL        =8
-
 MB_OK                    =   0x00000000
 MB_OKCANCEL              =   0x00000001
 MB_ABORTRETRYIGNORE      =   0x00000002
@@ -904,6 +884,7 @@ ES_MULTILINE = 4
 ES_AUTOVSCROLL = 0x40L
 ES_AUTOHSCROLL = 0x80L
 ES_READONLY    = 0x800
+ES_WANTRETURN = 0x1000
 CP_ACP = 0
 DS_SETFONT = 0x40
 DS_MODALFRAME = 0x80

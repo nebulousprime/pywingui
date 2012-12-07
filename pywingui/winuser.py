@@ -152,6 +152,45 @@ if WINVER >= 0x0400:
 	IDI_ERROR       = IDI_HAND
 	IDI_INFORMATION = IDI_ASTERISK
 
+SB_HORZ = 0
+SB_VERT = 1
+SB_CTL = 2
+SB_BOTH = 3
+
+SB_LINEUP           =0
+SB_LINELEFT         =0
+SB_LINEDOWN         =1
+SB_LINERIGHT        =1
+SB_PAGEUP           =2
+SB_PAGELEFT         =2
+SB_PAGEDOWN         =3
+SB_PAGERIGHT        =3
+SB_THUMBPOSITION    =4
+SB_THUMBTRACK       =5
+SB_TOP              =6
+SB_LEFT             =6
+SB_BOTTOM           =7
+SB_RIGHT            =7
+SB_ENDSCROLL        =8
+
+if WINVER >= 0x0400:
+	SIF_RANGE          = 0x0001
+	SIF_PAGE           = 0x0002
+	SIF_POS            = 0x0004
+	SIF_DISABLENOSCROLL= 0x0008
+	SIF_TRACKPOS       = 0x0010
+	SIF_ALL            = SIF_RANGE | SIF_PAGE | SIF_POS | SIF_TRACKPOS
+
+class SCROLLINFO(Structure):
+	_fields_ = [('cbSize', c_uint),
+		('fMask', c_uint),
+		('nMin', c_int),
+		('nMax', c_int),
+		('nPage', c_uint),
+		('nPos', c_int),
+		('nTrackPos', c_int)]
+LPSCROLLINFO = POINTER(SCROLLINFO)
+
 if UNICODE:
 	SetWindowText = WINFUNCTYPE(c_bool, c_void_p, c_wchar_p)(('SetWindowTextW', windll.user32))
 	GetWindowText = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int)(('GetWindowTextW', windll.user32))
@@ -239,3 +278,50 @@ GetCapture = windll.user32.GetCapture
 ReleaseCapture = windll.user32.ReleaseCapture
 ScreenToClient = windll.user32.ScreenToClient
 ClientToScreen = windll.user32.ClientToScreen
+
+#WINUSERAPI BOOL WINAPI ScrollWindow(__in HWND hWnd, __in int XAmount, __in int YAmount, __in_opt CONST RECT *lpRect, __in_opt CONST RECT *lpClipRect);
+ScrollWindow = WINFUNCTYPE(c_bool, c_void_p, c_int, c_int, LPRECT, LPRECT)(('ScrollWindow', windll.user32))
+
+#WINUSERAPI BOOL WINAPI ScrollDC(__in HDC hDC, __in int dx, __in int dy, __in_opt CONST RECT *lprcScroll, __in_opt CONST RECT *lprcClip, __in_opt HRGN hrgnUpdate, __out_opt LPRECT lprcUpdate);
+ScrollDC = WINFUNCTYPE(c_bool, c_void_p, c_int, c_int, LPRECT, LPRECT, c_void_p, LPRECT)(('ScrollDC', windll.user32))
+
+#WINUSERAPI int WINAPI ScrollWindowEx(__in HWND hWnd, __in int dx, __in int dy, __in_opt CONST RECT *prcScroll, __in_opt CONST RECT *prcClip, __in_opt HRGN hrgnUpdate, __out_opt LPRECT prcUpdate, __in UINT flags);
+ScrollWindowEx = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, LPRECT, LPRECT, c_void_p, LPRECT, c_uint)(('ScrollWindowEx', windll.user32))
+
+#WINUSERAPI int WINAPI SetScrollInfo(__in HWND hwnd, __in int nBar, __in LPCSCROLLINFO lpsi, __in BOOL redraw);
+SetScrollInfo = WINFUNCTYPE(c_int, c_void_p, c_int, LPSCROLLINFO, c_bool)(('SetScrollInfo', windll.user32))
+
+#WINUSERAPI BOOL WINAPI GetScrollInfo(__in HWND hwnd, __in int nBar, __inout LPSCROLLINFO lpsi);
+_GetScrollInfo = WINFUNCTYPE(c_bool, c_void_p, c_int, LPSCROLLINFO)(('GetScrollInfo', windll.user32))
+def GetScrollInfo(hwnd, nBar = SB_CTL, fMask = SIF_ALL):
+	scroll_info_size = sizeof(SCROLLINFO)
+	#~ scroll_info = cast(GlobalAlloc(0, scroll_info_size), LPSCROLLINFO)
+	scroll_info = SCROLLINFO()
+	#~ ZeroMemory(scroll_info, scroll_info_size)
+	scroll_info.cbSize = scroll_info_size
+	scroll_info.fMask = fMask
+	result = _GetScrollInfo(hwnd, nBar, scroll_info)
+	return result, scroll_info
+
+#WINUSERAPI int WINAPI SetScrollPos(__in HWND hWnd, __in int nBar, __in int nPos, __in BOOL bRedraw);
+SetScrollPos = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, c_bool)(('SetScrollPos', windll.user32))
+
+#WINUSERAPI int WINAPI GetScrollPos(__in HWND hWnd, __in int nBar);
+GetScrollPos = WINFUNCTYPE(c_int, c_void_p, c_int)(('GetScrollPos', windll.user32))
+
+#WINUSERAPI BOOL WINAPI SetScrollRange(__in HWND hWnd, __in int nBar, __in int nMinPos, __in int nMaxPos, __in BOOL bRedraw);
+SetScrollRange = WINFUNCTYPE(c_bool, c_void_p, c_int, c_int, c_int, c_bool)(('SetScrollRange', windll.user32))
+
+#WINUSERAPI BOOL WINAPI GetScrollRange(__in HWND hWnd, __in int nBar, __out LPINT lpMinPos, __out LPINT lpMaxPos);
+_GetScrollRange = WINFUNCTYPE(c_bool, c_void_p, c_int, c_void_p, c_void_p)(('GetScrollRange', windll.user32))
+def GetScrollRange(hwnd, nBar = SB_CTL):
+	lpMinPos = c_int()
+	lpMaxPos = c_int()
+	result = _GetScrollRange(hwnd, nBar, byref(lpMinPos), byref(lpMaxPos))
+	return result, lpMinPos.value, lpMaxPos.value
+
+#WINUSERAPI BOOL WINAPI ShowScrollBar(__in HWND hWnd, __in int wBar, __in BOOL bShow);
+ShowScrollBar = WINFUNCTYPE(c_bool, c_void_p, c_int, c_bool)(('ShowScrollBar', windll.user32))
+
+#WINUSERAPI BOOL WINAPI EnableScrollBar(__in HWND hWnd, __in UINT wSBflags, __in UINT wArrows);
+EnableScrollBar = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint)(('EnableScrollBar', windll.user32))

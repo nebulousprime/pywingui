@@ -158,15 +158,19 @@ class FileDialog(OPENFILENAME):
 		self.lpstrFilter = filter.replace('|', '\0') + '\0\0'
 
 	filter = property(None, SetFilter, None, "")
-	def DoModal(self, parent = None):
-		#~ szPath = '\0' * 1024
+	def DoModal(self, parent = None, file_name = '', max_file = 1024):
 		if versionInfo.isMajorMinor(4, 0): #fix for NT4.0
 			self.lStructSize = OPENFILENAME_SIZE_VERSION_400
 		else:
 			self.lStructSize = sizeof(OPENFILENAME)
-		#~ self.lpstrFile = szPath
-		self.nMaxFile = 1024
-		self.lpstrFile = '\0' * self.nMaxFile
+		self.nMaxFile = max_file
+		if file_name:
+			if UNICODE:
+				self.lpstrFile = cast(create_unicode_buffer(file_name, self.nMaxFile), c_wchar_p)
+			else:
+				self.lpstrFile = cast(create_string_buffer(file_name, self.nMaxFile), c_char_p)
+		else:
+			self.lpstrFile = '\0' * self.nMaxFile
 		self.hwndOwner = handle(parent)
 		try:
 			#the windows file dialogs change the current working dir of the app
