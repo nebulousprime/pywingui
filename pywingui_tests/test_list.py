@@ -25,11 +25,9 @@ from pywingui.comctl import *
 from pywingui.lib import list
 from pywingui.lib import form
 
-#~ from ctypes import *
+blinkyIcon = Icon('blinky.ico')
 
-blinkyIcon = Icon("blinky.ico")
-
-columnDefs = [("blaat", 100), ("col2", 150)]
+columnDefs = [('column 0', 100), ('column 1', 150)]
 
 InitCommonControls(ICC_LISTVIEW_CLASSES)
 
@@ -66,7 +64,7 @@ class MyList(list.List):
 
 	def OnColumnClick(self, event):
 		nmlv = NMLISTVIEW.from_address(int(event.lParam))
-		print "column clicked!", nmlv.iSubItem
+		print 'column clicked!', nmlv.iSubItem
 
 	ntf_handler(LVN_COLUMNCLICK)(OnColumnClick)
 
@@ -75,13 +73,13 @@ class MyForm(form.Form):
 	_window_icon_sm_ = blinkyIcon
 	_window_background_ = 0
 
-	_window_title_ = "Test auto column resize (NOT WORKING!)"
+	_window_title_ = 'Test auto column resize'
 
 	def OnCreate(self, event):
 		aList = MyList(parent = self, orExStyle = WS_EX_CLIENTEDGE)
 		aList.InsertColumns(columnDefs)
 		for i in range(100):
-			aList.InsertRow(i, ["blaat %d" % i, "blaat col2 %d" % i])
+			aList.InsertRow(i, ['c o l u m n 0 %d' % i, 'c o l u m n 1 %d' % i])
 
 		self.controls.Add(form.CTRL_VIEW, aList)
 

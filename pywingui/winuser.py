@@ -152,6 +152,20 @@ if WINVER >= 0x0400:
 	IDI_ERROR       = IDI_HAND
 	IDI_INFORMATION = IDI_ASTERISK
 
+# Class field offsets for GetClassLong()
+GCL_MENUNAME      = -8
+GCL_HBRBACKGROUND = -10
+GCL_HCURSOR       = -12
+GCL_HICON         = -14
+GCL_HMODULE       = -16
+GCL_CBWNDEXTRA    = -18
+GCL_CBCLSEXTRA    = -20
+GCL_WNDPROC       = -24
+GCL_STYLE         = -26
+GCW_ATOM          = -32
+if WINVER >= 0x0400:
+	GCL_HICONSM = -34
+
 SB_HORZ = 0
 SB_VERT = 1
 SB_CTL = 2
@@ -191,25 +205,75 @@ class SCROLLINFO(Structure):
 		('nTrackPos', c_int)]
 LPSCROLLINFO = POINTER(SCROLLINFO)
 
+if WINVER >= 0x0400:
+	WM_NOTIFY                      = 0x004E
+	WM_INPUTLANGCHANGEREQUEST      = 0x0050
+	WM_INPUTLANGCHANGE             = 0x0051
+	WM_TCARD                       = 0x0052
+	WM_HELP                        = 0x0053
+	WM_USERCHANGED                 = 0x0054
+	WM_NOTIFYFORMAT                = 0x0055
+	NFR_ANSI                       =      1
+	NFR_UNICODE                    =      2
+	NF_QUERY                       =      3
+	NF_REQUERY                     =      4
+	WM_CONTEXTMENU                 = 0x007B
+	WM_STYLECHANGING               = 0x007C
+	WM_STYLECHANGED                = 0x007D
+	WM_DISPLAYCHANGE               = 0x007E
+	WM_GETICON                     = 0x007F
+	WM_SETICON                     = 0x0080
+
 if UNICODE:
+	RegisterClassEx = WINFUNCTYPE(c_void_p, POINTER(WNDCLASSEX))(('RegisterClassExW', windll.user32))
+	DefWindowProc = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_long)(('DefWindowProcW', windll.user32))
+	CallWindowProc = WINFUNCTYPE(c_long, c_void_p, c_void_p, c_uint, c_uint, c_long)(('CallWindowProcW', windll.user32))
+	CreateWindowEx = WINFUNCTYPE(ValidHandle, c_ulong, c_wchar_p, c_wchar_p, c_ulong, c_int, c_int, c_int, c_int, c_void_p, c_void_p, c_void_p, c_void_p)(('CreateWindowExW', windll.user32))
+	CreateWindowEx_atom = WINFUNCTYPE(ValidHandle, c_ulong, c_void_p, c_wchar_p, c_ulong, c_int, c_int, c_int, c_int, c_void_p, c_void_p, c_void_p, c_void_p)(('CreateWindowExW', windll.user32))
+	AppendMenu = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_wchar_p)(('AppendMenuW', windll.user32))
+	GetMessage = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_uint, c_uint)(('GetMessageW', windll.user32))
+	SendMessage = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_void_p)(('SendMessageW', windll.user32))
+	PostMessage = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_long)(('PostMessageW', windll.user32))
+	DispatchMessage = WINFUNCTYPE(c_long, c_void_p)(('DispatchMessageW', windll.user32))
+	RegisterWindowMessage = windll.user32.RegisterWindowMessageW
+	SetWindowLong = windll.user32.SetWindowLongW
+	SetClassLong = WINFUNCTYPE(None, c_void_p, c_int, c_long)(('SetClassLongW', windll.user32))
+	GetClassLong = windll.user32.GetClassLongW
+	CreateAcceleratorTable = windll.user32.CreateAcceleratorTableW
+
 	SetWindowText = WINFUNCTYPE(c_bool, c_void_p, c_wchar_p)(('SetWindowTextW', windll.user32))
 	GetWindowText = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int)(('GetWindowTextW', windll.user32))
 	GetWindowTextLength = WINFUNCTYPE(c_int, c_void_p)(('GetWindowTextLengthW', windll.user32))
 	#~ LoadIcon = WINFUNCTYPE(HICON, HINSTANCE, c_wchar_p)(('LoadIconW', windll.user32))
 	_LoadIcon = WINFUNCTYPE(c_void_p, c_void_p, c_wchar_p)(('LoadIconW', windll.user32))
-	_LoadIconP = windll.user32.LoadIconW
+	_LoadIconP = WINFUNCTYPE(c_void_p, c_void_p, c_int)(('LoadIconW', windll.user32))
 	_LoadCursor = WINFUNCTYPE(c_void_p, c_void_p, c_wchar_p)(('LoadCursorW', windll.user32))
 	_LoadCursorP = windll.user32.LoadCursorW
 	LoadCursorFromFile = WINFUNCTYPE(c_void_p, c_wchar_p)(('LoadCursorFromFileW', windll.user32))
 	_LoadImage = WINFUNCTYPE(c_void_p, c_void_p, c_wchar_p, c_uint, c_int, c_int, c_uint)(('LoadImageW', windll.user32))
 	_LoadImageP = windll.user32.LoadImageW
 else:
+	RegisterClassEx = WINFUNCTYPE(c_void_p, POINTER(WNDCLASSEX))(('RegisterClassExA', windll.user32))
+	DefWindowProc = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_long)(('DefWindowProcA', windll.user32))
+	CallWindowProc = WINFUNCTYPE(c_long, c_void_p, c_void_p, c_uint, c_uint, c_long)(('CallWindowProcA', windll.user32))
+	CreateWindowEx = CreateWindowEx_atom = windll.user32.CreateWindowExA
+	AppendMenu = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_char_p)(('AppendMenuA', windll.user32))
+	GetMessage = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_uint, c_uint)(('GetMessageA', windll.user32))
+	SendMessage = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_void_p)(('SendMessageA', windll.user32))
+	PostMessage = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_long)(('PostMessageA', windll.user32))
+	DispatchMessage = WINFUNCTYPE(c_long, c_void_p)(('DispatchMessageA', windll.user32))
+	RegisterWindowMessage = windll.user32.RegisterWindowMessageA
+	SetWindowLong = windll.user32.SetWindowLongA
+	SetClassLong = WINFUNCTYPE(None, c_void_p, c_int, c_long)(('SetClassLongA', windll.user32))
+	GetClassLong = windll.user32.GetClassLongA
+	CreateAcceleratorTable = windll.user32.CreateAcceleratorTableA
+
 	SetWindowText = WINFUNCTYPE(c_bool, c_void_p, c_char_p)(('SetWindowTextA', windll.user32))
 	GetWindowText = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int)(('GetWindowTextA', windll.user32))
 	GetWindowTextLength = WINFUNCTYPE(c_int, c_void_p)(('GetWindowTextLengthA', windll.user32))
 	#~ LoadIcon = WINFUNCTYPE(HICON, HINSTANCE, c_char_p)(('LoadIconA', windll.user32))
 	_LoadIcon = WINFUNCTYPE(c_void_p, c_void_p, c_char_p)(('LoadIconA', windll.user32))
-	_LoadIconP = windll.user32.LoadIconA
+	_LoadIconP = WINFUNCTYPE(c_void_p, c_void_p, c_int)(('LoadIconA', windll.user32))
 	_LoadCursor = WINFUNCTYPE(c_void_p, c_void_p, c_char_p)(('LoadCursorA', windll.user32))
 	_LoadCursorP = windll.user32.LoadCursorA
 	LoadCursorFromFile = WINFUNCTYPE(c_void_p, c_char_p)(('LoadCursorFromFileA', windll.user32))

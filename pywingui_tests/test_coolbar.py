@@ -117,7 +117,7 @@ class MyForm(form.Form):
 		self.menuFilePopup = PopupMenu()
 		self.menuFilePopup.AppendMenu(MF_STRING, 1018, "&Blaat...\tCtrl+O")
 		self.menuFilePopup.AppendMenu(MF_STRING, 1013, "&Piet...\tCtrl+S")
-		
+
 		self.menuFile = PopupMenu()
 		self.menuFile.AppendMenu(MF_POPUP, self.menuFilePopup, "&New")
 		self.menuFile.AppendMenu(MF_SEPARATOR)

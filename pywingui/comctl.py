@@ -732,12 +732,10 @@ TVN_DELETEITEM = TVN_DELETEITEMA
 SB_SIMPLE =   (WM_USER+9)
 SB_SETTEXTA = (WM_USER+1)
 SB_SETTEXTW = (WM_USER+11)
-SB_SETTEXT = SB_SETTEXTA
+SB_SETTEXT = SB_SETTEXTW
+if not UNICODE:
+	SB_SETTEXT = SB_SETTEXTA
 
-SBT_OWNERDRAW   =     0x1000
-SBT_NOBORDERS   =     256
-SBT_POPOUT   = 512
-SBT_RTLREADING =      1024
 SBT_OWNERDRAW  =      0x1000
 SBT_NOBORDERS  =      256
 SBT_POPOUT   = 512
@@ -826,7 +824,8 @@ class StatusBar(Window):
 		txt = create_unicode_buffer(text)
 		if not UNICODE:
 			txt = create_string_buffer(text)
-		self.SendMessage(SB_SETTEXT, (255 | SBT_NOBORDERS), addressof(txt))
+		#~ self.SendMessage(SB_SETTEXT, 255 | SBT_NOBORDERS, addressof(txt))
+		self.SendMessage(SB_SETTEXT, 255 | SBT_NOBORDERS, txt)
 
 class StaticText(Window):
 	_window_class_ = WC_STATIC
@@ -1070,7 +1069,7 @@ class TabControl(Window):
 		if self.SendMessage(TCM_GETITEM, index, addressof(item)):
 			return item
 		else:
-			raise "error"
+			raise 'error'
 		
 	def AdjustRect(self, fLarger, rect):
 		lprect = byref(rect)

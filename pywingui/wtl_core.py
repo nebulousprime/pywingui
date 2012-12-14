@@ -21,7 +21,7 @@
 from ctypes import *
 from windows import *
 #~ from winuser import *
-from winuser import MAKEINTRESOURCE, LoadIcon, LoadCursor, DestroyWindow, TranslateMessage, DispatchMessage
+from winuser import MAKEINTRESOURCE, CallWindowProc, CreateWindowEx_atom, CreateWindowEx, GetMessage, DefWindowProc, RegisterClassEx, SetWindowLong, LoadIcon, LoadCursor, DestroyWindow, TranslateMessage, DispatchMessage
 
 import sys
 import weakref
