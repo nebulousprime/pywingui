@@ -162,6 +162,22 @@ CombineModeXor = 3
 CombineModeExclude = 4
 CombineModeComplement = 5
 
+# TextRenderingHint
+TextRenderingHintSystemDefault = 0
+TextRenderingHintSingleBitPerPixelGridFit = 1
+TextRenderingHintSingleBitPerPixel = 2
+TextRenderingHintAntiAliasGridFit = 3
+TextRenderingHintAntiAlias = 4
+TextRenderingHintClearTypeGridFit = 5
+
+#enum FontStyle
+FontStyleRegular    = 0
+FontStyleBold       = 1
+FontStyleItalic     = 2
+FontStyleBoldItalic = 3
+FontStyleUnderline  = 4
+FontStyleStrikeout  = 8
+
 def MakeARGB(a, r, g, b):
 	return c_ulong((b << BlueShift) | (g << GreenShift) | (r << RedShift) | (a << AlphaShift))
 
@@ -189,6 +205,12 @@ class GpRectF(Structure):
 
 #~ class GpMatrix(Structure):
 	#~ _fields_ = [('m11', REAL), ('m12', REAL), ('m21', REAL), ('m22', REAL), ('dx', REAL), ('dy', REAL)]
+
+LF_FACESIZE = 32
+class LOGFONTA(Structure):
+	_fields_ = [('lfHeight', c_long), ('lfWidth', c_long), ('lfEscapement', c_long), ('lfOrientation', c_long), ('lfWeight', c_long), ('lfItalic', c_byte), ('lfUnderline', c_byte), ('lfStrikeOut', c_byte), ('lfCharSet', c_byte), ('lfOutPrecision', c_byte), ('lfClipPrecision', c_byte), ('lfQuality', c_byte), ('lfPitchAndFamily', c_byte), ('lfFaceName', c_char * LF_FACESIZE)]
+class LOGFONTW(Structure):
+	_fields_ = [('lfHeight', c_long), ('lfWidth', c_long), ('lfEscapement', c_long), ('lfOrientation', c_long), ('lfWeight', c_long), ('lfItalic', c_byte), ('lfUnderline', c_byte), ('lfStrikeOut', c_byte), ('lfCharSet', c_byte), ('lfOutPrecision', c_byte), ('lfClipPrecision', c_byte), ('lfQuality', c_byte), ('lfPitchAndFamily', c_byte), ('lfFaceName', c_wchar * LF_FACESIZE)]
 
 class GdiplusStartupInput(Structure):
 	'startup_input = GdiplusStartupInput(1, None, False, False)'
@@ -1059,8 +1081,6 @@ GdipDrawClosedCurve2 = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int, R
 #GpStatus WINGDIPAPI GdipDrawClosedCurve2I(GpGraphics *graphics, GpPen *pen, GDIPCONST GpPoint *points, INT count, REAL tension);
 GdipDrawClosedCurve2I = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p, c_int, REAL)(('GdipDrawClosedCurve2I', windll.gdiplus))
 
-
-#...........
 #GpStatus WINGDIPAPI GdipGraphicsClear(GpGraphics *graphics, ARGB color);
 GdipGraphicsClear = WINFUNCTYPE(c_int, c_void_p, c_ulong)(('GdipGraphicsClear', windll.gdiplus))
 
@@ -1202,3 +1222,228 @@ def GdipIsClipEmpty(graphics):
 	result = c_bool()
 	status = _GdipIsClipEmpty(graphics, byref(result))
 	return status, result
+
+#..........................
+
+
+# FontFamily APIs
+
+#GpStatus WINGDIPAPI GdipCreateFontFamilyFromName(GDIPCONST WCHAR *name, GpFontCollection *fontCollection, GpFontFamily **FontFamily);
+_GdipCreateFontFamilyFromName = WINFUNCTYPE(c_int, c_wchar_p, c_void_p, c_void_p)(('GdipCreateFontFamilyFromName', windll.gdiplus))
+def GdipCreateFontFamilyFromName(name, fontCollection):
+	result = c_void_p()
+	status = _GdipCreateFontFamilyFromName(name, fontCollection, byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipDeleteFontFamily(GpFontFamily *FontFamily);
+GdipDeleteFontFamily = WINFUNCTYPE(c_int, c_void_p)(('GdipDeleteFontFamily', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipCloneFontFamily(GpFontFamily *FontFamily, GpFontFamily **clonedFontFamily);
+_GdipCloneFontFamily = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCloneFontFamily', windll.gdiplus))
+def GdipCloneFontFamily(FontFamily):
+	result = c_void_p()
+	status = _GdipCloneFontFamily(FontFamily, byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipGetGenericFontFamilySansSerif(GpFontFamily **nativeFamily);
+_GdipGetGenericFontFamilySansSerif = WINFUNCTYPE(c_int, c_void_p)(('GdipGetGenericFontFamilySansSerif', windll.gdiplus))
+def GdipGetGenericFontFamilySansSerif():
+	result = c_void_p()
+	status = _GdipGetGenericFontFamilySansSerif(byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipGetGenericFontFamilySerif(GpFontFamily **nativeFamily);
+_GdipGetGenericFontFamilySerif = WINFUNCTYPE(c_int, c_void_p)(('GdipGetGenericFontFamilySerif', windll.gdiplus))
+def GdipGetGenericFontFamilySerif():
+	result = c_void_p()
+	status = _GdipGetGenericFontFamilySerif(byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipGetGenericFontFamilyMonospace(GpFontFamily **nativeFamily);
+_GdipGetGenericFontFamilyMonospace = WINFUNCTYPE(c_int, c_void_p)(('GdipGetGenericFontFamilyMonospace', windll.gdiplus))
+def GdipGetGenericFontFamilyMonospace():
+	result = c_void_p()
+	status = _GdipGetGenericFontFamilyMonospace(byref(result))
+	return status, result
+
+#..........................
+
+
+# Font APIs
+
+#GpStatus WINGDIPAPI GdipCreateFontFromDC(HDC hdc, GpFont **font);
+_GdipCreateFontFromDC = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCreateFontFromDC', windll.gdiplus))
+def GdipCreateFontFromDC(hdc):
+	result = c_void_p()
+	status = _GdipCreateFontFromDC(hdc, byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipCreateFontFromLogfontA(HDC hdc, GDIPCONST LOGFONTA *logfont, GpFont **font);
+_GdipCreateFontFromLogfontA = WINFUNCTYPE(c_int, c_void_p, POINTER(LOGFONTA), c_void_p)(('GdipCreateFontFromLogfontA', windll.gdiplus))
+def GdipCreateFontFromLogfontA(hdc, logfont = LOGFONTA()):
+	result = c_void_p()
+	status = _GdipCreateFontFromLogfontA(hdc, logfont, byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipCreateFontFromLogfontW(HDC hdc, GDIPCONST LOGFONTW *logfont, GpFont **font);
+_GdipCreateFontFromLogfontW = WINFUNCTYPE(c_int, c_void_p, POINTER(LOGFONTW), c_void_p)(('GdipCreateFontFromLogfontW', windll.gdiplus))
+def GdipCreateFontFromLogfontW(hdc, logfont = LOGFONTW()):
+	result = c_void_p()
+	status = _GdipCreateFontFromLogfontW(hdc, logfont, byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipCreateFont(GDIPCONST GpFontFamily *fontFamily, REAL emSize, INT style, Unit unit, GpFont **font);
+_GdipCreateFont = WINFUNCTYPE(c_int, c_void_p, REAL, c_int, c_int, c_void_p)(('GdipCreateFont', windll.gdiplus))
+def GdipCreateFont(fontFamily, emSize, style = FontStyleRegular, unit = UnitWorld):
+	result = c_void_p()
+	status = _GdipCreateFont(fontFamily, emSize, style, unit, byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipCloneFont(GpFont* font, GpFont** cloneFont);
+_GdipCloneFont = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCloneFont', windll.gdiplus))
+def GdipCloneFont(font):
+	result = c_void_p()
+	status = _GdipCloneFont(font, byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipDeleteFont(GpFont* font);
+GdipDeleteFont = WINFUNCTYPE(c_int, c_void_p)(('GdipDeleteFont', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetFamily(GpFont *font, GpFontFamily **family);
+_GdipGetFamily = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetFamily', windll.gdiplus))
+def GdipGetFamily(font):
+	result = c_void_p()
+	status = _GdipGetFamily(font, byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipGetFontStyle(GpFont *font, INT *style);
+_GdipGetFontStyle = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetFontStyle', windll.gdiplus))
+def GdipGetFontStyle(font):
+	result = c_int()
+	status = _GdipGetFontStyle(font, byref(result))
+	return status, result.value
+
+#GpStatus WINGDIPAPI GdipGetFontSize(GpFont *font, REAL *size);
+_GdipGetFontSize = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetFontSize', windll.gdiplus))
+def GdipGetFontSize(font):
+	result = REAL()
+	status = _GdipGetFontSize(font, byref(result))
+	return status, result.value
+
+#GpStatus WINGDIPAPI GdipGetFontUnit(GpFont *font, Unit *unit);
+_GdipGetFontUnit = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetFontUnit', windll.gdiplus))
+def GdipGetFontUnit(font):
+	result = c_int()
+	status = _GdipGetFontUnit(font, byref(result))
+	return status, result.value
+
+#GpStatus WINGDIPAPI GdipGetFontHeight(GDIPCONST GpFont *font, GDIPCONST GpGraphics *graphics, REAL *height);
+_GdipGetFontHeight = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_void_p)(('GdipGetFontHeight', windll.gdiplus))
+def GdipGetFontHeight(font, graphics):
+	result = REAL()
+	status = _GdipGetFontHeight(font, graphics, byref(result))
+	return status, result.value
+
+#GpStatus WINGDIPAPI GdipGetFontHeightGivenDPI(GDIPCONST GpFont *font, REAL dpi, REAL *height);
+_GdipGetFontHeightGivenDPI = WINFUNCTYPE(c_int, c_void_p, REAL, c_void_p)(('GdipGetFontHeightGivenDPI', windll.gdiplus))
+def GdipGetFontHeightGivenDPI(font, dpi):
+	result = c_void_p()
+	status = _GdipGetFontHeightGivenDPI(font, dpi, byref(result))
+	return status, result.value
+
+#GpStatus WINGDIPAPI GdipGetLogFontA(GpFont * font, GpGraphics *graphics, LOGFONTA * logfontA);
+_GdipGetLogFontA = WINFUNCTYPE(c_int, c_void_p, c_void_p, POINTER(LOGFONTA))(('GdipGetLogFontA', windll.gdiplus))
+def GdipGetLogFontA(font, graphics):
+	result = LOGFONTA()
+	status = _GdipGetLogFontA(font, graphics, result)
+	return status, result[0]
+
+#GpStatus WINGDIPAPI GdipGetLogFontW(GpFont * font, GpGraphics *graphics, LOGFONTW * logfontW);
+_GdipGetLogFontW = WINFUNCTYPE(c_int, c_void_p, c_void_p, POINTER(LOGFONTW))(('GdipGetLogFontW', windll.gdiplus))
+def GdipGetLogFontW(font, graphics):
+	result = LOGFONTW()
+	status = _GdipGetLogFontW(font, graphics, result)
+	return status, result[0]
+
+#GpStatus WINGDIPAPI GdipNewInstalledFontCollection(GpFontCollection** fontCollection);
+_GdipNewInstalledFontCollection = WINFUNCTYPE(c_int, c_void_p)(('GdipNewInstalledFontCollection', windll.gdiplus))
+def GdipNewInstalledFontCollection():
+	result = c_void_p()
+	status = _GdipNewInstalledFontCollection(byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipNewPrivateFontCollection(GpFontCollection** fontCollection);
+_GdipNewPrivateFontCollection = WINFUNCTYPE(c_int, c_void_p)(('GdipNewPrivateFontCollection', windll.gdiplus))
+def GdipNewPrivateFontCollection():
+	result = c_void_p()
+	status = _GdipNewPrivateFontCollection(byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipDeletePrivateFontCollection(GpFontCollection** fontCollection);
+GdipDeletePrivateFontCollection = WINFUNCTYPE(c_int, c_void_p)(('GdipDeletePrivateFontCollection', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipGetFontCollectionFamilyCount(GpFontCollection* fontCollection, INT* numFound);
+_GdipGetFontCollectionFamilyCount = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipGetFontCollectionFamilyCount', windll.gdiplus))
+def GdipGetFontCollectionFamilyCount(fontCollection):
+	result = c_int()
+	status = _GdipGetFontCollectionFamilyCount(fontCollection, byref(result))
+	return status, result.value
+
+#GpStatus WINGDIPAPI GdipGetFontCollectionFamilyList(GpFontCollection* fontCollection, INT numSought, GpFontFamily* gpfamilies[], INT* numFound);
+_GdipGetFontCollectionFamilyList = WINFUNCTYPE(c_int, c_void_p, c_int, c_void_p, c_void_p)(('GdipGetFontCollectionFamilyList', windll.gdiplus))
+def GdipGetFontCollectionFamilyList(fontCollection, numSought):
+	gpfamilies = c_void_p()
+	numFound = c_int()
+	status = _GdipGetFontCollectionFamilyList(fontCollection, numSought, byref(gpfamilies), byref(numFound))
+	return status, gpfamilies, numFound
+
+#GpStatus WINGDIPAPI GdipPrivateAddFontFile(GpFontCollection* fontCollection, GDIPCONST WCHAR* filename);
+GdipPrivateAddFontFile = WINFUNCTYPE(c_int, c_void_p, c_wchar_p)(('GdipPrivateAddFontFile', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipPrivateAddMemoryFont(GpFontCollection* fontCollection, GDIPCONST void* memory, INT length);
+GdipPrivateAddMemoryFont = WINFUNCTYPE(c_int, c_void_p, c_void_p, c_int)(('GdipPrivateAddMemoryFont', windll.gdiplus))
+
+
+# Text APIs
+
+#GpStatus WINGDIPAPI GdipDrawString(GpGraphics *graphics, GDIPCONST WCHAR *string, INT length, GDIPCONST GpFont *font, GDIPCONST RectF *layoutRect, GDIPCONST GpStringFormat *stringFormat, GDIPCONST GpBrush *brush);
+GdipDrawString = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_int, c_void_p, POINTER(GpRectF), c_void_p, c_void_p)(('GdipDrawString', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipMeasureString(GpGraphics *graphics, GDIPCONST WCHAR *string, INT length, GDIPCONST GpFont *font, GDIPCONST RectF *layoutRect, GDIPCONST GpStringFormat *stringFormat, RectF *boundingBox, INT *codepointsFitted, INT *linesFilled);
+GdipMeasureString = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_int, c_void_p, POINTER(GpRectF), c_void_p, POINTER(GpRectF), c_void_p, c_void_p)(('GdipMeasureString', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipMeasureCharacterRanges(GpGraphics *graphics, GDIPCONST WCHAR *string, INT length, GDIPCONST GpFont *font, GDIPCONST RectF &layoutRect, GDIPCONST GpStringFormat *stringFormat, INT regionCount, GpRegion **regions);
+GdipMeasureCharacterRanges = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_int, c_void_p, POINTER(GpRectF), c_void_p, c_int, c_void_p)(('GdipMeasureCharacterRanges', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipDrawDriverString(GpGraphics *graphics, GDIPCONST UINT16 *text, INT length, GDIPCONST GpFont *font, GDIPCONST GpBrush *brush, GDIPCONST PointF *positions, INT flags, GDIPCONST GpMatrix *matrix);
+GdipDrawDriverString = WINFUNCTYPE(c_int, c_void_p, c_uint, c_int, c_void_p, c_void_p, POINTER(GpPointF), c_int, c_void_p)(('GdipDrawDriverString', windll.gdiplus))
+
+#GpStatus WINGDIPAPI GdipMeasureDriverString(GpGraphics *graphics, GDIPCONST UINT16 *text, INT length, GDIPCONST GpFont *font, GDIPCONST PointF *positions, INT flags, GDIPCONST GpMatrix *matrix, RectF *boundingBox);
+GdipMeasureDriverString = WINFUNCTYPE(c_int, c_void_p, c_uint, c_int, c_void_p, POINTER(GpPointF), c_void_p, c_int, c_void_p, POINTER(GpRectF))(('GdipMeasureDriverString', windll.gdiplus))
+
+
+# String format APIs
+
+#GpStatus WINGDIPAPI GdipCreateStringFormat(INT formatAttributes, LANGID language, GpStringFormat **format);
+_GdipCreateStringFormat = WINFUNCTYPE(c_int, c_int, c_int, c_void_p)(('GdipCreateStringFormat', windll.gdiplus))
+def GdipCreateStringFormat(formatAttributes, language):
+	result = c_void_p()
+	status = _GdipCreateStringFormat(formatAttributes, language, byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipStringFormatGetGenericDefault(GpStringFormat **format);
+_GdipStringFormatGetGenericDefault = WINFUNCTYPE(c_int, c_void_p)(('GdipStringFormatGetGenericDefault', windll.gdiplus))
+def GdipStringFormatGetGenericDefault():
+	result = c_void_p()
+	status = _GdipStringFormatGetGenericDefault(byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipStringFormatGetGenericTypographic(GpStringFormat **format);
+_GdipStringFormatGetGenericTypographic = WINFUNCTYPE(c_int, c_void_p)(('GdipStringFormatGetGenericTypographic', windll.gdiplus))
+def GdipStringFormatGetGenericTypographic():
+	result = c_void_p()
+	status = _GdipStringFormatGetGenericTypographic(byref(result))
+	return status, result
+
+#GpStatus WINGDIPAPI GdipDeleteStringFormat(GpStringFormat *format);
+GdipDeleteStringFormat = WINFUNCTYPE(c_int, c_void_p)(('GdipDeleteStringFormat', windll.gdiplus))

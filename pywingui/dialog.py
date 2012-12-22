@@ -21,7 +21,7 @@
 
 ## Thanx to Brad Clements for this contribution!
 
-from version_microsoft import WINVER
+from version_microsoft import WINVER, UNICODE
 
 from types import IntType, LongType
 
@@ -67,40 +67,42 @@ DLGC_STATIC          = 0x0100      # Static item: don't include
 DLGC_BUTTON          = 0x2000      # Button item: can be checked
 
 class StringOrOrd:
-    """Pack up a string or ordinal"""
-    def __init__(self, value):
-        if value is None or value == "":
-            self.value = c_ushort(0)
-        elif type(value) in (IntType, LongType):
-            # treat as an atom
-            if not value:
-                self.value = c_ushort(0)        # 0 is not a valid atom
-            else:
-                ordinaltype = c_ushort * 2
-                ordinal = ordinaltype(0xffff, value)
-                self.value = ordinal
-        else:
-            value = str(value)
+	"""Pack up a string or ordinal"""
+	def __init__(self, value):
+		if value is None or value == "":
+			self.value = c_ushort(0)
+		elif type(value) in (IntType, LongType):
+			# treat as an atom
+			if not value:
+				self.value = c_ushort(0)        # 0 is not a valid atom
+			else:
+				ordinaltype = c_ushort * 2
+				ordinal = ordinaltype(0xffff, value)
+				self.value = ordinal
+		else:
+			if UNICODE:
+				self.value = create_unicode_buffer(value)
+			else:
+				self.value = create_unicode_buffer(value)
+			#~ value = str(value)
 
-            mbLen = MultiByteToWideChar(CP_ACP, 0, value, -1, 0, 0)
-            if mbLen < 1:
-                raise RuntimeError("Could not determine multibyte string length for %s" % \
-                                   repr(value))
+			#~ mbLen = MultiByteToWideChar(CP_ACP, 0, value, -1, 0, 0)
+			#~ if mbLen < 1:
+				#~ raise RuntimeError("Could not determine multibyte string length for %s" % repr(value))
 
-            #this does not work for me:, why needed?
-            #if (mbLen % 2):
-            #    mbLen += 1          # round up to next word in size
-                
-            stringtype = c_ushort * mbLen
-            string = stringtype()
-            result = MultiByteToWideChar(CP_ACP, 0, value, -1, addressof(string), sizeof(string))
-            if result < 1:
-                raise RuntimeError("could not convert multibyte string %s" % repr(value))
-            self.value = string
+			#~ #this does not work for me:, why needed?
+			#~ if (mbLen % 2):
+				#~ mbLen += 1          # round up to next word in size
+				
+			#~ stringtype = c_ushort * mbLen
+			#~ string = stringtype()
+			#~ result = MultiByteToWideChar(CP_ACP, 0, value, -1, addressof(string), sizeof(string))
+			#~ if result < 1:
+				#~ raise RuntimeError("could not convert multibyte string %s" % repr(value))
+			#~ self.value = string
 
-
-    def __len__(self):
-        return sizeof(self.value)
+	def __len__(self):
+		return sizeof(self.value)
 
 class DialogTemplate(WindowsObject):
     __dispose__ = GlobalFree
