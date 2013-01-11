@@ -2,6 +2,7 @@
 
 RC_INVOKED = True
 
+from sdkddkver import _WIN32_IE, _WIN32_WINNT
 from windows import *
 
 # IS_INTRESOURCE and MAKEINTRESOURCE code from pyWinLite project, author Vincent Povirk (2008)
@@ -241,7 +242,192 @@ if WINVER >= 0x0400:
 	WM_GETICON                     = 0x007F
 	WM_SETICON                     = 0x0080
 
+if WINVER >= 0x0400:
+	HELPINFO_WINDOW = 0x0001
+	HELPINFO_MENUITEM = 0x0002
+
+GWL_WNDPROC = -4
+GWL_HINSTANCE = -6
+GWL_HWNDPARENT = -8
+GWL_ID = -12
+GWL_STYLE = -16
+GWL_EXSTYLE = -20
+GWL_USERDATA = -21
+
+# GetSystemMetrics() codes
+SM_CXSCREEN = 0
+SM_CYSCREEN = 1
+SM_CXVSCROLL = 2
+SM_CYHSCROLL = 3
+SM_CYCAPTION = 4
+SM_CXBORDER = 5
+SM_CYBORDER = 6
+SM_CXDLGFRAME = 7
+SM_CYDLGFRAME = 8
+SM_CYVTHUMB = 9
+SM_CXHTHUMB = 10
+SM_CXICON = 11
+SM_CYICON = 12
+SM_CXCURSOR = 13
+SM_CYCURSOR = 14
+SM_CYMENU = 15
+SM_CXFULLSCREEN = 16
+SM_CYFULLSCREEN = 17
+SM_CYKANJIWINDOW = 18
+SM_MOUSEPRESENT = 19
+SM_CYVSCROLL = 20
+SM_CXHSCROLL = 21
+SM_DEBUG = 22
+SM_SWAPBUTTON = 23
+SM_RESERVED1 = 24
+SM_RESERVED2 = 25
+SM_RESERVED3 = 26
+SM_RESERVED4 = 27
+SM_CXMIN = 28
+SM_CYMIN = 29
+SM_CXSIZE = 30
+SM_CYSIZE = 31
+SM_CXFRAME = 32
+SM_CYFRAME = 33
+SM_CXMINTRACK = 34
+SM_CYMINTRACK = 35
+SM_CXDOUBLECLK = 36
+SM_CYDOUBLECLK = 37
+SM_CXICONSPACING = 38
+SM_CYICONSPACING = 39
+SM_MENUDROPALIGNMENT = 40
+SM_PENWINDOWS = 41
+SM_DBCSENABLED = 42
+SM_CMOUSEBUTTONS = 43
+
+if WINVER >= 0x0400:
+	SM_CXFIXEDFRAME = SM_CXDLGFRAME # ;win40 name change
+	SM_CYFIXEDFRAME = SM_CYDLGFRAME # ;win40 name change
+	SM_CXSIZEFRAME = SM_CXFRAME # ;win40 name change
+	SM_CYSIZEFRAME = SM_CYFRAME # ;win40 name change
+
+	SM_SECURE = 44
+	SM_CXEDGE = 45
+	SM_CYEDGE = 46
+	SM_CXMINSPACING = 47
+	SM_CYMINSPACING = 48
+	SM_CXSMICON = 49
+	SM_CYSMICON = 50
+	SM_CYSMCAPTION = 51
+	SM_CXSMSIZE = 52
+	SM_CYSMSIZE = 53
+	SM_CXMENUSIZE = 54
+	SM_CYMENUSIZE = 55
+	SM_ARRANGE = 56
+	SM_CXMINIMIZED = 57
+	SM_CYMINIMIZED = 58
+	SM_CXMAXTRACK = 59
+	SM_CYMAXTRACK = 60
+	SM_CXMAXIMIZED = 61
+	SM_CYMAXIMIZED = 62
+	SM_NETWORK = 63
+	SM_CLEANBOOT = 67
+	SM_CXDRAG = 68
+	SM_CYDRAG = 69
+
+SM_SHOWSOUNDS = 70
+if WINVER >= 0x0400:
+	SM_CXMENUCHECK = 71 # Use instead of GetMenuCheckMarkDimensions()
+	SM_CYMENUCHECK = 72
+	SM_SLOWMACHINE = 73
+	SM_MIDEASTENABLED = 74
+
+if WINVER >= 0x0500 and _WIN32_WINNT >= 0x0400:
+	SM_MOUSEWHEELPRESENT = 75
+if WINVER >= 0x0500:
+	SM_XVIRTUALSCREEN = 76
+	SM_YVIRTUALSCREEN = 77
+	SM_CXVIRTUALSCREEN = 78
+	SM_CYVIRTUALSCREEN = 79
+	SM_CMONITORS = 80
+	SM_SAMEDISPLAYFORMAT = 81
+if _WIN32_WINNT >= 0x0500:
+	SM_IMMENABLED = 82
+if _WIN32_WINNT >= 0x0501:
+	SM_CXFOCUSBORDER = 83
+	SM_CYFOCUSBORDER = 84
+
+if _WIN32_WINNT >= 0x0501:
+	SM_TABLETPC = 86
+	SM_MEDIACENTER = 87
+	SM_STARTER = 88
+	SM_SERVERR2 = 89
+
+if _WIN32_WINNT >= 0x0600:
+	SM_MOUSEHORIZONTALWHEELPRESENT = 91
+	SM_CXPADDEDBORDER = 92
+
+if WINVER < 0x0500 or _WIN32_WINNT < 0x0400:
+	SM_CMETRICS = 76
+elif WINVER == 0x500:
+	SM_CMETRICS = 83
+elif WINVER == 0x501:
+	SM_CMETRICS = 90
+else:
+	SM_CMETRICS = 93
+
+if WINVER >= 0x0500:
+	SM_REMOTESESSION = 0x1000
+
+	if _WIN32_WINNT >= 0x0501:
+		SM_SHUTTINGDOWN = 0x2000
+
+	if WINVER >= 0x0501:
+		SM_REMOTECONTROL = 0x2001
+		SM_CARETBLINKINGENABLED = 0x2002
+
+# Structure pointed to by lParam of WM_HELP
+class HELPINFO(Structure):
+	_fields_ = [('cbSize', UINT),# Size in bytes of this struct
+	('iContextType', c_int),# Either HELPINFO_WINDOW or HELPINFO_MENUITEM
+	('iCtrlId', c_int),# Control Id or a Menu item Id.
+	('hItemHandle', c_void_p),# hWnd of control or hMenu.
+	('dwContextId', c_void_p),# Context Id associated with this item
+	('MousePos', LPPOINT)]# Mouse Position in screen co-ordinates
+LPHELPINFO = POINTER(HELPINFO)
+
+MSGBOXCALLBACK = WINFUNCTYPE(None, LPHELPINFO)
+class MSGBOXPARAMS(Structure):
+	_fields_ = [('cbSize', UINT),
+	('hwndOwner', c_void_p),
+	('hInstance', c_void_p)]
+	if UNICODE:
+		_fields_ += [('lpszText', c_wchar_p), ('lpszCaption', c_wchar_p)]
+	else:
+		_fields_+= [('lpszText', c_char_p), ('lpszCaption', c_char_p)]
+	_fields_.append(('dwStyle', DWORD))
+	if UNICODE:
+		_fields_.append(('lpszIcon', c_wchar_p))
+	else:
+		_fields_.append(('lpszIcon', c_char_p))
+	_fields_ += [('dwContextHelpId', c_void_p),
+	('lpfnMsgBoxCallback', MSGBOXCALLBACK),
+	('dwLanguageId', DWORD)]
+LPMSGBOXPARAMS = POINTER(MSGBOXPARAMS)
+
+DLGPROC = WINFUNCTYPE(c_void_p, HWND, UINT, WPARAM, LPARAM)
+
 if UNICODE:
+	MessageBox = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_wchar_p, c_uint)(('MessageBoxW', windll.user32))
+	MessageBoxIndirect = WINFUNCTYPE(c_int, LPMSGBOXPARAMS)(('MessageBoxIndirectW', windll.user32))
+
+	FindWindow = windll.user32.FindWindowW
+	SetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('SetMenuItemInfoW', windll.user32))
+	GetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('GetMenuItemInfoW', windll.user32))
+	SetWindowsHookEx = windll.user32.SetWindowsHookExW
+	RegisterClipboardFormat = windll.user32.RegisterClipboardFormatW
+	DialogBoxParam = windll.user32.DialogBoxParamW
+	CreateDialogIndirectParam = windll.user32.CreateDialogIndirectParamW
+	DialogBoxIndirectParam = windll.user32.DialogBoxIndirectParamW
+	GetClassName = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_int)(('GetClassNameW', windll.user32))
+	GetClassInfo = WINFUNCTYPE(c_bool, c_void_p, c_wchar_p, c_void_p)(('GetClassInfoW', windll.user32))
+	GetClassInfoP = windll.user32.GetClassInfoW
+
 	RegisterClassEx = WINFUNCTYPE(c_void_p, POINTER(WNDCLASSEX))(('RegisterClassExW', windll.user32))
 	DefWindowProc = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_long)(('DefWindowProcW', windll.user32))
 	CallWindowProc = WINFUNCTYPE(c_long, c_void_p, c_void_p, c_uint, c_uint, c_long)(('CallWindowProcW', windll.user32))
@@ -269,7 +455,23 @@ if UNICODE:
 	LoadCursorFromFile = WINFUNCTYPE(c_void_p, c_wchar_p)(('LoadCursorFromFileW', windll.user32))
 	_LoadImage = WINFUNCTYPE(c_void_p, c_void_p, c_wchar_p, c_uint, c_int, c_int, c_uint)(('LoadImageW', windll.user32))
 	_LoadImageP = windll.user32.LoadImageW
+	LoadString = WINFUNCTYPE(c_int, c_void_p, c_uint, c_wchar_p, c_int)(('LoadStringW', windll.user32))
 else:
+	MessageBox = WINFUNCTYPE(c_int, c_void_p, c_char_p, c_char_p, c_uint)(('MessageBoxA', windll.user32))
+	MessageBoxIndirect = WINFUNCTYPE(c_int, LPMSGBOXPARAMS)(('MessageBoxIndirectA', windll.user32))
+
+	FindWindow = windll.user32.FindWindowA
+	SetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('SetMenuItemInfoA', windll.user32))
+	GetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('GetMenuItemInfoA', windll.user32))
+	SetWindowsHookEx = windll.user32.SetWindowsHookExA
+	RegisterClipboardFormat = windll.user32.RegisterClipboardFormatA
+	DialogBoxParam = windll.user32.DialogBoxParamA
+	CreateDialogIndirectParam = windll.user32.CreateDialogIndirectParamA
+	DialogBoxIndirectParam = windll.user32.DialogBoxIndirectParamA
+	GetClassName = WINFUNCTYPE(c_int, c_void_p, c_char_p, c_int)(('GetClassNameA', windll.user32))
+	GetClassInfo = WINFUNCTYPE(c_bool, c_void_p, c_char_p, c_void_p)(('GetClassInfoA', windll.user32))
+	GetClassInfoP = windll.user32.GetClassInfoA
+
 	RegisterClassEx = WINFUNCTYPE(c_void_p, POINTER(WNDCLASSEX))(('RegisterClassExA', windll.user32))
 	DefWindowProc = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_long)(('DefWindowProcA', windll.user32))
 	CallWindowProc = WINFUNCTYPE(c_long, c_void_p, c_void_p, c_uint, c_uint, c_long)(('CallWindowProcA', windll.user32))
@@ -296,6 +498,7 @@ else:
 	LoadCursorFromFile = WINFUNCTYPE(c_void_p, c_char_p)(('LoadCursorFromFileA', windll.user32))
 	_LoadImage = WINFUNCTYPE(c_void_p, c_void_p, c_char_p, c_uint, c_int, c_int, c_uint)(('LoadImageA', windll.user32))
 	_LoadImageP = windll.user32.LoadImageA
+	LoadString = WINFUNCTYPE(c_int, c_void_p, c_uint, c_wchar_p, c_int)(('LoadStringA', windll.user32))
 
 CreateIcon = WINFUNCTYPE(HICON, HINSTANCE, c_int, c_int, c_byte, c_byte, c_void_p, c_void_p)(('CreateIcon', windll.user32))
 
@@ -334,11 +537,22 @@ AttachThreadInput = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_bool)(('AttachThre
 GetWindowThreadProcessId = WINFUNCTYPE(DWORD, c_void_p, c_void_p)(('GetWindowThreadProcessId', windll.user32))
 
 MoveWindow = WINFUNCTYPE(c_bool, c_void_p, c_int, c_int, c_int, c_int, c_bool)(('MoveWindow', windll.user32))
+MapDialogRect = WINFUNCTYPE(c_bool, c_void_p, LPRECT)(('MapDialogRect', windll.user32))
+GetSystemMetrics = WINFUNCTYPE(c_int, c_int)(('GetSystemMetrics', windll.user32))
+GetDialogBaseUnits = WINFUNCTYPE(c_long)(('GetDialogBaseUnits', windll.user32))
 
 SetCursor = windll.user32.SetCursor
 
 ShowWindow = windll.user32.ShowWindow
-UpdateWindow = windll.user32.UpdateWindow
+UpdateWindow = WINFUNCTYPE(c_bool, c_void_p)(('UpdateWindow', windll.user32))
+SetActiveWindow = WINFUNCTYPE(c_void_p, c_void_p)(('SetActiveWindow', windll.user32))
+GetForegroundWindow = WINFUNCTYPE(c_void_p)(('GetForegroundWindow', windll.user32))
+SetForegroundWindow = WINFUNCTYPE(c_bool, c_void_p)(('SetForegroundWindow', windll.user32))
+if WINVER >= 0x0400:
+	PaintDesktop = WINFUNCTYPE(c_bool, c_void_p)(('PaintDesktop', windll.user32))
+	SwitchToThisWindow = WINFUNCTYPE(None, c_void_p, c_bool)(('SwitchToThisWindow', windll.user32))
+
+ChildWindowFromPoint = windll.user32.ChildWindowFromPoint
 TranslateMessage = windll.user32.TranslateMessage
 GetWindowRect = windll.user32.GetWindowRect
 DestroyWindow = windll.user32.DestroyWindow
@@ -406,3 +620,7 @@ ShowScrollBar = WINFUNCTYPE(c_bool, c_void_p, c_int, c_bool)(('ShowScrollBar', w
 
 #WINUSERAPI BOOL WINAPI EnableScrollBar(__in HWND hWnd, __in UINT wSBflags, __in UINT wArrows);
 EnableScrollBar = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint)(('EnableScrollBar', windll.user32))
+
+#WINUSERAPI BOOL WINAPI EnumChildWindows(__in_opt HWND hWndParent, __in WNDENUMPROC lpEnumFunc, __in LPARAM lParam);
+WNDENUMPROC = WINFUNCTYPE(c_bool, c_void_p, c_ulong)
+EnumChildWindows = WINFUNCTYPE(c_bool, c_void_p, WNDENUMPROC, c_ulong)(('EnumChildWindows', windll.user32))

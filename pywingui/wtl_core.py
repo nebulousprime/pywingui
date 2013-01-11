@@ -21,7 +21,7 @@
 from ctypes import *
 from windows import *
 #~ from winuser import *
-from winuser import MAKEINTRESOURCE, CallWindowProc, CreateWindowEx_atom, CreateWindowEx, GetMessage, DefWindowProc, RegisterClassEx, SetWindowLong, LoadIcon, LoadCursor, DestroyWindow, TranslateMessage, DispatchMessage
+from winuser import GWL_WNDPROC, MAKEINTRESOURCE, GetClassInfo, GetClassInfoP, CallWindowProc, CreateWindowEx_atom, CreateWindowEx, GetMessage, DefWindowProc, RegisterClassEx, SetWindowLong, LoadIcon, LoadCursor, DestroyWindow, TranslateMessage, DispatchMessage
 
 import sys
 import weakref
@@ -267,12 +267,22 @@ class Window(WindowsObject):
 	_window_class_style_ = 0
 	_window_style_clip_children_and_siblings_ = True
 	_window_dbg_msg_ = False
+	_window_dbg_msgs_ = None# if _window_dbg_msg_ = True, this must be dictionary
 	_window_width_ = CW_USEDEFAULT
 	_window_height_ = CW_USEDEFAULT
 
 	__dispose__ = DestroyWindow 
 
 	def __init__(self, title = '', style = None, exStyle = None, parent = None, menu = None, rcPos = RCDEFAULT, orStyle = None, orExStyle = None, nandStyle = None, nandExStyle = None, width = CW_USEDEFAULT, height = CW_USEDEFAULT, hWnd = None):
+
+		# prepare messages for debug information
+		if self._window_dbg_msg_:
+			self._window_dbg_msgs_ = {}
+			for desc, key in MSGS:
+				if key in self._window_dbg_msgs_:#may be more than one message name for one value
+					self._window_dbg_msgs_[key] += ' or %s' % desc
+				else:
+					self._window_dbg_msgs_[key] = desc
 
 		if hWnd: #wrapping instead of creating
 			self.m_handle = hWnd #note client is responsible for deleting
@@ -281,8 +291,12 @@ class Window(WindowsObject):
 		windowClassExists = False
 		cls = WNDCLASSEX()
 		if self._window_class_:
-			if GetClassInfo(hInstance, self._window_class_, byref(cls)):
-				windowClassExists = True
+			#~ if GetClassInfo(hInstance, self._window_class_, byref(cls)):
+				#~ windowClassExists = True
+			try:
+				windowClassExists = GetClassInfo(hInstance, self._window_class_, byref(cls))
+			except:
+				windowClassExists = GetClassInfoP(hInstance, self._window_class_, byref(cls))
 
 		#determine whether we are going to subclass an existing window class
 		#or create a new windowclass
@@ -409,7 +423,7 @@ class Window(WindowsObject):
 
 	def WndProc(self, hWnd, nMsg, wParam, lParam):
 		if self._window_dbg_msg_:
-			print('%s, %d, %d, %d, %d' % (repr(self), hWnd, nMsg, wParam, lParam))
+			print('%s, %d, %s, %d, %d' % (repr(self), hWnd, self._window_dbg_msgs_.get(nMsg, str(nMsg)), wParam, lParam))
 		return self._msg_map_.Dispatch(self, hWnd, nMsg, wParam, lParam)
 
 	def IsDialogMessage(self, lpmsg):

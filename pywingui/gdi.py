@@ -313,6 +313,8 @@ GetDIBits = windll.gdi32.GetDIBits
 ExcludeClipRect = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, c_int, c_int)(('ExcludeClipRect', windll.gdi32))
 IntersectClipRect = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, c_int, c_int)(('IntersectClipRect', windll.gdi32))
 
+GetBkColor = WINFUNCTYPE(COLORREF, c_void_p)(('GetBkColor', windll.gdi32))
+
 SetTextColor = WINFUNCTYPE(COLORREF, c_void_p, COLORREF)(('SetTextColor', windll.gdi32))
 if WINVER >= 0x0500:
 	SetDCBrushColor = WINFUNCTYPE(COLORREF, c_void_p, COLORREF)(('SetDCBrushColor', windll.gdi32))

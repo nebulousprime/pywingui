@@ -20,22 +20,22 @@
 ## WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
 
 from version_microsoft import WINVER, UNICODE
+from sdkddkver import _WIN32_WINNT
 
 from ctypes import *
 
 from sys import hexversion
 if hexversion < 0x02060000:
 	c_bool = c_byte
+if hexversion >= 0x03000000:
+	type_str = bytes
+	type_unicode = str
+else:
+	type_str = str
+	type_unicode = unicode
 
 #TODO auto ie/comctl detection
 WIN32_IE = 0x0550
-
-#TODO: auto unicode selection,
-#if unicode:
-#  CreateWindowEx = windll.user32.CreateWindowExW
-#else:
-#  CreateWindowEx = windll.user32.CreateWindowExA
-#etc, etc
 
 
 DWORD = c_ulong
@@ -273,7 +273,6 @@ class PAINTSTRUCT(Structure):
 	("fIncUpdate", BOOL),
 	("rgbReserved", c_byte * 32)]
 
-    
 class MENUITEMINFO(Structure):
 	_fields_ = [("cbSize", UINT),
 	("fMask", UINT),
@@ -292,17 +291,22 @@ class MENUITEMINFO(Structure):
 	if WINVER >= 0x0500:
 		_fields_.append(("hbmpItem", HBITMAP))
 
+class COPYDATASTRUCT(Structure):
+	_fields_ = [
+		("dwData", ULONG_PTR),
+		("cbData", DWORD),
+		("lpData", PVOID)]
+
 class DLGTEMPLATE(Structure):
 	_pack_ = 2
-	_fields_ = [
-		("style", DWORD),
-		("exStyle", DWORD),
-		("cDlgItems", WORD),
-		("x", c_short),
-		("y", c_short),
-		("cx", c_short),
-		("cy", c_short)
-	]
+	_fields_ = [("style", DWORD),
+	("exStyle", DWORD),
+	("cDlgItems", WORD),
+	("x", c_short),
+	("y", c_short),
+	("cx", c_short),
+	("cy", c_short)]
+LPDLGTEMPLATE = POINTER(DLGTEMPLATE)
 
 class DLGITEMTEMPLATE(Structure):
 	_pack_ = 2
@@ -315,12 +319,46 @@ class DLGITEMTEMPLATE(Structure):
 		("cy", c_short),
 		("id", WORD)
 	]
+LPDLGITEMTEMPLATE = POINTER(DLGITEMTEMPLATE)
 
-class COPYDATASTRUCT(Structure):
-	_fields_ = [
-		("dwData", ULONG_PTR),
-		("cbData", DWORD),
-		("lpData", PVOID)]
+class DLGTEMPLATEEX(Structure):
+	_pack_ = 2
+	_fields_ = [('dlgVer', WORD),
+	('signature', WORD),
+	('helpID', DWORD),
+	('exStyle', DWORD),
+	('style', DWORD),
+	('cDlgItems', WORD),
+	('x', c_short),
+	('y', c_short),
+	('cx', c_short),
+	('cy', c_short),
+	('menu', c_void_p),#sz_Or_Ord
+	('windowClass', c_void_p),#sz_Or_Ord
+	('title', c_wchar * 255)]# or len of your string
+	# The following members exist only if the style member is 
+	# set to DS_SETFONT or DS_SHELLFONT.
+	#~ ('pointsize', WORD),
+	#~ ('weight', WORD),
+	#~ ('italic', BYTE),
+	#~ ('charset', BYTE),
+	#~ ('typeface', c_wchar * 255)]# or len of your string
+LPDLGTEMPLATEEX = POINTER(DLGTEMPLATEEX)
+
+class DLGITEMTEMPLATEEX(Structure):
+	_pack_ = 2
+	_fields_ = [('helpID', DWORD),
+	('exStyle', DWORD),
+	('style', DWORD),
+	('x', c_short),
+	('y', c_short),
+	('cx', c_short),
+	('cy', c_short),
+	('id', WORD),
+	('windowClass', c_void_p),#sz_Or_Ord
+	('title', c_void_p),#sz_Or_Ord
+	('extraCount', WORD)]
+LPDLGITEMTEMPLATEEX = POINTER(DLGITEMTEMPLATEEX)
 
 def LOWORD(dword):
 	return dword & 0x0000ffff
@@ -352,74 +390,188 @@ SW_MAX             = 11
 
 EN_CHANGE = 768
 
-MSGS = [('WM_NULL', 0),
-        ('WM_CREATE', 1),
-        ('WM_CANCELMODE', 31),
-        ('WM_CAPTURECHANGED', 533),
-        ('WM_CLOSE', 16),
-        ('WM_COMMAND', 273),
-        ('WM_DESTROY', 2),
-        ('WM_ERASEBKGND', 20),
-        ('WM_GETFONT', 49),
-        ('WM_INITDIALOG', 272),
-        ('WM_INITMENUPOPUP', 279),
-        ('WM_KEYDOWN', 256),
-        ('WM_KEYFIRST', 256),
-        ('WM_KEYLAST', 264),
-        ('WM_KEYUP', 257),
-        ('WM_LBUTTONDBLCLK', 515),
-        ('WM_LBUTTONDOWN', 513),
-        ('WM_LBUTTONUP', 514),
-        ('WM_MBUTTONDBLCLK', 521),
-        ('WM_MBUTTONDOWN', 519),
-        ('WM_MBUTTONUP', 520),
-        ('WM_MENUSELECT', 287),
-        ('WM_MOUSEFIRST', 512),
-        ('WM_MOUSEHOVER', 673),
-        ('WM_MOUSELEAVE', 675),
-        ('WM_MOUSEMOVE', 512),
-        ('WM_MOVE', 3),
-        ('WM_NCCREATE', 129),
-        ('WM_NCDESTROY', 130),
-        ('WM_NOTIFY', 78),
-        ('WM_PAINT', 15),
-        ('WM_RBUTTONDBLCLK', 518),
-        ('WM_RBUTTONDOWN', 516),
-        ('WM_RBUTTONUP', 517),
-        ('WM_SETCURSOR', 32),
-        ('WM_SETFONT', 48),
-        ('WM_SETREDRAW', 11),
-        ('WM_SIZE', 5),
-        ('WM_SYSKEYDOWN', 260),
-        ('WM_SYSKEYUP', 261),
-        ('WM_USER', 1024),
-        ('WM_WINDOWPOSCHANGED', 71),
-        ('WM_WINDOWPOSCHANGING', 70),
-        ('WM_SETTEXT', 12),
-        ('WM_GETTEXT', 13),
-        ('WM_GETTEXTLENGTH', 14),
-        ('WM_ACTIVATE', 6),
-        ('WM_HSCROLL', 276),
-        ('WM_VSCROLL', 277),
-        ('WM_CTLCOLORBTN', 309),
-        ('WM_CTLCOLORDLG', 310),
-        ('WM_CTLCOLOREDIT', 307),
-        ('WM_CTLCOLORLISTBOX', 308),
-        ('WM_CTLCOLORMSGBOX', 306),
-        ('WM_CTLCOLORSCROLLBAR', 311),
-        ('WM_CTLCOLORSTATIC', 312),
-        ('WM_TIMER', 0x0113),
-        ('WM_CONTEXTMENU', 0x007B),
-        ('WM_COPYDATA', 0x004A),
-        ('WM_ACTIVATEAPP', 0x001C),
-        ('WM_NCACTIVATE', 0x0086)
-        ]
+MSGS = [('WM_NULL', 0x0000),
+('WM_CREATE', 0x0001),
+('WM_DESTROY', 0x0002),
+('WM_MOVE', 0x0003),
+('WM_SIZE', 0x0005),
+('WM_ACTIVATE', 0x0006),
+('WM_SETFOCUS', 0x0007),
+('WM_KILLFOCUS', 0x0008),
+('WM_ENABLE', 0x000A),
+('WM_SETREDRAW', 0x000B),
+('WM_SETTEXT', 0x000C),
+('WM_GETTEXT', 0x000D),
+('WM_GETTEXTLENGTH', 0x000E),
+('WM_PAINT', 0x000F),
+('WM_CLOSE', 0x0010),
+('WM_QUERYENDSESSION', 0x0011),#ifndef _WIN32_WCE
+('WM_QUIT', 0x0012),
+('WM_QUERYOPEN', 0x0013),#ifndef _WIN32_WCE
+('WM_ERASEBKGND', 0x0014),
+('WM_SYSCOLORCHANGE', 0x0015),
+('WM_ENDSESSION', 0x0016),#ifndef _WIN32_WCE
+('WM_SHOWWINDOW', 0x0018),
+('WM_WININICHANGE', 0x001A),
+('WM_SETTINGCHANGE', 0x001A),#some as WM_WININICHANGE only if WINVER >= 0x0400
+('WM_DEVMODECHANGE', 0x001B),
+('WM_ACTIVATEAPP', 0x001C),
+('WM_FONTCHANGE', 0x001D),
+('WM_TIMECHANGE', 0x001E),
+('WM_CANCELMODE', 0x001F),
+('WM_SETCURSOR', 0x0020),
+('WM_MOUSEACTIVATE', 0x0021),
+('WM_CHILDACTIVATE', 0x0022),
+('WM_QUEUESYNC', 0x0023),
+('WM_GETMINMAXINFO', 0x0024),
+('WM_PAINTICON', 0x0026),
+('WM_ICONERASEBKGND', 0x0027),
+('WM_NEXTDLGCTL', 0x0028),
+('WM_SPOOLERSTATUS', 0x002A),
+('WM_DRAWITEM', 0x002B),
+('WM_MEASUREITEM', 0x002C),
+('WM_DELETEITEM', 0x002D),
+('WM_VKEYTOITEM', 0x002E),
+('WM_VKEYTOITEM', 0x002F),
+('WM_SETFONT', 0x0030),
+('WM_GETFONT', 0x0031),
+('WM_SETHOTKEY', 0x0032),
+('WM_GETHOTKEY', 0x0033),
+('WM_QUERYDRAGICON', 0x0037),
+('WM_COMPAREITEM', 0x0039),
+('WM_GETOBJECT', 0x003D),#if(WINVER >= 0x0500) and ifndef _WIN32_WCE
+('WM_COMPACTING', 0x0041),
+('WM_COMMNOTIFY', 0x0044),#no longer suported
+('WM_WINDOWPOSCHANGING', 0x0046),
+('WM_WINDOWPOSCHANGED', 0x0047),
+('WM_POWER', 0x0048),
+('WM_COPYDATA', 0x004A),
+('WM_CANCELJOURNAL', 0x004B),
+('WM_NOTIFY', 0x004E),#if WINVER >= 0x0400
+('WM_INPUTLANGCHANGEREQUEST', 0x0050),#if WINVER >= 0x0400
+('WM_INPUTLANGCHANGE', 0x0051),#if WINVER >= 0x0400
+('WM_TCARD', 0x0052),#if WINVER >= 0x0400
+('WM_HELP', 0x0053),#if WINVER >= 0x0400
+('WM_USERCHANGED', 0x0054),#if WINVER >= 0x0400
+('WM_NOTIFYFORMAT', 0x0055),#if WINVER >= 0x0400
+('WM_CONTEXTMENU', 0x007B),#if WINVER >= 0x0400
+('WM_STYLECHANGING', 0x007C),#if WINVER >= 0x0400
+('WM_STYLECHANGED', 0x007D),#if WINVER >= 0x0400
+('WM_DISPLAYCHANGE', 0x007E),#if WINVER >= 0x0400
+('WM_GETICON', 0x007F),#if WINVER >= 0x0400
+('WM_SETICON', 0x0080),#if WINVER >= 0x0400
+('WM_NCCREATE', 0x0081),
+('WM_NCDESTROY', 0x0082),
+('WM_NCCALCSIZE', 0x0083),
+('WM_NCHITTEST', 0x0084),
+('WM_NCPAINT', 0x0085),
+('WM_NCACTIVATE', 0x0086),
+('WM_GETDLGCODE', 0x0087),
+('WM_SYNCPAINT', 0x0088),#ifndef _WIN32_WCE
+('WM_NCMOUSEMOVE', 0x00A0),
+('WM_NCLBUTTONDOWN', 0x00A1),
+('WM_NCLBUTTONUP', 0x00A2),
+('WM_NCLBUTTONDBLCLK', 0x00A3),
+('WM_NCRBUTTONDOWN', 0x00A4),
+('WM_NCRBUTTONUP', 0x00A5),
+('WM_NCRBUTTONDBLCLK', 0x00A6),
+('WM_NCMBUTTONDOWN', 0x00A7),
+('WM_NCMBUTTONUP', 0x00A8),
+('WM_NCMBUTTONDBLCLK', 0x00A9),
+('WM_NCXBUTTONDOWN', 0x00AB),#if _WIN32_WINNT >= 0x0500
+('WM_NCXBUTTONUP', 0x00AC),#if _WIN32_WINNT >= 0x0500
+('WM_NCXBUTTONDBLCLK', 0x00AD),#if _WIN32_WINNT >= 0x0500
+('WM_INPUT_DEVICE_CHANGE', 0x00FE),#if _WIN32_WINNT >= 0x0501
+('WM_INPUT', 0x00FF),#if _WIN32_WINNT >= 0x0501
+('WM_KEYDOWN', 0x0100),
+('WM_KEYFIRST', 0x0100),
+('WM_KEYUP', 0x0101),
+('WM_CHAR', 0x0102),
+('WM_DEADCHAR', 0x0103),
+('WM_SYSKEYDOWN', 0x0104),
+('WM_SYSKEYUP', 0x0105),
+('WM_SYSCHAR', 0x0106),
+('WM_SYSDEADCHAR', 0x0107)]
+if _WIN32_WINNT < 0x0501:
+	MSGS.append(('WM_KEYLAST', 0x0108))
+else:
+	MSGS.append(('WM_KEYLAST', 0x0109))
+MSGS += [('WM_UNICHAR', 0x0109),#if _WIN32_WINNT >= 0x0501
+('WM_IME_STARTCOMPOSITION', 0x010D),#if WINVER >= 0x0400
+('WM_IME_ENDCOMPOSITION', 0x010E),#if WINVER >= 0x0400
+('WM_IME_COMPOSITION', 0x010F),#if WINVER >= 0x0400
+('WM_IME_KEYLAST', 0x010F),#if WINVER >= 0x0400
+('WM_INITDIALOG', 0x0110),
+('WM_COMMAND', 0x0111),
+('WM_SYSCOMMAND', 0x0112),
+('WM_TIMER', 0x0113),
+('WM_HSCROLL', 0x0114),
+('WM_VSCROLL', 0x0115),
+('WM_INITMENU', 0x0116),
+('WM_INITMENUPOPUP', 0x0117),
+('WM_MENUSELECT', 0x011F),
+('WM_MENUCHAR', 0x0120),
+('WM_ENTERIDLE', 0x0121),
+('WM_MENURBUTTONUP', 0x0122),#if WINVER >= 0x0500 (#ifndef _WIN32_WCE)
+('WM_MENUDRAG', 0x0123),#if WINVER >= 0x0500 (#ifndef _WIN32_WCE)
+('WM_MENUGETOBJECT', 0x0124),#if WINVER >= 0x0500 (#ifndef _WIN32_WCE)
+('WM_UNINITMENUPOPUP', 0x0125),#if WINVER >= 0x0500 (#ifndef _WIN32_WCE)
+('WM_MENUCOMMAND', 0x0126),#if WINVER >= 0x0500 (#ifndef _WIN32_WCE)
+('WM_CHANGEUISTATE', 0x0127),#if _WIN32_WINNT >= 0x0500 (#ifndef _WIN32_WCE)
+('WM_UPDATEUISTATE', 0x0128),#if _WIN32_WINNT >= 0x0500 (#ifndef _WIN32_WCE)
+('WM_QUERYUISTATE', 0x0129),#if _WIN32_WINNT >= 0x0500 (#ifndef _WIN32_WCE)
+('WM_CTLCOLORMSGBOX', 0x0132),
+('WM_CTLCOLOREDIT', 0x0133),
+('WM_CTLCOLORLISTBOX', 0x0134),
+('WM_CTLCOLORBTN', 0x0135),
+('WM_CTLCOLORDLG', 0x0136),
+('WM_CTLCOLORSCROLLBAR', 0x0137),
+('WM_CTLCOLORSTATIC', 0x0138),
+('MN_GETHMENU', 0x01E1),
+('WM_MOUSEMOVE', 0x0200),
+('WM_MOUSEFIRST', 0x0200),
+('WM_LBUTTONDOWN', 0x0201),
+('WM_LBUTTONUP', 0x0202),
+('WM_LBUTTONDBLCLK', 0x0203),
+('WM_RBUTTONDOWN', 0x0204),
+('WM_RBUTTONUP', 0x0205),
+('WM_RBUTTONDBLCLK', 0x0206),
+('WM_MBUTTONDOWN', 0x0207),
+('WM_MBUTTONUP', 0x0208),
+('WM_MBUTTONDBLCLK', 0x0209)]
+if _WIN32_WINNT < 0x0600:
+	MSGS.append(('WM_MOUSEWHEEL', 0x020A))
+else:
+	MSGS.append(('WM_MOUSEWHEEL', 0x020E))
+MSGS += [('WM_XBUTTONDOWN', 0x020B),#if _WIN32_WINNT >= 0x0500
+('WM_XBUTTONUP', 0x020C),#if _WIN32_WINNT >= 0x0500
+('WM_XBUTTONDBLCLK', 0x020D)]#if _WIN32_WINNT >= 0x0500
+if _WIN32_WINNT >= 0x0600:
+	MSGS.append(('WM_MOUSELAST', 0x020E))
+elif _WIN32_WINNT >= 0x0500:
+	MSGS.append(('WM_MOUSELAST', 0x020D))
+elif _WIN32_WINNT >= 0x0400:
+	MSGS.append(('WM_MOUSELAST', 0x020A))
+else:
+	MSGS.append(('WM_MOUSELAST', 0x0209))
+MSGS += [('WM_PARENTNOTIFY', 0x0210),
+('WM_ENTERMENULOOP', 0x0211),
+('WM_EXITMENULOOP', 0x0212),
+('WM_NEXTMENU', 0x0213),
+('WM_SIZING', 0x0214),
+('WM_CAPTURECHANGED', 0x0215),
+('WM_MOVING', 0x0216),
+('WM_POWERBROADCAST', 0x0218),
+('WM_DEVICECHANGE', 0x0219),
+('WM_MOUSEHOVER', 0x02A1),
+('WM_MOUSELEAVE', 0x02A3),
+('WM_USER', 0x0400)]
 
 #insert wm_* msgs as constants in this module:
 for key, val in MSGS:
     exec('%s = %d' % (key, val)) #TODO without using 'exec'?
 
-BN_CLICKED    =     0
+BN_CLICKED = 0
 
 VK_DOWN = 40
 VK_LEFT = 37
@@ -582,17 +734,6 @@ RB_INSERTBANDW = WM_USER + 10
 
 RB_INSERTBAND = RB_INSERTBANDA
 
-RBBIM_STYLE = 1
-RBBIM_COLORS = 2
-RBBIM_TEXT = 4
-RBBIM_IMAGE = 8
-RBBIM_CHILD = 16
-RBBIM_CHILDSIZE = 32
-RBBIM_SIZE = 64
-RBBIM_BACKGROUND = 128
-RBBIM_ID = 256
-RBBIM_IDEALSIZE = 0x00000200
-
 TPM_CENTERALIGN =4
 TPM_LEFTALIGN =0
 TPM_RIGHTALIGN= 8
@@ -689,8 +830,6 @@ TVSIL_NORMAL = 0
 TVSIL_STATE  = 2
 
 SRCCOPY = 0xCC0020
-
-GWL_WNDPROC = -4
 
 HWND_BOTTOM = 1
 HWND_TOP=0
@@ -927,6 +1066,28 @@ STANDARD_RIGHTS_REQUIRED = (0x000F0000L)
 EVENT_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED|SYNCHRONIZE|0x3)
 MAX_PATH = 260
 
+# Local Memory Flags */
+LMEM_FIXED = 0x0000
+LMEM_MOVEABLE = 0x0002
+LMEM_NOCOMPACT = 0x0010
+LMEM_NODISCARD = 0x0020
+LMEM_ZEROINIT = 0x0040
+LMEM_MODIFY = 0x0080
+LMEM_DISCARDABLE = 0x0F00
+LMEM_VALID_FLAGS = 0x0F72
+LMEM_INVALID_HANDLE = 0x8000
+
+LHND = LMEM_MOVEABLE | LMEM_ZEROINIT
+LPTR = LMEM_FIXED | LMEM_ZEROINIT
+
+NONZEROLHND = LMEM_MOVEABLE
+NONZEROLPTR = LMEM_FIXED
+
+#define LocalDiscard( h )   LocalReAlloc( (h), 0, LMEM_MOVEABLE )
+# Flags returned by LocalFlags (in addition to LMEM_DISCARDABLE) */
+LMEM_DISCARDED = 0x4000
+LMEM_LOCKCOUNT = 0x00FF
+
 def GET_XY_LPARAM(lParam):
     x = LOWORD(lParam)
     if x > 32768:
@@ -934,7 +1095,6 @@ def GET_XY_LPARAM(lParam):
     y = HIWORD(lParam)
     if y > 32768:
         y = y - 65536
-        
     return x, y 
 
 def GET_POINT_LPARAM(lParam):
@@ -973,39 +1133,26 @@ GetDC = windll.user32.GetDC
 ReleaseDC = windll.user32.ReleaseDC
 DestroyIcon = windll.user32.DestroyIcon
 
+if _WIN32_WINNT > 0x0500:
+	GET_MODULE_HANDLE_EX_FLAG_PIN = (0x00000001)
+	GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT = (0x00000002)
+	GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS = (0x00000004)
+	GetModuleHandleEx = WINFUNCTYPE(c_bool, c_wchar_p, c_ulong, c_void_p)(('GetModuleHandleExW', windll.kernel32))
 GetModuleHandle = WINFUNCTYPE(c_void_p, c_wchar_p)(('GetModuleHandleW', windll.kernel32))
+GetModuleFileName = WINFUNCTYPE(c_ulong, c_void_p, c_wchar_p, c_ulong)(('GetModuleFileNameW', windll.kernel32))
 ExpandEnvironmentStrings = windll.kernel32.ExpandEnvironmentStringsW
 LoadLibrary = WINFUNCTYPE(c_void_p, c_wchar_p)(('LoadLibraryW', windll.kernel32))
 FindResource = windll.kernel32.FindResourceW
-FindWindow = windll.user32.FindWindowW
-SetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('SetMenuItemInfoW', windll.user32))
-GetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('GetMenuItemInfoW', windll.user32))
-SetWindowsHookEx = windll.user32.SetWindowsHookExW
-MessageBox = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_wchar_p, c_uint)(('MessageBoxW', windll.user32))
-RegisterClipboardFormat = windll.user32.RegisterClipboardFormatW
-DialogBoxParam = windll.user32.DialogBoxParamW
-CreateDialogIndirectParam = windll.user32.CreateDialogIndirectParamW
-DialogBoxIndirectParam = windll.user32.DialogBoxIndirectParamW
-GetClassName = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_int)(('GetClassNameW', windll.user32))
-GetClassInfo = WINFUNCTYPE(c_bool, c_void_p, c_wchar_p, c_void_p)(('GetClassInfoW', windll.user32))
 CreateEvent = WINFUNCTYPE(c_void_p, c_void_p, c_bool, c_bool, c_wchar_p)(('CreateEventW', windll.kernel32))
 OpenEvent = WINFUNCTYPE(c_void_p, c_ulong, c_bool, c_wchar_p)(('OpenEventW', windll.kernel32))
 if not UNICODE:
+	if _WIN32_WINNT > 0x0500:
+		GetModuleHandleEx = WINFUNCTYPE(c_bool, c_char_p, c_ulong, c_void_p)(('GetModuleHandleExA', windll.kernel32))
 	GetModuleHandle = WINFUNCTYPE(c_void_p, c_char_p)(('GetModuleHandleA', windll.kernel32))
+	GetModuleFileName = WINFUNCTYPE(c_ulong, c_void_p, c_char_p, c_ulong)(('GetModuleFileNameA', windll.kernel32))
 	ExpandEnvironmentStrings = windll.kernel32.ExpandEnvironmentStringsA
 	LoadLibrary = WINFUNCTYPE(c_void_p, c_char_p)(('LoadLibraryA', windll.kernel32))
 	FindResource = windll.kernel32.FindResourceA
-	FindWindow = windll.user32.FindWindowA
-	SetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('SetMenuItemInfoA', windll.user32))
-	GetMenuItemInfo = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_bool, POINTER(MENUITEMINFO))(('GetMenuItemInfoA', windll.user32))
-	SetWindowsHookEx = windll.user32.SetWindowsHookExA
-	MessageBox = WINFUNCTYPE(c_int, c_void_p, c_char_p, c_char_p, c_uint)(('MessageBoxA', windll.user32))
-	RegisterClipboardFormat = windll.user32.RegisterClipboardFormatA
-	DialogBoxParam = windll.user32.DialogBoxParamA
-	CreateDialogIndirectParam = windll.user32.CreateDialogIndirectParamA
-	DialogBoxIndirectParam = windll.user32.DialogBoxIndirectParamA
-	GetClassName = WINFUNCTYPE(c_int, c_void_p, c_char_p, c_int)(('GetClassNameA', windll.user32))
-	GetClassInfo = WINFUNCTYPE(c_bool, c_void_p, c_char_p, c_void_p)(('GetClassInfoA', windll.user32))
 	CreateEvent = WINFUNCTYPE(c_void_p, c_void_p, c_bool, c_bool, c_char_p)(('CreateEventA', windll.kernel32))
 	OpenEvent = WINFUNCTYPE(c_void_p, c_ulong, c_bool, c_char_p)(('OpenEventA', windll.kernel32))
 
@@ -1015,9 +1162,6 @@ DeferWindowPos = windll.user32.DeferWindowPos
 EndDeferWindowPos = windll.user32.EndDeferWindowPos
 DestroyAcceleratorTable = windll.user32.DestroyAcceleratorTable
 TranslateAccelerator = windll.user32.TranslateAccelerator
-
-GetForegroundWindow = windll.user32.GetForegroundWindow
-ChildWindowFromPoint = windll.user32.ChildWindowFromPoint
 
 TrackPopupMenuEx = windll.user32.TrackPopupMenuEx
 

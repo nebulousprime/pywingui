@@ -18,11 +18,11 @@ class MyForm(form.Form):
 		child_list1 = list.List(parent = note, orExStyle = WS_EX_CLIENTEDGE)
 		child_list1.InsertColumns(columnDefs)
 		for i in range(100):
-			child_list1.InsertRow(i, ['column0 %d' % i, 'column1 %d' % i])
+			child_list1.InsertRow(i, ['COLUMN 0 %d' % i, 'COLUMN 1 %d' % i])
 		child_list2 = list.List(parent = note, orExStyle = WS_EX_CLIENTEDGE)
 		child_list2.InsertColumns(columnDefs)
 		for i in range(100):
-			child_list2.InsertRow(i, ['column0 %d' % i, 'column1 %d' % i])
+			child_list2.InsertRow(i, ['column 0 %d' % i, 'column 1 %d' % i])
 		note.AddTab(0, 'First note', child_list1)
 		note.AddTab(1, 'Second note', child_list2)
 		note.SetCurrentTab(0)

@@ -114,6 +114,9 @@ class DecoratedWindow(wtl_core.Window):
 	def ShowWindow(self, cmdShow = SW_SHOWNORMAL):
 		ShowWindow(self.handle, cmdShow)
 
+	def SetActiveWindow(self):
+		return SetActiveWindow(self.handle)
+
 	def IsWindowVisible(self):
 		return bool(IsWindowVisible(self.handle))
 

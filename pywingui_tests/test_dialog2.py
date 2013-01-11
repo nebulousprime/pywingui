@@ -90,7 +90,7 @@ class ExampleDialog(Dialog):
         self.ctrlEditEvalRes.SetText(evalResult)
 
     OnEval = cmd_handler(IDC_EDIT_EVAL, EN_CHANGE)(OnEval)
-    
+
     def OnInitDialog(self, event):
         Dialog.OnInitDialog(self, event)
 
