@@ -21,6 +21,48 @@ else:
 # ========================
 # some constants from WinUser.h
 
+# Predefined Clipboard Formats
+CF_TEXT = 1
+CF_BITMAP = 2
+CF_METAFILEPICT = 3
+CF_SYLK = 4
+CF_DIF = 5
+CF_TIFF = 6
+CF_OEMTEXT = 7
+CF_DIB = 8
+CF_PALETTE = 9
+CF_PENDATA = 10
+CF_RIFF = 11
+CF_WAVE = 12
+CF_UNICODETEXT = 13
+CF_ENHMETAFILE = 14
+if WINVER >= 0x0400:
+	CF_HDROP = 15
+	CF_LOCALE = 16
+if WINVER >= 0x0500:
+	CF_DIBV5 = 17
+
+if WINVER >= 0x0500:
+	CF_MAX = 18
+elif WINVER >= 0x0400:
+	CF_MAX = 17
+else:
+	CF_MAX = 15
+
+CF_OWNERDISPLAY = 0x0080
+CF_DSPTEXT = 0x0081
+CF_DSPBITMAP = 0x0082
+CF_DSPMETAFILEPICT = 0x0083
+CF_DSPENHMETAFILE = 0x008E
+
+# "Private" formats don't get GlobalFree()'d
+CF_PRIVATEFIRST = 0x0200
+CF_PRIVATELAST = 0x02FF
+
+# "GDIOBJ" formats do get DeleteObject()'d
+CF_GDIOBJFIRST = 0x0300
+CF_GDIOBJLAST = 0x03FF
+
 # Edit Control Styles
 ES_LEFT        = 0x0000L
 ES_CENTER      = 0x0001L
@@ -624,3 +666,39 @@ EnableScrollBar = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint)(('EnableScrollBa
 #WINUSERAPI BOOL WINAPI EnumChildWindows(__in_opt HWND hWndParent, __in WNDENUMPROC lpEnumFunc, __in LPARAM lParam);
 WNDENUMPROC = WINFUNCTYPE(c_bool, c_void_p, c_ulong)
 EnumChildWindows = WINFUNCTYPE(c_bool, c_void_p, WNDENUMPROC, c_ulong)(('EnumChildWindows', windll.user32))
+
+OpenClipboard = WINFUNCTYPE(c_bool, c_void_p)(('OpenClipboard', windll.user32))
+EmptyClipboard = WINFUNCTYPE(c_bool)(('EmptyClipboard', windll.user32))
+CloseClipboard = WINFUNCTYPE(c_bool)(('CloseClipboard', windll.user32))
+SetClipboardData = WINFUNCTYPE(c_void_p, c_uint, c_void_p)(('SetClipboardData', windll.user32))
+GetClipboardData = windll.user32.GetClipboardData
+EnumClipboardFormats = windll.user32.EnumClipboardFormats
+IsClipboardFormatAvailable = windll.user32.IsClipboardFormatAvailable
+
+def text_to_clipboard(self, hwnd = 0, text = ''):
+	'idealy insert this func to your own Window class code and change hwnd to self.handle'
+	if OpenClipboard(hwnd):
+		TCHAR = c_char
+		data_type = CF_TEXT
+		if isinstance(text, type_unicode):
+			TCHAR = c_wchar
+			data_type = CF_UNICODETEXT
+		if EmptyClipboard():
+			# Allocate a global memory object for the text
+			hglb_size = (len(text) + 1) * sizeof(TCHAR)
+			hglb_copy = GlobalAlloc(GMEM_MOVEABLE, hglb_size)
+			if hglb_copy:
+				# Lock the handle and copy the text to the buffer
+				lptstr_copy = GlobalLock(hglb_copy)
+				memcpy(lptstr_copy, text, hglb_size)
+				GlobalUnlock(hglb_copy)
+				# send data to clipboard
+				SetClipboardData(data_type, hglb_copy)
+				# free a global memory object handle
+				GlobalFree(hglb_copy)
+		else:
+			print('ERROR CLEAR OLD CLIPBOARD DATA')
+		if not CloseClipboard():
+			print('ERROR CLOSE CLIPBOARD')
+	else:
+		print('ERROR OPEN CLIPBOARD')

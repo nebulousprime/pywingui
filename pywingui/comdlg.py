@@ -86,6 +86,7 @@ class OPENFILENAME(Structure):
 	_fields_ += [('nMaxCustFilter', DWORD),
 		('nFilterIndex', DWORD)]
 	if UNICODE:
+		#~ _fields_.append(('lpstrFile', c_wchar * 8192))
 		_fields_.append(('lpstrFile', c_wchar_p))
 	else:
 		_fields_.append(('lpstrFile', c_char_p))
@@ -126,44 +127,46 @@ if not UNICODE:
 	GetSaveFileName = WINFUNCTYPE(c_bool, POINTER(OPENFILENAME))(('GetSaveFileNameA', windll.comdlg32))
 
 OFN_ALLOWMULTISELECT = 512
-OFN_CREATEPROMPT= 0x2000
-OFN_ENABLEHOOK =32
-OFN_ENABLETEMPLATE= 64
-OFN_ENABLETEMPLATEHANDLE= 128
-OFN_EXPLORER= 0x80000
-OFN_EXTENSIONDIFFERENT= 0x400
-OFN_FILEMUSTEXIST =0x1000
-OFN_HIDEREADONLY= 4
-OFN_LONGNAMES =0x200000
-OFN_NOCHANGEDIR= 8
-OFN_NODEREFERENCELINKS= 0x100000
-OFN_NOLONGNAMES= 0x40000
-OFN_NONETWORKBUTTON =0x20000
-OFN_NOREADONLYRETURN= 0x8000
-OFN_NOTESTFILECREATE= 0x10000
-OFN_NOVALIDATE= 256
-OFN_OVERWRITEPROMPT= 2
-OFN_PATHMUSTEXIST= 0x800
-OFN_READONLY= 1
-OFN_SHAREAWARE= 0x4000
-OFN_SHOWHELP= 16
-OFN_SHAREFALLTHROUGH= 2
-OFN_SHARENOWARN= 1
-OFN_SHAREWARN= 0
+OFN_CREATEPROMPT = 0x2000
+OFN_ENABLEHOOK = 32
+OFN_ENABLETEMPLATE = 64
+OFN_ENABLETEMPLATEHANDLE = 128
+OFN_EXPLORER = 0x80000
+OFN_EXTENSIONDIFFERENT = 0x400
+OFN_FILEMUSTEXIST = 0x1000
+OFN_HIDEREADONLY = 4
+OFN_LONGNAMES = 0x200000
+OFN_NOCHANGEDIR = 8
 OFN_NODEREFERENCELINKS = 0x100000
+OFN_NOLONGNAMES = 0x40000
+OFN_NONETWORKBUTTON = 0x20000
+OFN_NOREADONLYRETURN = 0x8000
+OFN_NOTESTFILECREATE = 0x10000
+OFN_NOVALIDATE = 256
+OFN_OVERWRITEPROMPT = 2
+OFN_PATHMUSTEXIST = 0x800
+OFN_READONLY = 1
+OFN_SHAREAWARE = 0x4000
+OFN_SHOWHELP = 16
+OFN_SHAREFALLTHROUGH = 2
+OFN_SHARENOWARN = 1
+OFN_SHAREWARN = 0
+OFN_NODEREFERENCELINKS = 0x100000
+OFN_ENABLESIZING = 0x00800000
 OPENFILENAME_SIZE_VERSION_400 = 76
 
 class FileDialog(OPENFILENAME):
 	def SetFilter(self, filter):
 		self.lpstrFilter = filter.replace('|', '\0') + '\0\0'
+	filter = property(None, SetFilter, None, '')
 
-	filter = property(None, SetFilter, None, "")
 	def DoModal(self, parent = None, file_name = '', max_file = 1024):
 		if versionInfo.isMajorMinor(4, 0): #fix for NT4.0
 			self.lStructSize = OPENFILENAME_SIZE_VERSION_400
 		else:
 			self.lStructSize = sizeof(OPENFILENAME)
-		self.nMaxFile = max_file
+		if self.nMaxFile < max_file:
+			self.nMaxFile = max_file
 		if file_name:
 			if UNICODE:
 				self.lpstrFile = cast(create_unicode_buffer(file_name, self.nMaxFile), c_wchar_p)
@@ -179,10 +182,6 @@ class FileDialog(OPENFILENAME):
 			#hardcoded relative paths)
 			import os
 			cwd = os.getcwd()
-			#~ if self.DoIt() != 0:
-				#~ return szPath[:szPath.find('\0')].strip()
-			#~ else:
-				#~ return None
 			return self.DoIt()
 		finally:
 			os.chdir(cwd) #return to old current working dir

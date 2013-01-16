@@ -80,11 +80,13 @@ BYTE = c_byte
 TCHAR = c_char #TODO depends on unicode/wide conventions
 DWORD_PTR = c_ulong #TODO what is this exactly?
 INT_PTR = c_ulong  #TODO what is this exactly?
-COLORREF = c_ulong
 CLIPFORMAT = WORD
 FLOAT = c_float
 CHAR = c_char
 WCHAR = c_wchar
+COLORREF = c_ulong# format = 0x_blue_green_red, example: 0xFFFFFF = white, 0x808080 = gray
+#COLORREF = DWORD
+LPCOLORREF = POINTER(COLORREF)
 
 FXPT16DOT16 = c_long
 FXPT2DOT30 = c_long
@@ -950,9 +952,6 @@ GMEM_INVALID_HANDLE= 0x8000
 
 RT_DIALOG        = "5"
 
-CF_TEXT = 1
-
-
 # Button Control Styles
 #BS_DEFPUSHBUTTON = 0x01L
 #BS_GROUPBOX = 0x7
@@ -1119,9 +1118,6 @@ def Fail(value):
     else:
         return value
 
-COLORREF = DWORD
-LPCOLORREF = POINTER(COLORREF)
-
 # The ZeroMemory function fills a block of memory with zeros
 SIZE_T = c_ulong
 def ZeroMemory(Destination, Length):
@@ -1198,13 +1194,6 @@ LocalFlags = windll.kernel32.LocalFlags
 LocalHandle = windll.kernel32.LocalHandle
 LocalSize = windll.kernel32.LocalSize
 
-OpenClipboard = windll.user32.OpenClipboard
-EmptyClipboard = windll.user32.EmptyClipboard
-SetClipboardData = windll.user32.SetClipboardData
-GetClipboardData = windll.user32.GetClipboardData
-CloseClipboard = windll.user32.CloseClipboard
-EnumClipboardFormats = windll.user32.EnumClipboardFormats
-IsClipboardFormatAvailable = windll.user32.IsClipboardFormatAvailable
 GetDlgItem = windll.user32.GetDlgItem
 EndDialog = windll.user32.EndDialog
 ShowScrollBar = windll.user32.ShowScrollBar
@@ -1239,3 +1228,5 @@ RDW_ERASENOW           = 0x0200
 RDW_FRAME              = 0x0400
 RDW_NOFRAME            = 0x0800
 RedrawWindow = WINFUNCTYPE(c_byte, HWND, POINTER(RECT), HRGN, c_uint)(('RedrawWindow', windll.user32))
+
+WinExec = WINFUNCTYPE(c_uint, c_char_p, c_uint)(('WinExec', windll.kernel32))

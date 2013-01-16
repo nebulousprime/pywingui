@@ -1373,9 +1373,73 @@ class ComboBoxEx(ComboBox):
 	_window_class_ = WC_COMBOBOXEX
 	_window_style_ = WS_VISIBLE | WS_CHILD | CBS_DROPDOWN
 
+# Edit Control Messages
+EM_GETSEL = 0x00B0
+EM_SETSEL = 0x00B1
+EM_GETRECT = 0x00B2
+EM_SETRECT = 0x00B3
+EM_SETRECTNP = 0x00B4
+EM_SCROLL = 0x00B5
+EM_LINESCROLL = 0x00B6
+EM_SCROLLCARET = 0x00B7
+EM_GETMODIFY = 0x00B8
+EM_SETMODIFY = 0x00B9
+EM_GETLINECOUNT = 0x00BA
+EM_LINEINDEX = 0x00BB
+EM_SETHANDLE = 0x00BC
+EM_GETHANDLE = 0x00BD
+EM_GETTHUMB = 0x00BE
+EM_LINELENGTH = 0x00C1
+EM_REPLACESEL = 0x00C2
+EM_GETLINE = 0x00C4
+EM_LIMITTEXT = 0x00C5
+EM_CANUNDO = 0x00C6
+EM_UNDO = 0x00C7
+EM_FMTLINES = 0x00C8
+EM_LINEFROMCHAR = 0x00C9
+EM_SETTABSTOPS = 0x00CB
+EM_SETPASSWORDCHAR = 0x00CC
+EM_EMPTYUNDOBUFFER = 0x00CD
+EM_GETFIRSTVISIBLELINE = 0x00CE
+EM_SETREADONLY = 0x00CF
+EM_SETWORDBREAKPROC = 0x00D0
+EM_GETWORDBREAKPROC = 0x00D1
+EM_GETPASSWORDCHAR = 0x00D2
+if WINVER >= 0x0400:
+	EM_SETMARGINS = 0x00D3
+	EM_GETMARGINS = 0x00D4
+	EM_SETLIMITTEXT = EM_LIMITTEXT # ;win40 Name change
+	EM_GETLIMITTEXT = 0x00D5
+	EM_POSFROMCHAR = 0x00D6
+	EM_CHARFROMPOS = 0x00D7
+	if WINVER >= 0x0500:
+		EM_SETIMESTATUS = 0x00D8
+		EM_GETIMESTATUS = 0x00D9
+
 class Edit(Window):
 	_window_class_ = WC_EDIT
 	_window_style_ = WS_VISIBLE | WS_CHILD
+
+	def GetSel(self):
+		pos_start = c_ulong()
+		pos_end = c_ulong()
+		self.SendMessage(EM_GETSEL, byref(pos_start), byref(pos_end))
+		return pos_start.value, pos_end.value
+
+	def GetRect(self):
+		rect = RECT()
+		self.SendMessage(EM_GETRECT, 0, byref(rect))
+		return rect
+
+	def SetSel(self, pos_start, pos_end):
+		self.SendMessage(EM_SETSEL, pos_start, pos_end)
+
+	def SetRect(self, rect):
+		self.SendMessage(EM_SETRECT, 0, addressof(rect))
+
+	def SetRectNp(self, rect):
+		'is identical to the SetRect, except that SetRectNp does not redraw the edit control window'
+		self.SendMessage(EM_SETRECTNP, 0, addressof(rect))
 
 class ListBox(Window):
 	_window_class_ = 'ListBox'
@@ -1573,34 +1637,6 @@ class ListView(Window):
 	#~ def __len__(self):
 		#~ return self.GetItemCount()
 
-	def InsertColumn(self, iCol, lvcolumn):
-		return self.SendMessage(LVM_INSERTCOLUMN, iCol, addressof(lvcolumn))
-
-	def SetColumn(self, iCol, lvcolumn):
-		return self.SendMessage(LVM_SETCOLUMN, iCol, addressof(lvcolumn))
-
-	def SetColumnWidth(self, iCol, width):
-		return self.SendMessage(LVM_SETCOLUMNWIDTH, iCol, width)
-
-	def InsertItem(self, item):
-		if item.iItem == -1:
-			item.iItem = self.GetItemCount()
-		return self.SendMessage(LVM_INSERTITEM, 0, addressof(item))
-
-	def SetItem(self, item):
-		return self.SendMessage(LVM_SETITEM, 0, addressof(item))
-
-	def DeleteAllItems(self):
-		return self.SendMessage(LVM_DELETEALLITEMS)
-
-	def SetItemState(self, i, state, stateMask):
-		item = LVITEM()
-		item.iItem = i
-		item.mask = LVIF_STATE
-		item.state = state
-		item.stateMask = stateMask
-		return self.SendMessage(LVM_SETITEMSTATE, i, addressof(item))
-
 	def GetItemState(self, i, stateMask):
 		return self.SendMessage(LVM_GETITEMSTATE, i, stateMask)
 
@@ -1621,22 +1657,104 @@ class ListView(Window):
 		self.SendMessage(LVM_GETITEM, 0, addressof(item))
 		return item.lParam
 
-	def SetItemCount(self, cItems, dwFlags = 0):
-		self.SendMessage(LVM_SETITEMCOUNT, cItems, dwFlags)
+	def GetItemText(self, i = 0, iSubItem = 0, cchTextMax = 1024):
+		item = LVITEM()
+		item.iItem = i
+		item.iSubItem = iSubItem
+		item.cchTextMax = cchTextMax
+		if UNICODE:
+			item.pszText = type_unicode('\0') * cchTextMax
+		else:
+			item.pszText = type_str('\0') * cchTextMax
+		self.SendMessage(LVM_GETITEMTEXT, i, addressof(item))
+		return item.pszText
+
+	def GetTextItems(self, iSubItem = 0):
+		result = []
+		for i in range(self.GetItemCount()):
+			result.append(self.GetItemText(i, iSubItem))
+		return result
+
+	def GetHotItem(self):
+		return self.SendMessage(LVM_GETHOTITEM)
 
 	def GetSelectedCount(self):
 		return self.SendMessage(LVM_GETSELECTEDCOUNT)
 
+	def GetFocusedItem(self):
+		result = -1
+		for i in range(self.GetItemCount()):
+			if LVIS_FOCUSED == self.SendMessage(LVM_GETITEMSTATE, i, LVIS_FOCUSED):
+				result = i
+				break
+		return result
+
+	def GetSelectedFocusedItem(self):
+		result = -1
+		state_mask = LVIS_FOCUSED | LVIS_SELECTED
+		for i in range(self.GetItemCount()):
+			if state_mask == self.SendMessage(LVM_GETITEMSTATE, i, state_mask):
+				result = i
+				break
+		return result
+
+	def GetSelectedItems(self):
+		result = []
+		for i in range(self.GetItemCount()):
+			if LVIS_SELECTED == self.SendMessage(LVM_GETITEMSTATE, i, LVIS_SELECTED):
+				result.append(i)
+		return result
+
+	def GetBkColor(self):
+		return self.SendMessage(LVM_GETBKCOLOR)
+
+	def SetColumn(self, iCol, lvcolumn):
+		return self.SendMessage(LVM_SETCOLUMN, iCol, addressof(lvcolumn))
+
+	def SetColumnWidth(self, iCol, width):
+		return self.SendMessage(LVM_SETCOLUMNWIDTH, iCol, width)
+
+	def SetItem(self, item):
+		return self.SendMessage(LVM_SETITEM, 0, addressof(item))
+
+	def SetItemState(self, i, state, stateMask):
+		item = LVITEM()
+		item.iItem = i
+		item.mask = LVIF_STATE
+		item.state = state
+		item.stateMask = stateMask
+		return self.SendMessage(LVM_SETITEMSTATE, i, addressof(item))
+
+	def SetItemCount(self, cItems, dwFlags = 0):
+		self.SendMessage(LVM_SETITEMCOUNT, cItems, dwFlags)
+
 	def SetExtendedListViewStyle(self, dwExMask, dwExStyle):
 		return self.SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, dwExMask, dwExStyle)
 
-	def GetHotItem(self):
-		return self.SendMessage(LVM_GETHOTITEM)
+	def SetBkColor(self, color = 0x808080):#default gray : format = 0x_blue_green_red
+		return self.SendMessage(LVM_SETBKCOLOR, 0, color)
+
+	def InsertColumn(self, iCol, lvcolumn):
+		return self.SendMessage(LVM_INSERTCOLUMN, iCol, addressof(lvcolumn))
+
+	def InsertItem(self, item):
+		if item.iItem == -1:
+			item.iItem = self.GetItemCount()
+		return self.SendMessage(LVM_INSERTITEM, 0, addressof(item))
+
+	def Update(self):
+		return self.SendMessage(LVM_UPDATE)
 
 	def HitTest(self):
 		pinfo = LVHITTESTINFO()
 		result = self.SendMessage(LVM_HITTEST, 0, byref(pinfo))
 		return result, pinfo
+
+	def DeleteItem(self, i):
+		return self.SendMessage(LVM_DELETEITEM, i)
+
+	def DeleteAllItems(self):
+		return self.SendMessage(LVM_DELETEALLITEMS)
 
 class ToolBar(Window):
 	_window_class_ = TOOLBARCLASSNAME
