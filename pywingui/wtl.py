@@ -205,7 +205,7 @@ class DecoratedWindow(wtl_core.Window):
 	def GetCursorPos():
 		"""gets the position of the mouse cursor in screen coords"""
 		pt = POINT()
-		GetCursorPos(byref(pt))
+		GetCursorPosP(byref(pt))
 		return pt.x, pt.y
 
 	GetCursorPos = staticmethod(GetCursorPos)

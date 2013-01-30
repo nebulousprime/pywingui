@@ -452,7 +452,6 @@ class Bitmap(WindowsObject):
         return self.m_height
 
     height = property(getHeight, None, None, "")
-        
 
 
 #TODO refactor into Brush class with static factory class methods

@@ -23,7 +23,7 @@ from pywingui.windows import *
 from pywingui.wtl import *
 from pywingui import comctl
 from pywingui import gdi
-from pywingui.winuser import GetForegroundWindow
+from pywingui.winuser import WNDENUMPROC, GetForegroundWindow, GetClientRect
 
 import menu
 
@@ -277,12 +277,12 @@ class ClientForm(Window):
 	def __init__(self, *args, **kwargs):
 		Window.__init__(self, *args, **kwargs)
 		self.m_interceptor = self.Intercept(self.GetParent(), self._msg_map_)
-		self.enum_child_proc = winuser.WNDENUMPROC(self.EnumChildProc)
+		self.enum_child_proc = WNDENUMPROC(self.EnumChildProc)
 
-	def dispose(self):
-		self.m_interceptor.dispose()
-		del self.m_interceptor
-		del self._childs_
+	#~ def dispose(self):
+		#~ self.m_interceptor.dispose()
+		#~ del self.m_interceptor
+		#~ del self._childs_
 
 	def add(self, wnd):
 		self._childs_.append(wnd)
@@ -291,7 +291,7 @@ class ClientForm(Window):
 		'must be custom replaced as valid'
 		x, y = GET_XY_LPARAM(lParam)
 		rc = RECT()
-		winuser.GetClientRect(hWnd, byref(rc))
+		GetClientRect(hWnd, byref(rc))
 		#~ parent_rc = self.GetClientRect()
 		child.MoveWindow(rc.left, rc.top, x, y, True)
 		#ShowWindow(hWnd, SW_SHOW)
@@ -299,7 +299,7 @@ class ClientForm(Window):
 
 	def DoLayout(self, size):
 		#~ if not hasattr(self, 'enum_child_proc'):
-			#~ self.enum_child_proc = winuser.WNDENUMPROC(self.EnumChildProc)
+			#~ self.enum_child_proc = WNDENUMPROC(self.EnumChildProc)
 		#~ if not winuser.EnumChildWindows(self.handle, self.enum_child_proc, size):
 			#~ print(FormatError())
 		rc = self.GetClientRect()

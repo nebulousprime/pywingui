@@ -22,7 +22,7 @@
 from windows import *
 from wtl import *
 from sdkddkver import _WIN32_IE, _WIN32_WINNT, NTDDI_VERSION, NTDDI_LONGHORN
-from winuser import SetWindowText
+from winuser import IMAGE_BITMAP, SetWindowText
 
 ATL_IDW_BAND_FIRST = 0xEB00
 HTREEITEM = HANDLE
@@ -1212,11 +1212,23 @@ class Button(Window):
 	_window_class_ = BUTTON
 	_window_style_ = WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON
 
+	def Click(self):
+		return self.SendMessage(BM_CLICK)
+
 	def GetState(self):
 		return self.SendMessage(BM_GETSTATE)
 
+	def GetImage(self, image_type = IMAGE_BITMAP):
+		return self.SendMessage(BM_GETIMAGE, image_type)
+
 	def SetState(self, state = BST_FOCUS):
 		self.SendMessage(BM_SETSTATE, state)
+
+	def SetImage(self, image, image_type = IMAGE_BITMAP):
+		return self.SetImageDirect(image_type, image.handle)
+
+	def SetImageDirect(self, image_type = IMAGE_BITMAP, image_handle = 0):
+		return self.SendMessage(BM_SETIMAGE, image_type, image_handle)
 
 class RadioButton(Button):
 	_window_class_ = BUTTON

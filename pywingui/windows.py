@@ -792,19 +792,19 @@ IDC_SIZEALL = 32646
 IDC_SIZE = 32640
 IDC_ARROW = 32512
 
-TCIF_TEXT    =1
-TCIF_IMAGE   =2
-TCIF_RTLREADING=      4
-TCIF_PARAM  = 8
+TCIF_TEXT = 1
+TCIF_IMAGE = 2
+TCIF_RTLREADING = 4
+TCIF_PARAM = 8
 
 
 TCS_MULTILINE = 512
 
-MK_LBUTTON    = 1
-MK_RBUTTON    = 2
-MK_SHIFT      = 4
-MK_CONTROL    = 8
-MK_MBUTTON    = 16
+MK_LBUTTON = 1
+MK_RBUTTON = 2
+MK_SHIFT = 4
+MK_CONTROL = 8
+MK_MBUTTON = 16
 
 ILC_COLOR = 0
 ILC_COLOR4 = 4
@@ -815,9 +815,6 @@ ILC_COLOR32 = 32
 ILC_COLORDDB = 254
 ILC_MASK = 1
 ILC_PALETTE = 2048
-
-IMAGE_BITMAP = 0
-IMAGE_ICON = 1
 
 LR_LOADFROMFILE = 16
 LR_VGACOLOR = 0x0080
@@ -884,15 +881,15 @@ MB_ICONINFORMATION = 64
 MB_ICONSTOP = 16
 MB_ICONMASK = 240
 
-IDOK          =      1
-IDCANCEL      =      2
-IDABORT       =      3
-IDRETRY       =      4
-IDIGNORE      =      5
-IDYES         =      6
-IDNO          =      7
-IDCLOSE       =  8
-IDHELP        =  9
+IDOK = 1
+IDCANCEL = 2
+IDABORT = 3
+IDRETRY = 4
+IDIGNORE = 5
+IDYES = 6
+IDNO = 7
+IDCLOSE = 8
+IDHELP = 9
 
 COLOR_3DDKSHADOW = 21
 COLOR_3DFACE  = 15
@@ -1208,7 +1205,6 @@ KillTimer = windll.user32.KillTimer
 
 IsWindowVisible = windll.user32.IsWindowVisible
 IsIconic = windll.user32.IsIconic
-GetCursorPos = windll.user32.GetCursorPos
 SetForegroundWindow = windll.user32.SetForegroundWindow
 SetMenuDefaultItem = windll.user32.SetMenuDefaultItem
 

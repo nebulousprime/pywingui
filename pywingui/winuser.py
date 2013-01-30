@@ -80,11 +80,11 @@ ES_WANTRETURN  = 0x1000L
 if WINVER >= 0x0400:
 	ES_NUMBER = 0x2000L
 
-IMAGE_BITMAP       = 0
-IMAGE_ICON         = 1
-IMAGE_CURSOR       = 2
+IMAGE_BITMAP = 0
+IMAGE_ICON = 1
+IMAGE_CURSOR = 2
 if WINVER >= 0x0400:
-	IMAGE_ENHMETAFILE  = 3
+	IMAGE_ENHMETAFILE = 3
 
 	LR_DEFAULTCOLOR     = 0x00000000
 	LR_MONOCHROME       = 0x00000001
@@ -423,6 +423,14 @@ if WINVER >= 0x0500:
 		SM_REMOTECONTROL = 0x2001
 		SM_CARETBLINKINGENABLED = 0x2002
 
+class ICONINFO(Structure):
+	_fields_ = [('fIcon', c_bool),
+	('xHotspot', c_int),
+	('yHotspot', c_int),
+	('hbmMask', c_void_p),# HBITMAP
+	('hbmColor', c_void_p)]# HBITMAP
+PICONINFO = POINTER(ICONINFO)
+
 # Structure pointed to by lParam of WM_HELP
 class HELPINFO(Structure):
 	_fields_ = [('cbSize', UINT),# Size in bytes of this struct
@@ -543,6 +551,13 @@ else:
 	LoadString = WINFUNCTYPE(c_int, c_void_p, c_uint, c_wchar_p, c_int)(('LoadStringA', windll.user32))
 
 CreateIcon = WINFUNCTYPE(HICON, HINSTANCE, c_int, c_int, c_byte, c_byte, c_void_p, c_void_p)(('CreateIcon', windll.user32))
+CreateIconIndirect = WINFUNCTYPE(HICON, PICONINFO)(('CreateIconIndirect', windll.user32))
+CopyIcon = WINFUNCTYPE(HICON, HICON)(('CopyIcon', windll.user32))
+_GetIconInfo = WINFUNCTYPE(c_bool, HICON, PICONINFO)(('GetIconInfo', windll.user32))
+def GetIconInfo():
+	info = ICONINFO()
+	result = _GetIconInfo(info)
+	return result, info
 
 #WINUSERAPI int WINAPI ExcludeUpdateRgn(__in HDC hDC, __in HWND hWnd);
 ExcludeUpdateRgn = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('ExcludeUpdateRgn', windll.user32))
@@ -575,6 +590,9 @@ def LoadImage(hInstance = None, file_or_resource = 0, img_type = 0, x = 0, y = 0
 	else:
 		return _LoadImage(hInstance, file_or_resource, img_type, x, y, uFlags)
 
+DrawIcon = WINFUNCTYPE(c_bool, c_void_p, c_int, c_int, c_void_p)(('DrawIcon', windll.user32))
+DrawIconEx = WINFUNCTYPE(c_bool, c_void_p, c_int, c_int, c_void_p, c_int, c_int, c_uint, c_void_p, c_uint)(('DrawIconEx', windll.user32))
+
 AttachThreadInput = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_bool)(('AttachThreadInput', windll.user32))
 GetWindowThreadProcessId = WINFUNCTYPE(DWORD, c_void_p, c_void_p)(('GetWindowThreadProcessId', windll.user32))
 
@@ -583,7 +601,31 @@ MapDialogRect = WINFUNCTYPE(c_bool, c_void_p, LPRECT)(('MapDialogRect', windll.u
 GetSystemMetrics = WINFUNCTYPE(c_int, c_int)(('GetSystemMetrics', windll.user32))
 GetDialogBaseUnits = WINFUNCTYPE(c_long)(('GetDialogBaseUnits', windll.user32))
 
-SetCursor = windll.user32.SetCursor
+ShowCursor = WINFUNCTYPE(c_int, c_bool)(('ShowCursor', windll.user32))
+SetCursorPos = WINFUNCTYPE(c_bool, c_int, c_int)(('SetCursorPos', windll.user32))
+#~ SetPhysicalCursorPos = WINFUNCTYPE(c_bool, c_int, c_int)(('SetPhysicalCursorPos', windll.user32))
+SetCursor = WINFUNCTYPE(c_void_p, c_void_p)(('SetCursor', windll.user32))
+GetCursor = WINFUNCTYPE(c_void_p)(('GetCursor', windll.user32))
+SetSystemCursor = WINFUNCTYPE(c_bool, c_void_p, c_ulong)(('SetSystemCursor', windll.user32))
+GetCursorPosP = WINFUNCTYPE(c_bool, c_void_p)(('GetCursorPos', windll.user32))
+_GetCursorPos = WINFUNCTYPE(c_bool, LPPOINT)(('GetCursorPos', windll.user32))
+def GetCursorPos():
+	point = POINT()
+	result = _GetCursorPos(point)
+	return result, point
+#~ _GetPhysicalCursorPos = WINFUNCTYPE(c_bool, LPPOINT)(('GetPhysicalCursorPos', windll.user32))
+#~ def GetPhysicalCursorPos():
+	#~ point = POINT()
+	#~ result = _GetPhysicalCursorPos(point)
+	#~ return result, point
+ClipCursor = WINFUNCTYPE(c_bool, LPRECT)(('ClipCursor', windll.user32), ((3, 'rect'), ))
+#~ def ClipCursor(rect = None):
+	#~ return _ClipCursor(rect)
+_GetClipCursor = WINFUNCTYPE(c_bool, LPRECT)(('GetClipCursor', windll.user32))
+def GetClipCursor():
+	rect = RECT()
+	result = _GetClipCursor(rect)
+	return result, rect
 
 ShowWindow = windll.user32.ShowWindow
 UpdateWindow = WINFUNCTYPE(c_bool, c_void_p)(('UpdateWindow', windll.user32))
