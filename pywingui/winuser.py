@@ -462,7 +462,11 @@ LPMSGBOXPARAMS = POINTER(MSGBOXPARAMS)
 
 DLGPROC = WINFUNCTYPE(c_void_p, HWND, UINT, WPARAM, LPARAM)
 
+ShowWindowAsync = WINFUNCTYPE(c_bool, c_void_p, c_uint)(('ShowWindowAsync', windll.user32))
+
 if UNICODE:
+	GetWindowLong = WINFUNCTYPE(c_long, c_void_p, c_int)(('GetWindowLongW', windll.user32))
+	SetWindowLong = WINFUNCTYPE(c_long, c_void_p, c_int, c_void_p)(('SetWindowLongW', windll.user32))
 	MessageBox = WINFUNCTYPE(c_int, c_void_p, c_wchar_p, c_wchar_p, c_uint)(('MessageBoxW', windll.user32))
 	MessageBoxIndirect = WINFUNCTYPE(c_int, LPMSGBOXPARAMS)(('MessageBoxIndirectW', windll.user32))
 
@@ -486,10 +490,11 @@ if UNICODE:
 	AppendMenu = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_wchar_p)(('AppendMenuW', windll.user32))
 	GetMessage = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_uint, c_uint)(('GetMessageW', windll.user32))
 	SendMessage = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_void_p)(('SendMessageW', windll.user32))
+	SendMessageTimeout = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_void_p, c_uint, c_uint, c_void_p)(('SendMessageTimeoutW', windll.user32))
+	SendNotifyMessage = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_void_p)(('SendNotifyMessageW', windll.user32))
 	PostMessage = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_long)(('PostMessageW', windll.user32))
 	DispatchMessage = WINFUNCTYPE(c_long, c_void_p)(('DispatchMessageW', windll.user32))
 	RegisterWindowMessage = windll.user32.RegisterWindowMessageW
-	SetWindowLong = windll.user32.SetWindowLongW
 	SetClassLong = WINFUNCTYPE(None, c_void_p, c_int, c_long)(('SetClassLongW', windll.user32))
 	GetClassLong = windll.user32.GetClassLongW
 	CreateAcceleratorTable = windll.user32.CreateAcceleratorTableW
@@ -507,6 +512,8 @@ if UNICODE:
 	_LoadImageP = windll.user32.LoadImageW
 	LoadString = WINFUNCTYPE(c_int, c_void_p, c_uint, c_wchar_p, c_int)(('LoadStringW', windll.user32))
 else:
+	GetWindowLong = WINFUNCTYPE(c_long, c_void_p, c_int)(('GetWindowLongA', windll.user32))
+	SetWindowLong = WINFUNCTYPE(c_long, c_void_p, c_int, c_void_p)(('SetWindowLongA', windll.user32))
 	MessageBox = WINFUNCTYPE(c_int, c_void_p, c_char_p, c_char_p, c_uint)(('MessageBoxA', windll.user32))
 	MessageBoxIndirect = WINFUNCTYPE(c_int, LPMSGBOXPARAMS)(('MessageBoxIndirectA', windll.user32))
 
@@ -529,10 +536,11 @@ else:
 	AppendMenu = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_char_p)(('AppendMenuA', windll.user32))
 	GetMessage = WINFUNCTYPE(c_bool, c_void_p, c_void_p, c_uint, c_uint)(('GetMessageA', windll.user32))
 	SendMessage = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_void_p)(('SendMessageA', windll.user32))
+	SendMessageTimeout = WINFUNCTYPE(c_long, c_void_p, c_uint, c_uint, c_void_p, c_uint, c_uint, c_void_p)(('SendMessageTimeoutA', windll.user32))
+	SendNotifyMessage = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_void_p)(('SendNotifyMessageA', windll.user32))
 	PostMessage = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_uint, c_long)(('PostMessageA', windll.user32))
 	DispatchMessage = WINFUNCTYPE(c_long, c_void_p)(('DispatchMessageA', windll.user32))
 	RegisterWindowMessage = windll.user32.RegisterWindowMessageA
-	SetWindowLong = windll.user32.SetWindowLongA
 	SetClassLong = WINFUNCTYPE(None, c_void_p, c_int, c_long)(('SetClassLongA', windll.user32))
 	GetClassLong = windll.user32.GetClassLongA
 	CreateAcceleratorTable = windll.user32.CreateAcceleratorTableA

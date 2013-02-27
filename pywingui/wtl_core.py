@@ -304,7 +304,7 @@ class Window(WindowsObject):
 		atom = 0
 		if not self._issubclassed_:
 			#if no _window_class_ is given, generate a new one
-			className = self._window_class_ or "venster_wtl_%d" % id(self.__class__)
+			className = self._window_class_ or 'venster_wtl_%d' % id(self.__class__)
 			cls = WNDCLASSEX()
 			cls.cbSize = sizeof(cls)
 			cls.lpszClassName = className
@@ -413,7 +413,7 @@ class Window(WindowsObject):
 		return Window.Interceptor(self, receiver, msgMap, nMsg = nMsg)
 
 	def InterceptParent(self, nMsg = [WM_NOTIFY]):
-		"""intercepts msg proc in order to reroute msgs to self"""
+		'intercepts msg proc in order to reroute msgs to self'
 		self._interceptParent = self.Intercept(self.GetParent(), self._msg_map_, nMsg = nMsg)
 
 	def dispose(self):

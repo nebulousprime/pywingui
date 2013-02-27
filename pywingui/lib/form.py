@@ -194,12 +194,12 @@ class Form(Window):
 		else:
 			coolBarHeight = 0
 
+		statusBarHeight = 0
 		statusBar = self.controls.get(CTRL_STATUSBAR, None)
 		if statusBar:
-			statusBarHeight = statusBar.windowRect.height
-			deferWindowPos.append((statusBar, 0, cy - statusBarHeight, cx, statusBarHeight))
-		else:
-			statusBarHeight = 0
+			if statusBar.IsWindowVisible():
+				statusBarHeight = statusBar.windowRect.height
+				deferWindowPos.append((statusBar, 0, cy - statusBarHeight, cx, statusBarHeight))
 
 		view = self.controls.get(CTRL_VIEW, None)
 		if view:

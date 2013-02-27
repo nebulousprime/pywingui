@@ -808,6 +808,41 @@ def GdipCreateBitmapFromFile(filename):
 	status = _GdipCreateBitmapFromFile(filename, byref(bitmap))
 	return status, bitmap
 
+#GpStatus WINGDIPAPI GdipCreateBitmapFromStreamICM(IStream* stream, GpBitmap **bitmap);
+_GdipCreateBitmapFromStreamICM = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCreateBitmapFromStreamICM', windll.gdiplus))
+def GdipCreateBitmapFromStreamICM(stream):
+	bitmap = c_void_p()
+	status = _GdipCreateBitmapFromStreamICM(stream, byref(bitmap))
+	return status, bitmap
+
+#GpStatus WINGDIPAPI GdipCreateBitmapFromFileICM(GDIPCONST WCHAR* filename, GpBitmap **bitmap);
+_GdipCreateBitmapFromFileICM = WINFUNCTYPE(c_int, c_wchar_p, c_void_p)(('GdipCreateBitmapFromFileICM', windll.gdiplus))
+def GdipCreateBitmapFromFileICM(filename):
+	bitmap = c_void_p()
+	status = _GdipCreateBitmapFromFileICM(filename, byref(bitmap))
+	return status, bitmap
+
+#GpStatus WINGDIPAPI GdipCreateBitmapFromScan0(INT width, INT height, INT stride, PixelFormat format, BYTE* scan0, GpBitmap** bitmap);
+_GdipCreateBitmapFromScan0 = WINFUNCTYPE(c_int, c_int, c_int, c_int, c_int, c_void_p, c_void_p)(('GdipCreateBitmapFromScan0', windll.gdiplus))
+def GdipCreateBitmapFromScan0(width, height, stride, format, scan0):
+	bitmap = c_void_p()
+	status = _GdipCreateBitmapFromScan0(width, height, stride, format, scan0, byref(bitmap))
+	return status, bitmap
+
+#GpStatus WINGDIPAPI GdipCreateBitmapFromGraphics(INT width, INT height, GpGraphics* target, GpBitmap** bitmap);
+_GdipCreateBitmapFromGraphics = WINFUNCTYPE(c_int, c_int, c_int, c_void_p, c_void_p)(('GdipCreateBitmapFromGraphics', windll.gdiplus))
+def GdipCreateBitmapFromGraphics(width, height, target):
+	bitmap = c_void_p()
+	status = _GdipCreateBitmapFromGraphics(width, height, target, byref(bitmap))
+	return status, bitmap
+
+#GpStatus WINGDIPAPI GdipCreateBitmapFromDirectDrawSurface(IDirectDrawSurface7* surface, GpBitmap** bitmap);
+_GdipCreateBitmapFromDirectDrawSurface = WINFUNCTYPE(c_int, c_void_p, c_void_p)(('GdipCreateBitmapFromDirectDrawSurface', windll.gdiplus))
+def GdipCreateBitmapFromDirectDrawSurface(surface):
+	bitmap = c_void_p()
+	status = _GdipCreateBitmapFromDirectDrawSurface(surface, byref(bitmap))
+	return status, bitmap
+
 #...........
 
 #GpStatus WINGDIPAPI GdipCreateBitmapFromHICON(HICON hicon, GpBitmap** bitmap);
@@ -1222,6 +1257,15 @@ def GdipIsClipEmpty(graphics):
 	result = c_bool()
 	status = _GdipIsClipEmpty(graphics, byref(result))
 	return status, result
+
+#..........................
+
+#GpStatus WINGDIPAPI GdipCreateStreamOnFile(GDIPCONST WCHAR * filename, UINT access, IStream **stream);
+_GdipCreateStreamOnFile = WINFUNCTYPE(c_int, c_wchar_p, c_uint, c_void_p)(('GdipCreateStreamOnFile', windll.gdiplus))
+def GdipCreateStreamOnFile(filename = '', access = 0):
+	stream = c_void_p()
+	status = _GdipCreateStreamOnFile(filename, access, byref(stream))
+	return status, stream
 
 #..........................
 

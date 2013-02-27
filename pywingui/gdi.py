@@ -279,18 +279,25 @@ BI_PNG        =5
 DIB_RGB_COLORS   =   0
 DIB_PAL_COLORS   =   1
 
+_GetClipBox = WINFUNCTYPE(c_int, c_void_p, LPRECT)(('GetClipBox', windll.gdi32))
+def GetClipBox(hdc):
+	rect = LPRECT()
+	result = _GetClipBox(hdc, rect)
+	return result, rect
+
 GetStockObject = windll.gdi32.GetStockObject
 LineTo = windll.gdi32.LineTo
 MoveToEx = windll.gdi32.MoveToEx
 FillRect = windll.user32.FillRect
 DrawEdge = windll.user32.DrawEdge
-CreateCompatibleDC = windll.gdi32.CreateCompatibleDC
-CreateCompatibleBitmap = windll.gdi32.CreateCompatibleBitmap
-CreateCompatibleDC.restype = ValidHandle
-SelectObject = windll.gdi32.SelectObject
+BitBlt = WINFUNCTYPE(c_bool, c_void_p, c_int, c_int, c_int, c_int, c_void_p, c_int, c_int, c_ulong)(('BitBlt', windll.gdi32))
+CreateCompatibleBitmap = WINFUNCTYPE(c_void_p, c_void_p, c_int, c_int)(('CreateCompatibleBitmap', windll.gdi32))
+CreateCompatibleDC = WINFUNCTYPE(c_void_p, c_void_p)(('CreateCompatibleDC', windll.gdi32))
+SaveDC = WINFUNCTYPE(c_int, c_void_p)(('SaveDC', windll.gdi32))
+RestoreDC = WINFUNCTYPE(c_bool, c_void_p, c_int)(('RestoreDC', windll.gdi32))
+SelectObject = WINFUNCTYPE(c_void_p, c_void_p, c_void_p)(('SelectObject', windll.gdi32))
 GetObject = windll.gdi32.GetObjectA
-DeleteObject = windll.gdi32.DeleteObject
-BitBlt = windll.gdi32.BitBlt
+DeleteObject = WINFUNCTYPE(c_bool, c_void_p)(('DeleteObject', windll.gdi32))
 StretchBlt = windll.gdi32.StretchBlt
 GetSysColorBrush = windll.user32.GetSysColorBrush
 CreateHatchBrush = windll.gdi32.CreateHatchBrush

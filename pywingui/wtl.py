@@ -183,7 +183,7 @@ class DecoratedWindow(wtl_core.Window):
 		SetForegroundWindow(self.handle)
 
 	def EnumChildWindows(self):
-		"""returns a list of this windows child windows"""
+		'returns a list of this windows child windows'
 		childWindows = []
 		def enumChildProc(hWnd, lParam):
 			childWindows.append(Window(hWnd = hWnd))
@@ -203,7 +203,7 @@ class DecoratedWindow(wtl_core.Window):
 		KillTimer(self.handle, id)
 
 	def GetCursorPos():
-		"""gets the position of the mouse cursor in screen coords"""
+		'gets the position of the mouse cursor in screen coords'
 		pt = POINT()
 		GetCursorPosP(byref(pt))
 		return pt.x, pt.y
@@ -212,6 +212,9 @@ class DecoratedWindow(wtl_core.Window):
 
 	def RedrawWindow(self, lprcUpdate = None, hrgnUpdate = 0, flags = 0):
 		return RedrawWindow(self.handle, lprcUpdate, hrgnUpdate, flags)
+
+	def GetId(self):
+		return GetWindowLong(self.handle, GWL_ID)
 
 wtl_core.Window = DecoratedWindow
 

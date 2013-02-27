@@ -24,8 +24,10 @@ from pywingui.wtl import *
 from pywingui.comctl import *
 
 class List(ListView):
+	#~ _listview_style_ex_ = LVS_EX_FLATSB
 	def __init__(self, *args, **kwargs):
 		ListView.__init__(self, *args, **kwargs)
+		#~ InitializeFlatSB(self.m_handle)
 		#reroute all notifications to self
 		self.m_interceptor = self.Intercept(self.GetParent(), self._msg_map_)
 
@@ -96,11 +98,9 @@ class List(ListView):
 
 	def InvertSelection(self):
 		self.SetRedraw(0)
-		
 		for i in range(self.GetItemCount()):
 			if self.GetItemState(i, LVIS_SELECTED):
 				self.SetItemState(i, 0, LVIS_SELECTED)
 			else:
 				self.SetItemState(i, LVIS_SELECTED, LVIS_SELECTED)
-
 		self.SetRedraw(1)

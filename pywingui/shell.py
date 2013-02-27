@@ -1,5 +1,5 @@
 from windows import *
-from wtl import *
+from sdkddkver import _WIN32_IE
 
 NIN_SELECT          = (WM_USER + 0)
 NINF_KEY            = 0x1
@@ -44,26 +44,48 @@ SHGFP_TYPE_DEFAULT  = 1
 
 # simple analog of original comtypes GUID class
 class GUID(Structure):
-    _fields_ = [("Data1", DWORD),
-                ("Data2", WORD),
-                ("Data3", WORD),
-                ("Data4", BYTE * 8)]
+	_fields_ = [('Data1', DWORD),
+	('Data2', WORD),
+	('Data3', WORD),
+	('Data4', BYTE * 8)]
 
 class NOTIFYICONDATA(Structure):
-    _fields_ = [("cbSize", DWORD),
-                ("hWnd", HWND),
-                ("uID", UINT),
-                ("uFlags", UINT),
-                ("uCallbackMessage", UINT),
-                ("hIcon", HICON),
-                ("szTip", TCHAR * 64),
-                ("dwState", DWORD),
-                ("dwStateMask", DWORD),
-                ("szInfo", TCHAR * 256),
-                ("uVersion", UINT), #todo really a union
-                ("szInfoTitle", TCHAR * 64),
-                ("dwInfoFlags", DWORD),
-                ("guidItem", GUID)]
+	_fields_ = [('cbSize', DWORD),
+	('hWnd', HWND),
+	('uID', UINT),
+	('uFlags', UINT),
+	('uCallbackMessage', UINT),
+	('hIcon', HICON),
+	('szTip', TCHAR * 64),
+	('dwState', DWORD),
+	('dwStateMask', DWORD),
+	('szInfo', TCHAR * 256),
+	('uVersion', UINT), #todo really a union
+	('szInfoTitle', TCHAR * 64),
+	('dwInfoFlags', DWORD),
+	('guidItem', GUID)]
+
+# Platform IDs for DLLVERSIONINFO
+DLLVER_PLATFORM_WINDOWS = 0x00000001# Windows 95
+DLLVER_PLATFORM_NT      = 0x00000002# Windows NT
+class DLLVERSIONINFO(Structure):
+	_fields_ = [('cbSize', c_ulong),
+	('dwMajorVersion', c_ulong),
+	('dwMinorVersion', c_ulong),
+	('dwBuildNumber', c_ulong),
+	('dwPlatformID', c_ulong)]
+LPDLLVERSIONINFO = POINTER(DLLVERSIONINFO)
+
+if _WIN32_IE >= 0x0501:
+	class DLLVERSIONINFO2(Structure):
+		'ullVersion field encoded as: Major 0xFFFF 0000 0000 0000; Minor 0x0000 FFFF 0000 0000; Build 0x0000 0000 FFFF 0000; QFE 0x0000 0000 0000 FFFF'
+		_fields_ = [('info1', LPDLLVERSIONINFO),
+		('dwFlags', c_ulong),
+		('ullVersion', c_ulonglong)]
+	DLLVER_MAJOR_MASK = 0xFFFF000000000000
+	DLLVER_MINOR_MASK = 0x0000FFFF00000000
+	DLLVER_BUILD_MASK = 0x00000000FFFF0000
+	DLLVER_QFE_MASK   = 0x000000000000FFFF
 
 Shell_NotifyIcon = windll.shell32.Shell_NotifyIcon
 SHGetFolderPath = windll.shell32.SHGetFolderPathA
@@ -82,3 +104,10 @@ def ExtractIconEx(lpszFile, nIconIndex = 0, nIcons = 1):
 	phiconSmall = c_void_p()
 	result = _ExtractIconEx(lpszFile, nIconIndex, byref(phiconLarge), byref(phiconSmall), nIcons)
 	return result, phiconLarge, phiconSmall
+
+_DllGetVersion = WINFUNCTYPE(c_long, LPDLLVERSIONINFO)(('DllGetVersion', windll.shell32))
+def DllGetVersion():
+	info = DLLVERSIONINFO()
+	info.cbSize = sizeof(DLLVERSIONINFO)
+	result = _DllGetVersion(info)
+	return result, info

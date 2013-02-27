@@ -1149,6 +1149,29 @@ if not UNICODE:
 	CreateEvent = WINFUNCTYPE(c_void_p, c_void_p, c_bool, c_bool, c_char_p)(('CreateEventA', windll.kernel32))
 	OpenEvent = WINFUNCTYPE(c_void_p, c_ulong, c_bool, c_char_p)(('OpenEventA', windll.kernel32))
 
+#CreateProcess = WINFUNCTYPE(c_bool, c_void_p, c_int, c_void_p, c_ulong, c_void_p)(('CreateProcessA', windll.kernel32))
+CloseHandle = WINFUNCTYPE(c_bool, c_void_p)(('CloseHandle', windll.kernel32))
+
+ThreadProc = WINFUNCTYPE(c_ulong, c_void_p)
+CreateThread = WINFUNCTYPE(c_void_p, c_void_p, c_int, ThreadProc, c_void_p, c_ulong, c_void_p)(('CreateThread', windll.kernel32))
+CreateRemoteThread = WINFUNCTYPE(c_void_p, c_void_p, c_void_p, c_int, ThreadProc, c_void_p, c_ulong, c_void_p)(('CreateRemoteThread', windll.kernel32))
+GetCurrentThread = WINFUNCTYPE(c_void_p)(('GetCurrentThread', windll.kernel32))
+GetCurrentThreadId = WINFUNCTYPE(c_ulong)(('GetCurrentThreadId', windll.kernel32))
+#SetThreadStackGuarantee = WINFUNCTYPE(c_bool, c_void_p)(('SetThreadStackGuarantee', windll.kernel32))
+#GetProcessIdOfThread = WINFUNCTYPE(c_ulong, c_void_p)(('GetProcessIdOfThread', windll.kernel32))
+if _WIN32_WINNT >= 0x0502:
+	GetThreadId = WINFUNCTYPE(c_ulong, c_void_p)(('GetThreadId', windll.kernel32))
+GetProcessId = WINFUNCTYPE(c_ulong)(('GetProcessId', windll.kernel32))
+ExitThread = WINFUNCTYPE(None, c_ulong)(('ExitThread', windll.kernel32))
+TerminateThread = WINFUNCTYPE(c_bool, c_void_p, c_ulong)(('TerminateThread', windll.kernel32))
+GetExitCodeThread = WINFUNCTYPE(c_bool, c_void_p, c_void_p)(('GetExitCodeThread', windll.kernel32))
+SuspendThread = WINFUNCTYPE(c_ulong, c_void_p)(('SuspendThread', windll.kernel32))
+ResumeThread = WINFUNCTYPE(c_ulong, c_void_p)(('ResumeThread', windll.kernel32))
+GetTickCount = WINFUNCTYPE(c_ulong)(('GetTickCount', windll.kernel32))
+if _WIN32_WINNT >= 0x0600:
+	Wow64SuspendThread = WINFUNCTYPE(c_ulong, c_void_p)(('Wow64SuspendThread', windll.kernel32))
+	GetTickCount64 = WINFUNCTYPE(c_ulonglong)(('GetTickCount64', windll.kernel32))
+
 GetMessagePos = windll.user32.GetMessagePos
 BeginDeferWindowPos = windll.user32.BeginDeferWindowPos
 DeferWindowPos = windll.user32.DeferWindowPos
@@ -1165,8 +1188,6 @@ GetSubMenu = windll.user32.GetSubMenu
 CallNextHookEx = windll.user32.CallNextHookEx
 UnhookWindowsHookEx = windll.user32.UnhookWindowsHookEx
 
-GetCurrentThreadId = windll.kernel32.GetCurrentThreadId
-
 GetFocus = windll.user32.GetFocus
 
 GlobalAlloc = windll.kernel32.GlobalAlloc
@@ -1178,8 +1199,6 @@ GlobalFree = windll.kernel32.GlobalFree
 GlobalFlags = windll.kernel32.GlobalFlags
 GlobalHandle = windll.kernel32.GlobalHandle
 GlobalSize = windll.kernel32.GlobalSize
-
-GetCurrentThreadId = WINFUNCTYPE(DWORD)(('GetCurrentThreadId', windll.kernel32))
 
 LocalAlloc = windll.kernel32.LocalAlloc
 LocalReAlloc = windll.kernel32.LocalReAlloc
@@ -1205,7 +1224,6 @@ KillTimer = windll.user32.KillTimer
 
 IsWindowVisible = windll.user32.IsWindowVisible
 IsIconic = windll.user32.IsIconic
-SetForegroundWindow = windll.user32.SetForegroundWindow
 SetMenuDefaultItem = windll.user32.SetMenuDefaultItem
 
 LockWindowUpdate = windll.user32.LockWindowUpdate

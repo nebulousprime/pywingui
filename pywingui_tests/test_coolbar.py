@@ -32,8 +32,9 @@ from pywingui.lib import trackbar
 
 comctl.InitCommonControls(comctl.ICC_LISTVIEW_CLASSES | comctl.ICC_COOL_CLASSES | comctl.ICC_USEREX_CLASSES | comctl.ICC_BAR_CLASSES)
 
-iml = comctl.ImageList(32, 32, ILC_COLOR32 | ILC_MASK, 0, 32)
-iml.AddIconsFromModule('shell32.dll', 32, 32, LR_LOADMAP3DCOLORS)
+ims = 32
+iml = comctl.ImageList(ims, ims, ILC_COLOR32 | ILC_MASK, 0, 64)
+iml.AddIconsFromModule('shell32.dll', ims, ims, LR_LOADMAP3DCOLORS)
 iml.SetBkColor(gdi.CLR_NONE)
 
 class MyTrackBar(trackbar.TrackBar):
@@ -54,32 +55,34 @@ class MyForm(form.Form):
 	_window_title_ = 'Supervaca al Rescate!'
 
 	_form_accels_ = [(FCONTROL|FVIRTKEY, ord('N'), form.ID_NEW)]
-	_form_exit_ = form.EXIT_ONLASTDESTROY
+	_form_exit_ = form.EXIT_ONDESTROY
 	_form_status_msgs_ = {form.ID_NEW: 'Creates a new window.'}
 
 	_form_menu_ = None #suppress default menu
 
-	def __init__(self):
+	def __init__(self, *args, **kwargs):
 		self.CreateMenu()
-		form.Form.__init__(self)
+		form.Form.__init__(self, *args, **kwargs)
 
 	def OnCreate(self, event):
 		coolBar = coolbar.CoolBar(parent = self)
 
 		commandBar = coolbar.CommandBar(parent = coolBar)
 		commandBar.AttachMenu(self.menu)
-		
+
 		addressBar = comctl.ComboBox(parent = coolBar)
 
 		buttons = coolbar.ToolBar(parent = coolBar)
 		buttons.SetImageList(iml)
-		buttons.SetButtonSize(32, 32)
+		buttons.SetButtonSize(ims, ims)
 
 		button = comctl.TBBUTTON()
+		button.idCommand = form.ID_NEW
+		#~ button.idCommand = form.ID_CLOSE
+		button.fsState = comctl.TBSTATE_ENABLED
+		button.fsStyle = comctl.TBSTYLE_BUTTON
 		for i in range(10):
 			button.iBitmap = 1 + i
-			button.fsState = comctl.TBSTATE_ENABLED
-			button.fsStyle = comctl.TBSTYLE_BUTTON
 			buttons.InsertButton(0, button)
 
 		progressBar = comctl.ProgressBar(parent = coolBar, orStyle = comctl.PBS_SMOOTH)
@@ -92,8 +95,8 @@ class MyForm(form.Form):
 		aTrackBar = MyTrackBar(parent = coolBar, progress_bar = progressBar, rcPos = RECT(0, 0, 200, 40))
 		aTrackBar.SetRange(0, 500)
 		aTrackBar.SetPos(450)
-		
-		coolBar.SetRedraw(0)
+
+		coolBar.SetRedraw(False)
 		coolBar.AddSimpleRebarBandCtrl(commandBar)
 		coolBar.AddSimpleRebarBandCtrl(buttons, bNewRow = True)
 		coolBar.AddSimpleRebarBandCtrl(aTrackBar, cxWidth = 100)
@@ -101,7 +104,7 @@ class MyForm(form.Form):
 		coolBar.AddSimpleRebarBandCtrl(progressBar, bNewRow = True)
 		#~ coolBar.AddSimpleRebarBandCtrl(aTrackBar, title = 'TrackBar', bNewRow = True)
 		coolBar.SetRedraw(True)
-		
+
 		aList = list.List(parent = self, orExStyle = WS_EX_CLIENTEDGE)
 
 		aList.InsertColumns([('blaat', 100), ('col2', 150)])
@@ -115,10 +118,10 @@ class MyForm(form.Form):
 		self.controls.Add(commandBar)
 		self.controls.Add(buttons)
 		self.controls.Add(aTrackBar)
-		self.controls.Add(form.CTRL_VIEW, aList)
 		self.controls.Add(form.CTRL_COOLBAR, coolBar)
+		self.controls.Add(form.CTRL_VIEW, aList)
 		self.controls.Add(form.CTRL_STATUSBAR, comctl.StatusBar(parent = self))
-		
+
 	def CreateMenu(self):
 		self.menu = Menu()
 
@@ -129,6 +132,7 @@ class MyForm(form.Form):
 		self.menuFile = PopupMenu()
 		self.menuFile.AppendMenu(MF_POPUP, self.menuFilePopup, '&New')
 		self.menuFile.AppendMenu(MF_SEPARATOR)
+		self.menuFile.AppendMenu(MF_STRING, form.ID_NEW, 'New window')
 		self.menuFile.AppendMenu(MF_STRING, form.ID_OPEN, '&Open...\tCtrl+O')
 		self.menuFile.AppendMenu(MF_STRING, form.ID_SAVE, '&Save...\tCtrl+S')
 		self.menuFile.AppendMenu(MF_STRING, form.ID_SAVEAS, '&Save As...')
@@ -146,8 +150,9 @@ class MyForm(form.Form):
 		self.menu.AppendMenu(MF_POPUP, self.menuEdit, '&Edit')
 
 	def OnNew(self, event):
-		form = MyForm()
-		form.ShowWindow()
+		frm = MyForm(parent = self, rcPos = RECT(0, 0, 320, 240))
+		frm._form_exit_ = form.EXIT_ONLASTDESTROY
+		frm.ShowWindow()
 
 	cmd_handler(form.ID_NEW)(OnNew)
 

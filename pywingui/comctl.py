@@ -222,7 +222,7 @@ class NMTREEVIEW(Structure):
 	('ptDrag', POINT)]
 
 class NMLISTVIEW(Structure):
-	_fields_ = [('hrd', NMHDR),
+	_fields_ = [('hdr', NMHDR),
 	('iItem', INT),
 	('iSubItem', INT),
 	('uNewState', UINT),
@@ -230,6 +230,10 @@ class NMLISTVIEW(Structure):
 	('uChanged', UINT),
 	('ptAction', POINT),
 	('lParam', LPARAM)]
+
+class NMLVDISPINFO(Structure):
+	_fields_ = [('hdr', NMHDR),
+	('item', POINTER(LVITEM))]
 
 class INITCOMMONCONTROLSEX(Structure):
 	_fields_ = [('dwSize', DWORD), ('dwICC', DWORD)]
@@ -667,6 +671,8 @@ LVS_EX_UNDERLINECOLD = 0x00001000
 LVS_EX_MULTIWORKAREAS = 0x00002000
 LVS_EX_LABELTIP     = 0x00004000
 LVS_EX_BORDERSELECT = 0x00008000
+LVS_EX_DOUBLEBUFFER = 0x00010000
+LVS_EX_AUTOSIZECOLUMNS = 0x10000000
 
 LVIS_FOCUSED         = 0x0001
 LVIS_SELECTED        = 0x0002
@@ -825,20 +831,20 @@ if _WIN32_WINNT >= 0x0501:
 		LVM_SETITEMINDEXSTATE = LVM_FIRST + 210
 		LVM_GETNEXTITEMINDEX = LVM_FIRST + 211
 
-LVN_FIRST = (UINT_MAX) - 100
-LVN_ITEMCHANGING    =    (LVN_FIRST-0)
-LVN_ITEMCHANGED     =    (LVN_FIRST-1)
-LVN_INSERTITEM      =    (LVN_FIRST-2)
-LVN_DELETEITEM       =   (LVN_FIRST-3)
-LVN_DELETEALLITEMS    =  (LVN_FIRST-4)
+LVN_FIRST = UINT_MAX - 100
+LVN_ITEMCHANGING = LVN_FIRST-0
+LVN_ITEMCHANGED = LVN_FIRST-1
+LVN_INSERTITEM = LVN_FIRST-2
+LVN_DELETEITEM = LVN_FIRST-3
+LVN_DELETEALLITEMS = LVN_FIRST-4
 LVN_BEGINLABELEDIT = LVN_FIRST-75
 LVN_ENDLABELEDIT = LVN_FIRST-76
 if not UNICODE:
 	LVN_BEGINLABELEDIT = LVN_FIRST-5
 	LVN_ENDLABELEDIT = LVN_FIRST-6
-LVN_COLUMNCLICK       =  (LVN_FIRST-8)
-LVN_BEGINDRAG         =  (LVN_FIRST-9)
-LVN_BEGINRDRAG        =  (LVN_FIRST-11)
+LVN_COLUMNCLICK = LVN_FIRST-8
+LVN_BEGINDRAG = LVN_FIRST-9
+LVN_BEGINRDRAG = LVN_FIRST-11
 
 NM_OUTOFMEMORY    = NM_FIRST-1
 NM_CLICK          = NM_FIRST-2
@@ -912,15 +918,43 @@ TVE_COLLAPSERESET = 0x8000
 
 TCM_FIRST = 0x1300
 
-TCM_GETITEM = TCM_FIRST+60
-TCM_INSERTITEM = TCM_FIRST+62
+TCM_GETITEM = TCM_FIRST + 60
+TCM_INSERTITEM = TCM_FIRST + 62
 if not UNICODE:
-	TCM_GETITEM = TCM_FIRST+5
-	TCM_INSERTITEM = TCM_FIRST+7
-
-TCM_ADJUSTRECT = TCM_FIRST+40
-TCM_GETCURSEL = TCM_FIRST+11
-TCM_SETCURSEL = TCM_FIRST+12
+	TCM_GETITEM = TCM_FIRST + 5
+	TCM_INSERTITEM = TCM_FIRST + 7
+TCM_DELETEITEM = TCM_FIRST + 8
+TCM_DELETEALLITEMS = TCM_FIRST + 9
+TCM_GETITEMRECT = TCM_FIRST + 10
+TCM_GETCURSEL = TCM_FIRST + 11
+TCM_SETCURSEL = TCM_FIRST + 12
+TCM_HITTEST = TCM_FIRST + 13
+TCM_SETITEMEXTRA = TCM_FIRST + 14
+TCM_ADJUSTRECT = TCM_FIRST + 40
+TCM_SETITEMSIZE = TCM_FIRST + 41
+TCM_REMOVEIMAGE = TCM_FIRST + 42
+TCM_SETPADDING  = TCM_FIRST + 43
+TCM_GETROWCOUNT = TCM_FIRST + 44
+TCM_GETTOOLTIPS = TCM_FIRST + 45
+TCM_SETTOOLTIPS = TCM_FIRST + 46
+TCM_GETCURFOCUS = TCM_FIRST + 47
+TCM_SETCURFOCUS = TCM_FIRST + 48
+if _WIN32_IE >= 0x0300:
+	TCM_SETMINTABWIDTH = TCM_FIRST + 49
+	TCM_DESELECTALL = TCM_FIRST + 50
+if _WIN32_IE >= 0x0400:
+	TCM_HIGHLIGHTITEM = TCM_FIRST + 51
+	TCM_SETEXTENDEDSTYLE = TCM_FIRST + 52# optional wParam == mask
+	TCM_GETEXTENDEDSTYLE = TCM_FIRST + 53
+	TCM_SETUNICODEFORMAT = CCM_SETUNICODEFORMAT
+	TCM_GETUNICODEFORMAT = CCM_GETUNICODEFORMAT
+TCN_KEYDOWN = TCN_FIRST - 0
+TCN_SELCHANGE = TCN_FIRST - 1
+TCN_SELCHANGING = TCN_FIRST - 2
+if _WIN32_IE >= 0x0400:
+	TCN_GETOBJECT = TCN_FIRST - 3
+if _WIN32_IE >= 0x0500:
+	TCN_FOCUSCHANGE = TCN_FIRST - 4
 
 TVN_FIRST = UINT_MAX-400
 TVN_LAST = UINT_MAX-499
@@ -1207,6 +1241,44 @@ if not UNICODE:
 	CreatePropertySheetPage = WINFUNCTYPE(c_void_p, LPCPROPSHEETPAGE)(('CreatePropertySheetPageA', windll.comctl32))
 	PropertySheet = WINFUNCTYPE(HPROPSHEETPAGE, LPCPROPSHEETHEADER)(('PropertySheetA', windll.comctl32))
 DestroyPropertySheetPage = WINFUNCTYPE(c_bool, HPROPSHEETPAGE)(('DestroyPropertySheetPage', windll.comctl32))
+
+if _WIN32_IE >= 0x0400:
+	WSB_PROP_CYVSCROLL = 0x00000001L
+	WSB_PROP_CXHSCROLL = 0x00000002L
+	WSB_PROP_CYHSCROLL = 0x00000004L
+	WSB_PROP_CXVSCROLL = 0x00000008L
+	WSB_PROP_CXHTHUMB  = 0x00000010L
+	WSB_PROP_CYVTHUMB  = 0x00000020L
+	WSB_PROP_VBKGCOLOR = 0x00000040L
+	WSB_PROP_HBKGCOLOR = 0x00000080L
+	WSB_PROP_VSTYLE    = 0x00000100L
+	WSB_PROP_HSTYLE    = 0x00000200L
+	WSB_PROP_WINSTYLE  = 0x00000400L
+	WSB_PROP_PALETTE   = 0x00000800L
+	WSB_PROP_MASK      = 0x00000FFFL
+
+	FSB_FLAT_MODE    = 2
+	FSB_ENCARTA_MODE = 1
+	FSB_REGULAR_MODE = 0
+
+	#~ WINCOMMCTRLAPI BOOL WINAPI FlatSB_EnableScrollBar(HWND, int, UINT);
+	#~ WINCOMMCTRLAPI BOOL WINAPI FlatSB_ShowScrollBar(HWND, int code, BOOL);
+	#~ WINCOMMCTRLAPI BOOL WINAPI FlatSB_GetScrollRange(HWND, int code, LPINT, LPINT);
+	#~ WINCOMMCTRLAPI BOOL WINAPI FlatSB_GetScrollInfo(HWND, int code, LPSCROLLINFO);
+	#~ WINCOMMCTRLAPI int WINAPI FlatSB_GetScrollPos(HWND, int code);
+	#~ WINCOMMCTRLAPI BOOL WINAPI FlatSB_GetScrollProp(HWND, int propIndex, LPINT);
+	#~ #ifdef _WIN64
+	#~ WINCOMMCTRLAPI BOOL WINAPI FlatSB_GetScrollPropPtr(HWND, int propIndex, PINT_PTR);
+	#~ #else
+	#~ #define FlatSB_GetScrollPropPtr  FlatSB_GetScrollProp
+	#~ #endif
+	#~ WINCOMMCTRLAPI int WINAPI FlatSB_SetScrollPos(HWND, int code, int pos, BOOL fRedraw);
+	#~ WINCOMMCTRLAPI int WINAPI FlatSB_SetScrollInfo(HWND, int code, LPSCROLLINFO psi, BOOL fRedraw);
+	#~ WINCOMMCTRLAPI int WINAPI FlatSB_SetScrollRange(HWND, int code, int min, int max, BOOL fRedraw);
+
+	FlatSB_SetScrollProp = WINFUNCTYPE(c_bool, c_void_p, c_uint, c_int, c_bool)(('FlatSB_SetScrollProp', windll.comctl32))
+	InitializeFlatSB = WINFUNCTYPE(c_bool, c_void_p)(('InitializeFlatSB', windll.comctl32))
+	UninitializeFlatSB = WINFUNCTYPE(c_long, c_void_p)(('UninitializeFlatSB', windll.comctl32))
 
 class Button(Window):
 	_window_class_ = BUTTON
@@ -1566,6 +1638,12 @@ class TabControl(Window):
 	def InsertItem(self, iItem, item):        
 		return self.SendMessage(TCM_INSERTITEM, iItem, addressof(item))
 
+	def DeleteItem(self, iItem):        
+		return self.SendMessage(TCM_DELETEITEM, iItem)
+
+	def DeleteAllItems(self):        
+		return self.SendMessage(TCM_DELETEALLITEMS)
+
 	def GetItem(self, index, mask):
 		item = TCITEM()
 		item.mask = mask
@@ -1720,6 +1798,9 @@ class ListView(Window):
 	def GetBkColor(self):
 		return self.SendMessage(LVM_GETBKCOLOR)
 
+	def GetEditControl(self):
+		return self.SendMessage(LVM_GETEDITCONTROL)
+
 	def SetColumn(self, iCol, lvcolumn):
 		return self.SendMessage(LVM_SETCOLUMN, iCol, addressof(lvcolumn))
 
@@ -1728,6 +1809,18 @@ class ListView(Window):
 
 	def SetItem(self, item):
 		return self.SendMessage(LVM_SETITEM, 0, addressof(item))
+
+	def SetItemText(self, text, i = 0, iSubItem = 0, cchTextMax = 1024):
+		item = LVITEM()
+		item.iItem = i
+		item.iSubItem = iSubItem
+		item.cchTextMax = cchTextMax
+		#~ if UNICODE:
+			#~ item.pszText = create_unicode_buffer(text, item.cchTextMax)
+		#~ else:
+			#~ item.pszText = create_string_buffer(text, item.cchTextMax)
+		item.pszText = text
+		return self.SendMessage(LVM_SETITEMTEXT, i, addressof(item))
 
 	def SetItemState(self, i, state, stateMask):
 		item = LVITEM()
@@ -1758,15 +1851,29 @@ class ListView(Window):
 		return self.SendMessage(LVM_UPDATE)
 
 	def HitTest(self):
-		pinfo = LVHITTESTINFO()
+		pinfo = c_void_p()
 		result = self.SendMessage(LVM_HITTEST, 0, byref(pinfo))
-		return result, pinfo
+		if result > -1:
+			return cast(pinfo, LVHITTESTINFO)
+		else:
+			return False
+
+	def SubItemHitTest(self):
+		pinfo = LVHITTESTINFO()
+		result = self.SendMessage(LVM_SUBITEMHITTEST, 0, byref(pinfo))
+		if result > -1:
+			return pinfo
+		else:
+			return False
 
 	def DeleteItem(self, i):
 		return self.SendMessage(LVM_DELETEITEM, i)
 
 	def DeleteAllItems(self):
 		return self.SendMessage(LVM_DELETEALLITEMS)
+
+	def EditLabel(self, i):
+		return self.SendMessage(LVM_EDITLABEL, i)
 
 class ToolBar(Window):
 	_window_class_ = TOOLBARCLASSNAME
