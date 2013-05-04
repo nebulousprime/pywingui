@@ -339,7 +339,6 @@ class DialogTemplateEx(WindowsObject):
     def __len__(self):
         return sizeof(self.value)
 
-
 class DialogItemTemplate(object):
     _window_class_ = None
     _window_style_ = WS_CHILD|WS_VISIBLE
@@ -527,7 +526,7 @@ class StaticText(DialogItemTemplate):
 
 class ListBox(DialogItemTemplate):
     _window_class_ = LISTBOX
-    _window_style_ = LBS_STANDARD
+    _window_style_ = WS_CHILD|WS_VISIBLE|WS_TABSTOP|LBS_STANDARD
 
 class ScrollBar(DialogItemTemplate):
     _window_class_ = SCROLLBAR
@@ -642,7 +641,7 @@ class StaticTextEx(DialogItemTemplateEx):
 
 class ListBoxEx(DialogItemTemplateEx):
     _window_class_ = LISTBOX
-    _window_style_ = LBS_STANDARD
+    _window_style_ = WS_CHILD|WS_VISIBLE|WS_TABSTOP|LBS_STANDARD
 
 class ScrollBarEx(DialogItemTemplateEx):
     _window_class_ = SCROLLBAR

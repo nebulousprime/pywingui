@@ -81,7 +81,7 @@ class MyForm(form.Form):
 		#~ button.idCommand = form.ID_CLOSE
 		button.fsState = comctl.TBSTATE_ENABLED
 		button.fsStyle = comctl.TBSTYLE_BUTTON
-		for i in range(10):
+		for i in range(iml.GetImageCount()-6):
 			button.iBitmap = 1 + i
 			buttons.InsertButton(0, button)
 

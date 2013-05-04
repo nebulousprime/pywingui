@@ -367,13 +367,24 @@ RBS_DBLCLKTOGGLE = 32768
 RBN_FIRST	= ((UINT_MAX) - 831)
 RBN_HEIGHTCHANGE = RBN_FIRST
 
-TBSTYLE_FLAT = 2048
-TBSTYLE_LIST = 4096
-TBSTYLE_DROPDOWN = 8
-TBSTYLE_TRANSPARENT = 0x8000
-TBSTYLE_REGISTERDROP = 0x4000
 TBSTYLE_BUTTON = 0x0000
-TBSTYLE_AUTOSIZE = 0x0010
+TBSTYLE_SEP = 0x0001
+TBSTYLE_CHECK = 0x0002
+TBSTYLE_GROUP = 0x0004
+TBSTYLE_CHECKGROUP = TBSTYLE_GROUP | TBSTYLE_CHECK
+if _WIN32_IE >= 0x0300:
+	TBSTYLE_DROPDOWN = 0x0008
+	TBSTYLE_FLAT = 0x0800
+	TBSTYLE_LIST = 0x1000
+	TBSTYLE_CUSTOMERASE = 0x2000
+if _WIN32_IE >= 0x0400:
+	TBSTYLE_AUTOSIZE = 0x0010
+	TBSTYLE_NOPREFIX = 0x0020
+	TBSTYLE_REGISTERDROP = 0x4000
+	TBSTYLE_TRANSPARENT = 0x8000
+TBSTYLE_TOOLTIPS = 0x0100
+TBSTYLE_WRAPABLE = 0x0200
+TBSTYLE_ALTDRAG = 0x0400
 
 TB_BUTTONSTRUCTSIZE = WM_USER + 30
 TB_ADDBUTTONS = WM_USER + 20
@@ -1057,12 +1068,56 @@ PBM_GETPOS      = (WM_USER+8)
 PBM_SETBARCOLOR = (WM_USER+9)
 PBM_SETBKCOLOR  = CCM_SETBKCOLOR
 
-LB_ADDSTRING = 384
-LB_INSERTSTRING = 385
-LB_DELETESTRING = 386
-LB_RESETCONTENT = 388
-LB_GETCOUNT = 395
-LB_SETTOPINDEX = 407
+# Listbox Notification Codes
+LBN_ERRSPACE = -2
+LBN_SELCHANGE = 1
+LBN_DBLCLK = 2
+LBN_SELCANCEL = 3
+LBN_SETFOCUS = 4
+LBN_KILLFOCUS = 5
+
+# Listbox messages
+LB_ADDSTRING = 0x0180
+LB_INSERTSTRING = 0x0181
+LB_DELETESTRING = 0x0182
+LB_SELITEMRANGEEX = 0x0183
+LB_RESETCONTENT = 0x0184
+LB_SETSEL = 0x0185
+LB_SETCURSEL = 0x0186
+LB_GETSEL = 0x0187
+LB_GETCURSEL = 0x0188
+LB_GETTEXT = 0x0189
+LB_GETTEXTLEN = 0x018A
+LB_GETCOUNT = 0x018B
+LB_SELECTSTRING = 0x018C
+LB_DIR = 0x018D
+LB_GETTOPINDEX = 0x018E
+LB_FINDSTRING = 0x018F
+LB_GETSELCOUNT = 0x0190
+LB_GETSELITEMS = 0x0191
+LB_SETTABSTOPS = 0x0192
+LB_GETHORIZONTALEXTENT = 0x0193
+LB_SETHORIZONTALEXTENT = 0x0194
+LB_SETCOLUMNWIDTH = 0x0195
+LB_ADDFILE = 0x0196
+LB_SETTOPINDEX = 0x0197
+LB_GETITEMRECT = 0x0198
+LB_GETITEMDATA = 0x0199
+LB_SETITEMDATA = 0x019A
+LB_SELITEMRANGE = 0x019B
+LB_SETANCHORINDEX = 0x019C
+LB_GETANCHORINDEX = 0x019D
+LB_SETCARETINDEX = 0x019E
+LB_GETCARETINDEX = 0x019F
+LB_SETITEMHEIGHT = 0x01A0
+LB_GETITEMHEIGHT = 0x01A1
+LB_FINDSTRINGEXACT = 0x01A2
+LB_SETLOCALE = 0x01A5
+LB_GETLOCALE = 0x01A6
+LB_SETCOUNT = 0x01A7
+if WINVER >= 0x0400:
+	LB_INITSTORAGE = 0x01A8
+	LB_ITEMFROMPOINT = 0x01A9
 
 RBBIM_STYLE = 0x00000001
 RBBIM_COLORS = 0x00000002
@@ -1080,13 +1135,6 @@ if _WIN32_IE >= 0x0400:
 if _WIN32_WINNT >= 0x0600:
 	RBBIM_CHEVRONLOCATION = 0x00001000
 	RBBIM_CHEVRONSTATE = 0x00002000
-
-
-ImageList_Create = windll.comctl32.ImageList_Create
-ImageList_Destroy = windll.comctl32.ImageList_Destroy
-ImageList_AddMasked = windll.comctl32.ImageList_AddMasked
-ImageList_AddIcon = windll.comctl32.ImageList_AddIcon
-ImageList_SetBkColor = windll.comctl32.ImageList_SetBkColor
 
 InitCommonControlsEx = WINFUNCTYPE(c_bool, POINTER(INITCOMMONCONTROLSEX))(('InitCommonControlsEx', windll.comctl32))
 
@@ -1530,28 +1578,97 @@ class ListBox(Window):
 	_window_style_ = WS_VISIBLE | WS_CHILD
 
 	def AddString(self, text):
+		'This message is sent by an application to add a string to a list box. If the list box does not have the LBS_SORT style, the string is added to the end of the list. Otherwise, the string is inserted into the list and the list is sorted. Return zero-based index of the string in the list box indicates success, LB_ERR indicates that an error has occurred, LB_ERRSPACE indicates that there is insufficient space to store the new string.'
 		txt = create_unicode_buffer(text)
 		if not UNICODE:
 			txt = create_string_buffer(text)
-		self.SendMessage(LB_ADDSTRING, 0, addressof(txt))
+		return self.SendMessage(LB_ADDSTRING, 0, addressof(txt))
 
-	def InsertString(self, idx, text):
+	def InsertString(self, index, text):
+		'Sent to insert a string into a list box. Unlike the LB_ADDSTRING message, the LB_INSERTSTRING message does not cause a list with the LBS_SORT style to be sorted. Index - Zero-based index of the position at which to insert the string, if this parameter is -1, the string is added to the end of the list. Text - long pointer to the null-terminated string to be inserted, if you create the list box with an owner-drawn style but without the LBS_HASSTRINGS style, the value of the text parameter is stored as item data instead of the string it would otherwise point to, you can send the LB_GETITEMDATA and LB_SETITEMDATA messages to retrieve or modify the item data. Return see LB_ADDSTRING.'
 		txt = create_unicode_buffer(text)
 		if not UNICODE:
 			txt = create_string_buffer(text)
-		self.SendMessage(LB_INSERTSTRING, idx, addressof(txt))
+		self.SendMessage(LB_INSERTSTRING, index, addressof(txt))
 
-	def DeleteString(self, idx):
-		self.SendMessage(LB_DELETESTRING, idx)
+	def DeleteString(self, index):
+		self.SendMessage(LB_DELETESTRING, index)
 
 	def ResetContent(self):
+		'Sent to remove all items from a list box. Always returns 1'
 		self.SendMessage(LB_RESETCONTENT)
 
 	def GetCount(self):
 		return self.SendMessage(LB_GETCOUNT)
 
-	def SetTopIndex(self, idx):
-		self.SendMessage (LB_SETTOPINDEX, idx)
+	def GetText(self, index = 0):
+		size = self.GetTextLen(index)
+		buf = create_unicode_buffer(size)
+		if not UNICODE:
+			buf = create_string_buffer(size)
+		self.SendMessage(LB_GETTEXT, index, addressof(buf))
+		return buf.value
+
+	def GetTextLen(self, index = 0):
+		return self.SendMessage(LB_GETTEXTLEN, index)
+
+	def GetCaretIndex(self):
+		'determine the index of the item that has the focus rectangle in a multiple-selection list box'
+		return self.SendMessage(LB_GETCARETINDEX)
+
+	def GetCurSel(self):
+		'retrieve the index of the currently selected item, if any, in a single-selection list box'
+		return self.SendMessage(LB_GETCURSEL)
+
+	def GetSel(self, index = 0):
+		'Retrieve the selection state of an item. A value greater than zero indicates that an item has been selected. Zero indicates otherwise. LB_ERR indicates that an error has occurred'
+		return self.SendMessage(LB_GETSEL, index)
+
+	def SetSel(self, index = 0):
+		self.SendMessage(LB_SETSEL, index)
+
+	def SetCurSel(self, index = 0):
+		self.SendMessage(LB_SETCURSEL, index)
+
+	def GetSelCount(self):
+		'Retrieve the total number of selected items in a multiple-selection list box. The count of selected items in the list box indicates success. LB_ERR indicates that the list box is a single-selection list box'
+		return self.SendMessage(LB_GETSELCOUNT)
+
+	def GetSelItems(self):
+		'Fill a buffer with an array of integers that specify the item numbers of selected items in a multiple-selection list box. The return value is the number of items placed in the buffer. If the list box is single-selection, the return value is LB_ERR. This message will also return LB_ERR if you pass invalid parameters for a multi-selection list box'
+		cItems = self.GetCount()
+		lpnItems = (c_int*cItems)()
+		count = self.SendMessage(LB_GETSELITEMS, cItems, addressof(lpnItems))
+		return count, lpnItems
+
+	def GetTopIndex(self):
+		'Retrieve the index of the first visible item in a list box. Initially the item with index zero is at the top of the list box, but if the list box contents have been scrolled another item may be at the top'
+		return self.SendMessage(LB_GETTOPINDEX)
+
+	def SetTopIndex(self, index):
+		self.SendMessage(LB_SETTOPINDEX, index)
+
+	def GetItemData(self, index):
+		'The return value is the 32-bit value associated with the item, or LB_ERR if an error occurs. If the item is in an owner-drawn list box and was created without the LBS_HASSTRINGS style, this 32-bit value was in the lParam parameter of the LB_ADDSTRING or LB_INSERTSTRING message that added the item to the list box. Otherwise, it is the value in the lParam of an LB_SETITEMDATA message'
+		return self.SendMessage(LB_GETITEMDATA, index)
+
+	def SetItemData(self, index, dwData):
+		'Set a 32-bit value associated with the specified item in a list box. Return LB_ERR indicates that an error has occurred. If the item is in an owner-drawn list box created without the LBS_HASSTRINGS style, this message replaces the 32-bit value contained in the lParam parameter of the LB_ADDSTRING or LB_INSERTSTRING message that added the item to the list box'
+		return self.SendMessage(LB_SETITEMDATA, index, dwData)
+
+	def SetColumnWidth(self, cxColumn = 100):
+		'sent to a multiple-column list box - created with the LBS_MULTICOLUMN style - to set the width, in pixels, of all columns in the list box; cxColumn - width in pixels of all columns'
+		self.SendMessage(LB_SETCOLUMNWIDTH, cxColumn)
+
+	def OnDoubleClick(self, event):
+		'''Sent when the user double-clicks a string in a list box.
+		The parent window of the list box receives this message through the WM_COMMAND message.
+		Only a list box that has the LBS_NOTIFY style will send this message.
+		idListBox = (int)LOWORD(wParam) - Identifier of the list box;
+		hwndListBox = (HWND) lParam - Handle to the list box'''
+		idListBox = LOWORD(event.wParam)
+		hwndListBox = event.lParam
+	ntf_handler(LBN_DBLCLK)(OnDoubleClick)
 
 class ProgressBar(Window):
 	_window_class_ = PROGRESS_CLASS
@@ -1971,19 +2088,47 @@ class Rebar(Window):
 		self.SendMessage(RB_SETBARINFO, 0, addressof(rebarInfo))
 
 class ImageList(WindowsObject):
-	__dispose__ = ImageList_Destroy
+	__dispose__ = windll.comctl32.ImageList_Destroy
 
 	def __init__(self, cx, cy, flags, cInitial, cGrow):
-		WindowsObject.__init__(self, ImageList_Create(cx, cy, flags, cInitial, cGrow))
+		WindowsObject.__init__(self, windll.comctl32.ImageList_Create(cx, cy, flags, cInitial, cGrow))
 
-	def AddMasked(self, bitmap, crMask):
-		return ImageList_AddMasked(self.handle, handle(bitmap), crMask)
+	def GetImageCount(self):
+		return windll.comctl32.ImageList_GetImageCount(self.handle)
 
-	def SetBkColor(self, clrRef):
-		ImageList_SetBkColor(self.handle, clrRef)
+	def SetImageCount(self, uNewCount):
+		'return bool'
+		return windll.comctl32.ImageList_SetImageCount(self.handle, uNewCount)
+
+	def Add(self, hbmImage, hbmMask = 0):
+		'return int; params : HBITMAP hbmImage, HBITMAP hbmMask'
+		return windll.comctl32.ImageList_Add(self.handle, hbmImage, hbmMask)
+
+	def ReplaceIcon(self, i, hicon):
+		'return int; params : int i, HICON hicon'
+		return windll.comctl32.ImageList_ReplaceIcon(self.handle, i, hicon)
+
+	#~ def AddIcon(self, hicon):
+		#~ 'return int; params : HICON hicon'
+		#~ return windll.comctl32.ImageList_ReplaceIcon(self.handle, -1, hicon)
 
 	def AddIcon(self, hIcon):
-		return ImageList_AddIcon(self.handle, hIcon)
+		return windll.comctl32.ImageList_AddIcon(self.handle, hIcon)
+
+	def SetBkColor(self, clrRef):
+		'return COLORREF'
+		return windll.comctl32.ImageList_SetBkColor(self.handle, clrRef)
+
+	def GetBkColor(self):
+		'return COLORREF'
+		return windll.comctl32.ImageList_GetBkColor(self.handle)
+
+	def SetOverlayImage(self, iImage, iOverlay):
+		'return bool; params : int iImage, int iOverlay'
+		return windll.comctl32.ImageList_SetOverlayImage(self.handle, iImage, iOverlay)
+
+	def AddMasked(self, bitmap, crMask):
+		return windll.comctl32.ImageList_AddMasked(self.handle, handle(bitmap), crMask)
 
 	def AddIconsFromModule(self, moduleName, cx, cy, uFlags):
 		hdll = GetModuleHandle(moduleName)

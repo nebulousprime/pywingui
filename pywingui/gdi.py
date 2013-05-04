@@ -22,6 +22,11 @@
 from version_microsoft import WINVER
 from sdkddkver import _WIN32_WINNT, _WIN32_WINNT_WIN2K
 
+# Background Modes
+TRANSPARENT = 1
+OPAQUE = 2
+BKMODE_LAST = 2
+
 # Graphics Modes
 GM_COMPATIBLE = 1
 GM_ADVANCED   = 2
@@ -91,84 +96,124 @@ DEVICE_FONTTYPE   = 0x002
 TRUETYPE_FONTTYPE = 0x004
 
 def RGB(r,g,b):
-    return r | (g<<8) | (b<<16)
+	return r | (g<<8) | (b<<16)
 
 def PALETTERGB(r,g,b):
-    return 0x02000000 | RGB(r,g,b)
+	return 0x02000000 | RGB(r,g,b)
 
 def PALETTEINDEX(i):
-    return 0x01000000 | i
+	return 0x01000000 | i
 
 class BITMAP(Structure):
-    _fields_ = [("bmType", LONG),
-    		("bmWidth", LONG),
-    		("bmHeight", LONG),
-    		("bmWidthBytes", LONG),
-    		("bmPlanes", WORD),
-    		("bmBitsPixel", WORD),
-    		("bmBits", LPVOID)]
+	_fields_ = [("bmType", LONG),
+	("bmWidth", LONG),
+	("bmHeight", LONG),
+	("bmWidthBytes", LONG),
+	("bmPlanes", WORD),
+	("bmBitsPixel", WORD),
+	("bmBits", LPVOID)]
 
 LF_FACESIZE = 32
 
 class LOGFONT(Structure):
-    _fields_ = [("lfHeight", LONG),
-                ("lfWidth", LONG),                
-                ("lfEscapement", LONG),
-                ("lfOrientation", LONG),
-                ("lfWeight", LONG),
-                ("lfItalic", BYTE),
-                ("lfUnderline", BYTE),
-                ("lfStrikeOut", BYTE),
-                ("lfCharSet", BYTE),
-                ("lfOutPrecision", BYTE),
-                ("lfClipPrecision", BYTE),
-                ("lfQuality", BYTE), 
-                ("lfPitchAndFamily", BYTE),
-                ("lfFaceName", TCHAR * LF_FACESIZE)]
+	_fields_ = [("lfHeight", LONG),
+	("lfWidth", LONG),                
+	("lfEscapement", LONG),
+	("lfOrientation", LONG),
+	("lfWeight", LONG),
+	("lfItalic", BYTE),
+	("lfUnderline", BYTE),
+	("lfStrikeOut", BYTE),
+	("lfCharSet", BYTE),
+	("lfOutPrecision", BYTE),
+	("lfClipPrecision", BYTE),
+	("lfQuality", BYTE), 
+	("lfPitchAndFamily", BYTE),
+	("lfFaceName", TCHAR * LF_FACESIZE)]
 
 class LOGBRUSH(Structure):
-    _fields_ = [("lbStyle", UINT),
-                ("lbColor", COLORREF),
-                ("lbHatch", LONG)]
-    
+	_fields_ = [("lbStyle", UINT),
+	("lbColor", COLORREF),
+	("lbHatch", LONG)]
+
 class ENUMLOGFONTEX(Structure):
-    _fields_ = [("elfLogFont", LOGFONT),
-                ("elfFullName", TCHAR * LF_FACESIZE),
-                ("elfStyle", TCHAR * LF_FACESIZE),
-                ("elfScript", TCHAR * LF_FACESIZE)]
+	_fields_ = [("elfLogFont", LOGFONT),
+	("elfFullName", TCHAR * LF_FACESIZE),
+	("elfStyle", TCHAR * LF_FACESIZE),
+	("elfScript", TCHAR * LF_FACESIZE)]
 
 EnumFontFamExProc = WINFUNCTYPE(c_int, POINTER(ENUMLOGFONTEX), POINTER(DWORD), DWORD, LPARAM)    
 
 class BITMAPINFOHEADER(Structure):
-    _fields_ = [("biSize",  DWORD),
-                ("biWidth",   LONG),
-                ("biHeight",   LONG),
-                ("biPlanes",   WORD),
-                ("biBitCount",   WORD),
-                ("biCompression",  DWORD),
-                ("biSizeImage",  DWORD),
-                ("biXPelsPerMeter",   LONG),
-                ("biYPelsPerMeter",   LONG),
-                ("biClrUsed",  DWORD),
-                ("biClrImportant",  DWORD)]
+	_fields_ = [("biSize", DWORD),
+	("biWidth", LONG),
+	("biHeight", LONG),
+	("biPlanes", WORD),
+	("biBitCount", WORD),
+	("biCompression", DWORD),
+	("biSizeImage", DWORD),
+	("biXPelsPerMeter", LONG),
+	("biYPelsPerMeter", LONG),
+	("biClrUsed", DWORD),
+	("biClrImportant", DWORD)]
 
 class RGBQUAD(Structure):
-  _fields_ = [("rgbBlue",    BYTE),
-              ("rgbGreen",    BYTE),
-              ("rgbRed",    BYTE),
-              ("rgbReserved",    BYTE)]
+	_fields_ = [("rgbBlue", BYTE),
+	("rgbGreen", BYTE),
+	("rgbRed", BYTE),
+	("rgbReserved", BYTE)]
 
 class BITMAPINFO(Structure):
-    _fields_ = [("bmiHeader", BITMAPINFOHEADER),
-                ("bmiColors", RGBQUAD)]
+	_fields_ = [("bmiHeader", BITMAPINFOHEADER), ("bmiColors", RGBQUAD)]
+PBITMAPINFO = POINTER(BITMAPINFO)
 
 class BITMAPFILEHEADER(Structure):
-    _fields_ = [
-        ("bfType",    WORD),
-        ("bfSize",   DWORD),
-        ("bfReserved1",    WORD),
-        ("bfReserved2",    WORD),
-        ("bfOffBits",   DWORD)]
+	_fields_ = [
+	("bfType", WORD),
+	("bfSize", DWORD),
+	("bfReserved1", WORD),
+	("bfReserved2", WORD),
+	("bfOffBits", DWORD)]
+
+class CIEXYZ(Structure):
+	_fields_ = [('ciexyzX', c_long),
+	('ciexyzY', c_long),
+	('ciexyzZ', c_long)]
+LPCIEXYZ = POINTER(CIEXYZ)
+
+class CIEXYZTRIPLE(Structure):
+	_fields_ = [('ciexyzRed', LPCIEXYZ),
+	('ciexyzGreen', LPCIEXYZ),
+	('ciexyzBlue', LPCIEXYZ)]
+LPCIEXYZTRIPLE = POINTER(CIEXYZTRIPLE)
+
+if WINVER >= 0x0500:
+	class BITMAPV5HEADER(Structure):
+		_fields_ = [('bV5Size', c_ulong),
+		('bV5Width', c_long),
+		('bV5Height', c_long),
+		('bV5Planes', c_ushort),
+		('bV5BitCount', c_ushort),
+		('bV5Compression', c_ulong),
+		('bV5SizeImage', c_ulong),
+		('bV5XPelsPerMeter', c_long),
+		('bV5YPelsPerMeter', c_long),
+		('bV5ClrUsed', c_ulong),
+		('bV5ClrImportant', c_ulong),
+		('bV5RedMask', c_ulong),
+		('bV5GreenMask', c_ulong),
+		('bV5BlueMask', c_ulong),
+		('bV5AlphaMask', c_ulong),
+		('bV5CSType', c_ulong),
+		('bV5Endpoints', LPCIEXYZTRIPLE),
+		('bV5GammaRed', c_ulong),
+		('bV5GammaGreen', c_ulong),
+		('bV5GammaBlue', c_ulong),
+		('bV5Intent', c_ulong),
+		('bV5ProfileData', c_ulong),
+		('bV5ProfileSize', c_ulong),
+		('bV5Reserved', c_ulong)]
+LPBITMAPV5HEADER = PBITMAPV5HEADER = POINTER(BITMAPV5HEADER)
 
 class DISPLAY_DEVICE(Structure):
 	_fields_ = [
@@ -198,86 +243,106 @@ class GRADIENT_RECT(Structure):
 
 MONO_FONT = 8
 OBJ_FONT = 6
-ANSI_FIXED_FONT  = 11
+ANSI_FIXED_FONT = 11
 ANSI_VAR_FONT = 12
-DEVICE_DEFAULT_FONT= 14
-DEFAULT_GUI_FONT= 17
-OEM_FIXED_FONT= 10
-SYSTEM_FONT= 13
-SYSTEM_FIXED_FONT= 16
+DEVICE_DEFAULT_FONT = 14
+DEFAULT_GUI_FONT = 17
+OEM_FIXED_FONT = 10
+SYSTEM_FONT = 13
+SYSTEM_FIXED_FONT = 16
 
-ANSI_CHARSET          =  0
-DEFAULT_CHARSET       =  1
-SYMBOL_CHARSET        =  2
-SHIFTJIS_CHARSET      =  128
-HANGEUL_CHARSET       =  129
-HANGUL_CHARSET        =  129
-GB2312_CHARSET        =  134
-CHINESEBIG5_CHARSET   =  136
-OEM_CHARSET           =  255
+ANSI_CHARSET = 0
+DEFAULT_CHARSET = 1
+SYMBOL_CHARSET = 2
+SHIFTJIS_CHARSET = 128
+HANGEUL_CHARSET = 129
+HANGUL_CHARSET = 129
+GB2312_CHARSET = 134
+CHINESEBIG5_CHARSET = 136
+OEM_CHARSET = 255
 
 FIXED_PITCH = 1
 
 CLR_NONE = 0xffffffff
 
-HS_BDIAGONAL   =3
-HS_CROSS       =4
-HS_DIAGCROSS   =5
-HS_FDIAGONAL   =2
-HS_HORIZONTAL  =0
-HS_VERTICAL    =1
+HS_BDIAGONAL = 3
+HS_CROSS = 4
+HS_DIAGCROSS = 5
+HS_FDIAGONAL = 2
+HS_HORIZONTAL = 0
+HS_VERTICAL = 1
 
-PATINVERT     =  0x5A0049
+PATINVERT = 0x5A0049
 
-OUT_DEFAULT_PRECIS  =  0
-CLIP_DEFAULT_PRECIS  = 0
-DEFAULT_QUALITY      =  0
-DEFAULT_PITCH        =  0
+OUT_DEFAULT_PRECIS = 0
+CLIP_DEFAULT_PRECIS = 0
+DEFAULT_QUALITY = 0
+DEFAULT_PITCH = 0
 
-FF_DONTCARE   =  (0<<4)
-FF_MODERN     =  (3<<4)
+FF_DONTCARE = (0<<4)
+FF_MODERN = (3<<4)
 
-PS_GEOMETRIC=   65536
-PS_COSMETIC  =  0
-PS_ALTERNATE  = 8
-PS_SOLID      = 0
-PS_DASH       = 1
-PS_DOT= 2
-PS_DASHDOT    = 3
+PS_GEOMETRIC = 65536
+PS_COSMETIC = 0
+PS_ALTERNATE = 8
+PS_SOLID = 0
+PS_DASH = 1
+PS_DOT = 2
+PS_DASHDOT = 3
 PS_DASHDOTDOT = 4
-PS_NULL       = 5
+PS_NULL = 5
 PS_USERSTYLE  = 7
-PS_INSIDEFRAME= 6
-PS_ENDCAP_ROUND =       0
-PS_ENDCAP_SQUARE=       256
+PS_INSIDEFRAME = 6
+PS_ENDCAP_ROUND = 0
+PS_ENDCAP_SQUARE = 256
 PS_ENDCAP_FLAT= 512
 PS_JOIN_BEVEL = 4096
 PS_JOIN_MITER = 8192
 PS_JOIN_ROUND = 0
 PS_STYLE_MASK = 15
-PS_ENDCAP_MASK= 3840
-PS_TYPE_MASK  = 983040
+PS_ENDCAP_MASK = 3840
+PS_TYPE_MASK = 983040
 
-BS_SOLID     =  0
-BS_NULL       = 1
-BS_HOLLOW     = 1
-BS_HATCHED    = 2
-BS_PATTERN    = 3
-BS_INDEXED    = 4
+BS_SOLID =  0
+BS_NULL = 1
+BS_HOLLOW = 1
+BS_HATCHED = 2
+BS_PATTERN = 3
+BS_INDEXED = 4
 BS_DIBPATTERN = 5
-BS_DIBPATTERNPT =       6
+BS_DIBPATTERNPT = 6
 BS_PATTERN8X8 = 7
-BS_DIBPATTERN8X8 =      8
+BS_DIBPATTERN8X8 = 8
 
-BI_RGB        =0
-BI_RLE8       =1
-BI_RLE4       =2
-BI_BITFIELDS  =3
-BI_JPEG       =4
-BI_PNG        =5
+BI_RGB = 0
+BI_RLE8 = 1
+BI_RLE4 = 2
+BI_BITFIELDS = 3
+BI_JPEG = 4
+BI_PNG = 5
 
-DIB_RGB_COLORS   =   0
-DIB_PAL_COLORS   =   1
+DIB_RGB_COLORS = 0
+DIB_PAL_COLORS = 1
+
+# Ternary raster operations
+SRCCOPY     = 0x00CC0020 # dest = source
+SRCPAINT    = 0x00EE0086 # dest = source OR dest
+SRCAND      = 0x008800C6 # dest = source AND dest
+SRCINVERT   = 0x00660046 # dest = source XOR dest
+SRCERASE    = 0x00440328 # dest = source AND (NOT dest )
+NOTSRCCOPY  = 0x00330008 # dest = (NOT source)
+NOTSRCERASE = 0x001100A6 # dest = (NOT src) AND (NOT dest)
+MERGECOPY   = 0x00C000CA # dest = (source AND pattern)
+MERGEPAINT  = 0x00BB0226 # dest = (NOT source) OR dest
+PATCOPY     = 0x00F00021 # dest = pattern
+PATPAINT    = 0x00FB0A09 # dest = DPSnoo
+PATINVERT   = 0x005A0049 # dest = pattern XOR dest
+DSTINVERT   = 0x00550009 # dest = (NOT dest)
+BLACKNESS   = 0x00000042 # dest = BLACK
+WHITENESS   = 0x00FF0062 # dest = WHITE
+if WINVER >= 0x0500:
+	NOMIRRORBITMAP = 0x80000000 # Do not Mirror the bitmap in this call
+	CAPTUREBLT = 0x40000000 # Include layered windows
 
 _GetClipBox = WINFUNCTYPE(c_int, c_void_p, LPRECT)(('GetClipBox', windll.gdi32))
 def GetClipBox(hdc):
@@ -295,8 +360,8 @@ CreateCompatibleBitmap = WINFUNCTYPE(c_void_p, c_void_p, c_int, c_int)(('CreateC
 CreateCompatibleDC = WINFUNCTYPE(c_void_p, c_void_p)(('CreateCompatibleDC', windll.gdi32))
 SaveDC = WINFUNCTYPE(c_int, c_void_p)(('SaveDC', windll.gdi32))
 RestoreDC = WINFUNCTYPE(c_bool, c_void_p, c_int)(('RestoreDC', windll.gdi32))
+SetBkMode = WINFUNCTYPE(c_int, c_void_p, c_int)(('SetBkMode', windll.gdi32))
 SelectObject = WINFUNCTYPE(c_void_p, c_void_p, c_void_p)(('SelectObject', windll.gdi32))
-GetObject = windll.gdi32.GetObjectA
 DeleteObject = WINFUNCTYPE(c_bool, c_void_p)(('DeleteObject', windll.gdi32))
 StretchBlt = windll.gdi32.StretchBlt
 GetSysColorBrush = windll.user32.GetSysColorBrush
@@ -305,17 +370,23 @@ CreatePatternBrush = windll.gdi32.CreatePatternBrush
 CreateSolidBrush = windll.gdi32.CreateSolidBrush
 CreateBitmap = windll.gdi32.CreateBitmap
 PatBlt = windll.gdi32.PatBlt
-CreateFont = windll.gdi32.CreateFontA
 EnumFontFamiliesEx = windll.gdi32.EnumFontFamiliesExA
 InvertRect = windll.user32.InvertRect
 DrawFocusRect = windll.user32.DrawFocusRect
 ExtCreatePen = windll.gdi32.ExtCreatePen
 CreatePen = windll.gdi32.CreatePen
-DrawText = windll.user32.DrawTextA
-TextOut = windll.gdi32.TextOutA
-CreateDIBSection = windll.gdi32.CreateDIBSection
 DeleteDC = windll.gdi32.DeleteDC
 GetDIBits = windll.gdi32.GetDIBits
+if UNICODE:
+	GetObject = windll.gdi32.GetObjectW
+	CreateFont = windll.gdi32.CreateFontW
+	DrawText = windll.user32.DrawTextW
+	TextOut = windll.gdi32.TextOutW
+else:
+	GetObject = windll.gdi32.GetObjectA
+	CreateFont = windll.gdi32.CreateFontA
+	DrawText = windll.user32.DrawTextA
+	TextOut = windll.gdi32.TextOutA
 
 ExcludeClipRect = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, c_int, c_int)(('ExcludeClipRect', windll.gdi32))
 IntersectClipRect = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, c_int, c_int)(('IntersectClipRect', windll.gdi32))
@@ -364,7 +435,7 @@ SetWorldTransform = WINFUNCTYPE(c_bool, c_void_p, LPXFORM)(('SetWorldTransform',
 SetWorldTransform.__doc__ = 'Sets a two-dimensional linear transformation between world space and page space for the specified device context. This transformation can be used to scale, rotate, shear, or translate graphics output.'
 ModifyWorldTransform = WINFUNCTYPE(c_bool, c_void_p, LPXFORM, c_ulong)(('ModifyWorldTransform', windll.gdi32))
 CombineTransform = WINFUNCTYPE(c_bool, LPXFORM, LPXFORM, LPXFORM)(('CombineTransform', windll.gdi32))
-CreateDIBSection = WINFUNCTYPE(c_void_p, c_void_p, POINTER(BITMAPINFO), c_uint, c_void_p, c_void_p, c_ulong)(('CreateDIBSection', windll.gdi32))
+CreateDIBSection = WINFUNCTYPE(c_void_p, c_void_p, PBITMAPINFO, c_uint, c_void_p, c_void_p, c_ulong)(('CreateDIBSection', windll.gdi32))
 
 # Paths
 AbortPath = WINFUNCTYPE(c_bool, c_void_p)(('AbortPath', windll.gdi32))
@@ -442,67 +513,65 @@ SetMapMode.__doc__ = '''Sets the mapping mode of the specified device context. T
 
 
 class Bitmap(WindowsObject):
-    __dispose__ = DeleteObject
+	__dispose__ = DeleteObject
 
-    def __init__(self, path):
-        WindowsObject.__init__(self, LoadImage(NULL, path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE))
-        bm = BITMAP()
-        GetObject(self.handle, sizeof(bm), byref(bm))
-        self.m_width, self.m_height = bm.bmWidth, bm.bmHeight
+	def __init__(self, path):
+		WindowsObject.__init__(self, LoadImage(NULL, path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE))
+		bm = BITMAP()
+		GetObject(self.handle, sizeof(bm), byref(bm))
+		self.m_width, self.m_height = bm.bmWidth, bm.bmHeight
 
-    def getWidth(self):
-        return self.m_width
+	def getWidth(self):
+		return self.m_width
 
-    width = property(getWidth, None, None, "")
-    
-    def getHeight(self):
-        return self.m_height
+	width = property(getWidth, None, None, "")
 
-    height = property(getHeight, None, None, "")
+	def getHeight(self):
+		return self.m_height
+
+	height = property(getHeight, None, None, "")
 
 
 #TODO refactor into Brush class with static factory class methods
 class SolidBrush(WindowsObject):
-    __dispose__ = DeleteObject
+	__dispose__ = DeleteObject
 
-    def __init__(self, colorRef):
-        WindowsObject.__init__(self, CreateSolidBrush(colorRef))
-        
+	def __init__(self, colorRef):
+		WindowsObject.__init__(self, CreateSolidBrush(colorRef))
+
 class Pen(WindowsObject):
-    __dispose__ = DeleteObject
+	__dispose__ = DeleteObject
 
-    def Create(cls, fnPenStyle = PS_SOLID,  nWidth = 1, crColor = 0x00000000):
-        return Pen(CreatePen(fnPenStyle, nWidth, crColor))
+	def Create(cls, fnPenStyle = PS_SOLID,  nWidth = 1, crColor = 0x00000000):
+		return Pen(CreatePen(fnPenStyle, nWidth, crColor))
 
-    Create = classmethod(Create)
-    
-    def CreateEx(cls, dwPenStyle = PS_COSMETIC | PS_SOLID, dwWidth = 1, lbStyle = BS_SOLID,
-                 lbColor = 0x00000000, lbHatch = 0,
-                 dwStyleCount = 0, lpStyle = 0):
-        lb = LOGBRUSH(lbStyle, lbColor, lbHatch)
-        return Pen(ExtCreatePen(dwPenStyle, dwWidth, byref(lb), dwStyleCount, lpStyle))
+	Create = classmethod(Create)
 
-    CreateEx  = classmethod(CreateEx)
-    
+	def CreateEx(cls, dwPenStyle = PS_COSMETIC | PS_SOLID, dwWidth = 1, lbStyle = BS_SOLID, lbColor = 0x00000000, lbHatch = 0, dwStyleCount = 0, lpStyle = 0):
+		lb = LOGBRUSH(lbStyle, lbColor, lbHatch)
+		return Pen(ExtCreatePen(dwPenStyle, dwWidth, byref(lb), dwStyleCount, lpStyle))
+
+	CreateEx  = classmethod(CreateEx)
+
 
 class Font(WindowsObject):
-    __dispose__ = DeleteObject
+	__dispose__ = DeleteObject
 
-    def __init__(self, **kwargs):
-        #TODO move these kwargs to init, use default values
-        hfont = CreateFont(kwargs.get('height', 0),
-                           kwargs.get('width', 0),
-                           kwargs.get('escapement', 0),
-                           kwargs.get('orientation', 0),
-                           kwargs.get('weight', 0),
-                           kwargs.get('italic', 0),
-                           kwargs.get('underline', 0),
-                           kwargs.get('strikeout', 0),
-                           kwargs.get('charset', ANSI_CHARSET),
-                           kwargs.get('outputPrecision', OUT_DEFAULT_PRECIS),
-                           kwargs.get('clipPrecision', CLIP_DEFAULT_PRECIS),
-                           kwargs.get('quality', DEFAULT_QUALITY),
-                           kwargs.get('pitchAndFamily', DEFAULT_PITCH|FF_DONTCARE),
-                           kwargs.get('face', ""))
-        WindowsObject.__init__(self, hfont)
+	def __init__(self, **kwargs):
+		#TODO move these kwargs to init, use default values
+		hfont = CreateFont(kwargs.get('height', 0),
+		kwargs.get('width', 0),
+		kwargs.get('escapement', 0),
+		kwargs.get('orientation', 0),
+		kwargs.get('weight', 0),
+		kwargs.get('italic', 0),
+		kwargs.get('underline', 0),
+		kwargs.get('strikeout', 0),
+		kwargs.get('charset', ANSI_CHARSET),
+		kwargs.get('outputPrecision', OUT_DEFAULT_PRECIS),
+		kwargs.get('clipPrecision', CLIP_DEFAULT_PRECIS),
+		kwargs.get('quality', DEFAULT_QUALITY),
+		kwargs.get('pitchAndFamily', DEFAULT_PITCH|FF_DONTCARE),
+		kwargs.get('face', ""))
+		WindowsObject.__init__(self, hfont)
 
