@@ -561,10 +561,11 @@ else:
 CreateIcon = WINFUNCTYPE(HICON, HINSTANCE, c_int, c_int, c_byte, c_byte, c_void_p, c_void_p)(('CreateIcon', windll.user32))
 CreateIconIndirect = WINFUNCTYPE(HICON, PICONINFO)(('CreateIconIndirect', windll.user32))
 CopyIcon = WINFUNCTYPE(HICON, HICON)(('CopyIcon', windll.user32))
-_GetIconInfo = WINFUNCTYPE(c_bool, HICON, PICONINFO)(('GetIconInfo', windll.user32))
-def GetIconInfo():
+#~ _GetIconInfo = WINFUNCTYPE(c_bool, HICON, PICONINFO)(('GetIconInfo', windll.user32))
+_GetIconInfo = WINFUNCTYPE(c_bool, HICON, c_void_p)(('GetIconInfo', windll.user32))
+def GetIconInfo(hIcon):
 	info = ICONINFO()
-	result = _GetIconInfo(info)
+	result = _GetIconInfo(hIcon, byref(info))
 	return result, info
 
 #WINUSERAPI int WINAPI ExcludeUpdateRgn(__in HDC hDC, __in HWND hWnd);

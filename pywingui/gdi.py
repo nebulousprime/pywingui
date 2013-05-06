@@ -111,7 +111,7 @@ class BITMAP(Structure):
 	("bmWidthBytes", LONG),
 	("bmPlanes", WORD),
 	("bmBitsPixel", WORD),
-	("bmBits", LPVOID)]
+	("bmBits", c_void_p)]
 
 LF_FACESIZE = 32
 
@@ -349,6 +349,9 @@ def GetClipBox(hdc):
 	rect = LPRECT()
 	result = _GetClipBox(hdc, rect)
 	return result, rect
+
+#LONG GetBitmapBits(__in HBITMAP hbit, __in LONG cb, __out_bcount(cb) LPVOID lpvBits)
+GetBitmapBits = WINFUNCTYPE(c_long, HBITMAP, c_long, c_void_p)(('GetBitmapBits', windll.gdi32))
 
 GetStockObject = windll.gdi32.GetStockObject
 LineTo = windll.gdi32.LineTo
