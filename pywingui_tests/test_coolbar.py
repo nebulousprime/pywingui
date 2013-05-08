@@ -33,7 +33,7 @@ from pywingui.lib import trackbar
 comctl.InitCommonControls(comctl.ICC_LISTVIEW_CLASSES | comctl.ICC_COOL_CLASSES | comctl.ICC_USEREX_CLASSES | comctl.ICC_BAR_CLASSES)
 
 ims = 32
-iml = comctl.ImageList(ims, ims, ILC_COLOR32 | ILC_MASK, 0, 64)
+iml = comctl.ImageList(ims, ims, comctl.ILC_COLOR32 | comctl.ILC_MASK, 0, 64)
 iml.AddIconsFromModule('shell32.dll', ims, ims, LR_LOADMAP3DCOLORS)
 iml.SetBkColor(gdi.CLR_NONE)
 

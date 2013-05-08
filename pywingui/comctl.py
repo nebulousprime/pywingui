@@ -34,6 +34,22 @@ ODT_HEADER   = 100
 ODT_TAB      = 101
 ODT_LISTVIEW = 102
 
+ILC_MASK = 0x00000001
+ILC_COLOR = 0x00000000
+ILC_COLORDDB = 0x000000FE
+ILC_COLOR4 = 0x00000004
+ILC_COLOR8 = 0x00000008
+ILC_COLOR16 = 0x00000010
+ILC_COLOR24 = 0x00000018
+ILC_COLOR32 = 0x00000020
+ILC_PALETTE = 0x00000800 # (not implemented)
+if _WIN32_WINNT >= 0x0501:
+	ILC_MIRROR = 0x00002000 # Mirror the icons contained, if the process is mirrored
+	ILC_PERITEMMIRROR = 0x00008000 # Causes the mirroring code to mirror each item when inserting a set of images, verses the whole strip
+if _WIN32_WINNT >= 0x0600:
+	ILC_ORIGINALSIZE = 0x00010000 # Imagelist should accept smaller than set images and apply OriginalSize based on image added
+	ILC_HIGHQUALITYSCALE = 0x00020000 # Imagelist should enable use of the high quality scaler.
+
 #====== Ranges for control message IDs =================
 
 LVM_FIRST = 0x1000 # ListView messages
@@ -49,14 +65,20 @@ if WINVER >= 0x0400:
 		BCM_FIRST = 0x1600 # Button control messages
 		CBM_FIRST = 0x1700 # Combobox control messages
 
-	CCM_FIRST      = 0x2000 # Common control shared messages
-	CCM_LAST       = (CCM_FIRST + 0x200)
-	CCM_SETBKCOLOR = (CCM_FIRST + 1) # lParam is bkColor
-	CCM_SETCOLORSCHEME   = (CCM_FIRST + 2) # lParam is color scheme
-	CCM_GETCOLORSCHEME   = (CCM_FIRST + 3) # fills in COLORSCHEME pointed to by lParam
-	CCM_GETDROPTARGET    = (CCM_FIRST + 4)
-	CCM_SETUNICODEFORMAT = (CCM_FIRST + 5)
-	CCM_GETUNICODEFORMAT = (CCM_FIRST + 6)
+	CCM_FIRST = 0x2000 # Common control shared messages
+	CCM_LAST = CCM_FIRST + 0x200
+	CCM_SETBKCOLOR = CCM_FIRST + 1 # lParam is bkColor
+	CCM_SETCOLORSCHEME = CCM_FIRST + 2 # lParam is color scheme
+	CCM_GETCOLORSCHEME = CCM_FIRST + 3 # fills in COLORSCHEME pointed to by lParam
+	CCM_GETDROPTARGET = CCM_FIRST + 4
+	CCM_SETUNICODEFORMAT = CCM_FIRST + 5
+	CCM_GETUNICODEFORMAT = CCM_FIRST + 6
+	CCM_SETVERSION = CCM_FIRST + 0x7
+	CCM_GETVERSION = CCM_FIRST + 0x8
+	CCM_SETNOTIFYWINDOW = CCM_FIRST + 0x9 # wParam == hwndParent.
+	if _WIN32_WINNT >= 0x0501:
+		CCM_SETWINDOWTHEME = CCM_FIRST + 0xb
+		CCM_DPISCALE = CCM_FIRST + 0xc # wParam == Awareness
 
 LVCF_FMT     =1
 LVCF_WIDTH   =2
@@ -311,6 +333,114 @@ class LVHITTESTINFO(Structure):
 	def __str__(self):
 		return '%s %d %d %d' % (repr(self.pt), self.flags, self.iItem, self.iSubItem)
 
+class TOOLINFO(Structure):#TTTOOLINFO analog
+	_fields_ = [('cbSize', c_uint),
+	('uFlags', c_uint),
+	('hwnd', c_void_p),
+	('uId', c_uint),
+	('rect', RECT),
+	('hinst', c_void_p)]
+	if UNICODE:
+		_fields_.append(('lpszText', c_wchar_p))
+	else:
+		_fields_.append(('lpszText', c_char_p))
+	if _WIN32_IE >= 0x0300:
+		_fields_.append(('lParam', LPARAM))
+	if _WIN32_WINNT >= 0x0501:
+		_fields_.append(('lpReserved', c_void_p))
+LPTOOLINFO = POINTER(TOOLINFO)
+
+TTS_ALWAYSTIP = 0x01
+TTS_NOPREFIX = 0x02
+if _WIN32_IE >= 0x0500:
+	TTS_NOANIMATE = 0x10
+	TTS_NOFADE = 0x20
+	TTS_BALLOON = 0x40
+	TTS_CLOSE = 0x80
+if _WIN32_WINNT >= 0x0600:
+	TTS_USEVISUALSTYLE = 0x100 # Use themed hyperlinks
+
+TTF_IDISHWND = 0x0001
+TTF_CENTERTIP = 0x0002
+TTF_RTLREADING = 0x0004
+TTF_SUBCLASS = 0x0010
+if _WIN32_IE >= 0x0300:
+	TTF_TRACK = 0x0020
+	TTF_ABSOLUTE = 0x0080
+	TTF_TRANSPARENT = 0x0100
+if _WIN32_IE >= 0x0501:
+	TTF_PARSELINKS = 0x1000
+TTF_DI_SETITEM = 0x8000 # valid only on the TTN_NEEDTEXT callback
+
+TTDT_AUTOMATIC = 0
+TTDT_RESHOW = 1
+TTDT_AUTOPOP = 2
+TTDT_INITIAL = 3
+
+# ToolTip Icons (Set with TTM_SETTITLE)
+TTI_NONE = 0
+TTI_INFO = 1
+TTI_WARNING = 2
+TTI_ERROR = 3
+if _WIN32_WINNT >= 0x0600:
+	TTI_INFO_LARGE = 4
+	TTI_WARNING_LARGE = 5
+	TTI_ERROR_LARGE = 6
+
+# Tool Tip Messages
+TTM_ACTIVATE = WM_USER + 1
+TTM_SETDELAYTIME = WM_USER + 3
+TTM_RELAYEVENT = WM_USER + 7
+TTM_GETTOOLCOUNT = WM_USER + 13
+TTM_WINDOWFROMPOINT = WM_USER + 16
+if UNICODE:
+	TTM_ADDTOOL = WM_USER + 50
+	TTM_DELTOOL = WM_USER + 51
+	TTM_NEWTOOLRECT = WM_USER + 52
+	TTM_GETTOOLINFO = WM_USER + 53
+	TTM_SETTOOLINFO = WM_USER + 54
+	TTM_HITTEST = WM_USER +55
+	TTM_GETTEXT = WM_USER +56
+	TTM_UPDATETIPTEXT = WM_USER +57
+	TTM_ENUMTOOLS = WM_USER + 58
+	TTM_GETCURRENTTOOL = WM_USER + 59
+else:
+	TTM_ADDTOOL = WM_USER + 4
+	TTM_DELTOOL = WM_USER + 5
+	TTM_NEWTOOLRECT = WM_USER + 6
+	TTM_GETTOOLINFO = WM_USER + 8
+	TTM_SETTOOLINFO = WM_USER + 9
+	TTM_HITTEST = WM_USER + 10
+	TTM_GETTEXT = WM_USER + 11
+	TTM_UPDATETIPTEXT = WM_USER + 12
+	TTM_ENUMTOOLS = WM_USER + 14
+	TTM_GETCURRENTTOOL = WM_USER + 15
+if _WIN32_IE >= 0x0300:
+	TTM_TRACKACTIVATE = WM_USER + 17 # wParam = TRUE/FALSE start end  lparam = LPTOOLINFO
+	TTM_TRACKPOSITION = WM_USER + 18 # lParam = dwPos
+	TTM_SETTIPBKCOLOR = WM_USER + 19
+	TTM_SETTIPTEXTCOLOR = WM_USER + 20
+	TTM_GETDELAYTIME = WM_USER + 21
+	TTM_GETTIPBKCOLOR = WM_USER + 22
+	TTM_GETTIPTEXTCOLOR = WM_USER + 23
+	TTM_SETMAXTIPWIDTH = WM_USER + 24
+	TTM_GETMAXTIPWIDTH = WM_USER + 25
+	TTM_SETMARGIN = WM_USER + 26 # lParam = lprc
+	TTM_GETMARGIN = WM_USER + 27 # lParam = lprc
+	TTM_POP = WM_USER + 28
+	if _WIN32_IE >= 0x0400:
+		TTM_UPDATE = WM_USER + 29
+		if _WIN32_IE >= 0x0500:
+			TTM_GETBUBBLESIZE = WM_USER + 30
+			TTM_ADJUSTRECT = WM_USER + 31
+			if UNICODE:
+				TTM_SETTITLE = WM_USER + 33 # wParam = TTI_*, lParam = wchar* szTitle
+			else:
+				TTM_SETTITLE = WM_USER + 32 # wParam = TTI_*, lParam = char* szTitle
+if _WIN32_WINNT >= 0x0501:
+	TTM_POPUP = WM_USER + 34
+	TTM_GETTITLE = WM_USER + 35 # wParam = 0, lParam = TTGETTITLE*
+
 NM_FIRST = UINT_MAX
 
 SBS_BOTTOMALIGN = 4
@@ -364,7 +494,7 @@ RBS_AUTOSIZE = 8192
 RBS_VERTICALGRIPPER = 16384
 RBS_DBLCLKTOGGLE = 32768
 
-RBN_FIRST	= ((UINT_MAX) - 831)
+RBN_FIRST = ((UINT_MAX) - 831)
 RBN_HEIGHTCHANGE = RBN_FIRST
 
 TBSTYLE_BUTTON = 0x0000
@@ -385,6 +515,17 @@ if _WIN32_IE >= 0x0400:
 TBSTYLE_TOOLTIPS = 0x0100
 TBSTYLE_WRAPABLE = 0x0200
 TBSTYLE_ALTDRAG = 0x0400
+if _WIN32_IE >= 0x0500:
+	BTNS_WHOLEDROPDOWN = 0x0080 # draw drop-down arrow, but without split arrow section
+	if _WIN32_IE >= 0x0501:
+		BTNS_SHOWTEXT = 0x0040 # ignored unless TBSTYLE_EX_MIXEDBUTTONS is set
+
+TBSTYLE_EX_DRAWDDARROWS = 0x00000001
+if _WIN32_IE >= 0x0501:
+	TBSTYLE_EX_MIXEDBUTTONS = 0x00000008
+	TBSTYLE_EX_HIDECLIPPEDBUTTONS = 0x00000010 # don't show partially obscured buttons
+if _WIN32_WINNT >= 0x0501:
+	TBSTYLE_EX_DOUBLEBUFFER = 0x00000080 # Double Buffer the toolbar
 
 TB_BUTTONSTRUCTSIZE = WM_USER + 30
 TB_ADDBUTTONS = WM_USER + 20
@@ -396,7 +537,6 @@ if not UNICODE:
 	TB_INSERTBUTTON = WM_USER + 21
 	TB_ADDSTRING = WM_USER + 28
 	TB_SETBUTTONINFO = WM_USER + 66
-
 
 TB_ENABLEBUTTON = WM_USER + 1
 TB_CHECKBUTTON = WM_USER + 2
@@ -427,6 +567,10 @@ TB_HITTEST = WM_USER + 69
 TB_GETHOTITEM = WM_USER + 7
 TB_SETBUTTONSIZE = WM_USER + 31
 TB_AUTOSIZE = WM_USER + 33
+TB_GETTOOLTIPS = WM_USER + 35
+TB_SETTOOLTIPS = WM_USER + 36
+TB_SETEXTENDEDSTYLE = WM_USER + 84 # For TBSTYLE_EX_*
+TB_GETEXTENDEDSTYLE = WM_USER + 85 # For TBSTYLE_EX_*
 
 TVIF_TEXT = 1
 TVIF_IMAGE = 2
@@ -583,64 +727,60 @@ TBCD_CHANNEL = 0x0003
 
 TRBN_THUMBPOSCHANGING = 1500
 
-STATUSCLASSNAME = "msctls_statusbar32"
+STATUSCLASSNAME = 'msctls_statusbar32'
 
 REBARCLASSNAMEA = type_str('ReBarWindow32')
-REBARCLASSNAMEW = type_unicode('ReBarWindow32')
-REBARCLASSNAME = REBARCLASSNAMEW
+REBARCLASSNAME = REBARCLASSNAMEW = type_unicode('ReBarWindow32')
 if not UNICODE:
 	REBARCLASSNAME = REBARCLASSNAMEA
 
+TOOLTIPS_CLASSA = type_str('tooltips_class32')
+TOOLTIPS_CLASS = TOOLTIPS_CLASSW = type_unicode('tooltips_class32')
+if not UNICODE:
+	TOOLTIPS_CLASS = TOOLTIPS_CLASSA
+
 PROGRESS_CLASSA = type_str('msctls_progress32')
-PROGRESS_CLASSW = type_unicode('msctls_progress32')
-PROGRESS_CLASS = PROGRESS_CLASSW
+PROGRESS_CLASS = PROGRESS_CLASSW = type_unicode('msctls_progress32')
 if not UNICODE:
 	PROGRESS_CLASS = PROGRESS_CLASSA
 
 TRACKBAR_CLASSA = type_str('msctls_trackbar32')
-TRACKBAR_CLASSW = type_unicode('msctls_trackbar32')
-TRACKBAR_CLASS = TRACKBAR_CLASSW
+TRACKBAR_CLASS = TRACKBAR_CLASSW = type_unicode('msctls_trackbar32')
 if not UNICODE:
 	TRACKBAR_CLASS = TRACKBAR_CLASSA
 
-WC_EDIT = "Edit"
-BUTTON = "BUTTON"
+WC_EDIT = 'Edit'
+BUTTON = 'BUTTON'
 
 WC_STATIC = 'Static'
 
 WC_COMBOBOXA = type_str('ComboBox')
-WC_COMBOBOXW = type_unicode('ComboBox')
-WC_COMBOBOX = WC_COMBOBOXW
+WC_COMBOBOX = WC_COMBOBOXW = type_unicode('ComboBox')
 if not UNICODE:
 	WC_COMBOBOX = WC_COMBOBOXA
 
 WC_COMBOBOXEXA = type_str('ComboBoxEx32')
-WC_COMBOBOXEXW = type_unicode('ComboBoxEx32')
-WC_COMBOBOXEX = WC_COMBOBOXEXW
+WC_COMBOBOXEX = WC_COMBOBOXEXW = type_unicode('ComboBoxEx32')
 if not UNICODE:
 	WC_COMBOBOXEX = WC_COMBOBOXEXA
 
 WC_TREEVIEWA = type_str('SysTreeView32')
-WC_TREEVIEWW = type_unicode('SysTreeView32')
-WC_TREEVIEW = WC_TREEVIEWW
+WC_TREEVIEW = WC_TREEVIEWW = type_unicode('SysTreeView32')
 if not UNICODE:
 	WC_TREEVIEW = WC_TREEVIEWA
 
 WC_LISTVIEWA = type_str('SysListView32')
-WC_LISTVIEWW = type_unicode('SysListView32')
-WC_LISTVIEW = WC_LISTVIEWW
+WC_LISTVIEW = WC_LISTVIEWW = type_unicode('SysListView32')
 if not UNICODE:
 	WC_LISTVIEW = WC_LISTVIEWA
 
 TOOLBARCLASSNAMEA = type_str('ToolbarWindow32')
-TOOLBARCLASSNAMEW = type_unicode('ToolbarWindow32')
-TOOLBARCLASSNAME = TOOLBARCLASSNAMEW
+TOOLBARCLASSNAME = TOOLBARCLASSNAMEW = type_unicode('ToolbarWindow32')
 if not UNICODE:
 	TOOLBARCLASSNAME = TOOLBARCLASSNAMEA
 
 WC_TABCONTROLA = type_str('SysTabControl32')
-WC_TABCONTROLW = type_unicode('SysTabControl32')
-WC_TABCONTROL = WC_TABCONTROLW
+WC_TABCONTROL = WC_TABCONTROLW = type_unicode('SysTabControl32')
 if not UNICODE:
 	WC_TABCONTROL = WC_TABCONTROLA
 
@@ -1318,7 +1458,7 @@ if _WIN32_IE >= 0x0400:
 	#~ #ifdef _WIN64
 	#~ WINCOMMCTRLAPI BOOL WINAPI FlatSB_GetScrollPropPtr(HWND, int propIndex, PINT_PTR);
 	#~ #else
-	#~ #define FlatSB_GetScrollPropPtr  FlatSB_GetScrollProp
+	#~ # define FlatSB_GetScrollPropPtr  FlatSB_GetScrollProp
 	#~ #endif
 	#~ WINCOMMCTRLAPI int WINAPI FlatSB_SetScrollPos(HWND, int code, int pos, BOOL fRedraw);
 	#~ WINCOMMCTRLAPI int WINAPI FlatSB_SetScrollInfo(HWND, int code, LPSCROLLINFO psi, BOOL fRedraw);
@@ -2011,6 +2151,9 @@ class ToolBar(Window):
 	def HitTest(self, pt):
 		return self.SendMessage(TB_HITTEST, 0, addressof(pt))
 
+	def SetExtendedStyle(self, style):
+		return self.SendMessage(TB_SETEXTENDEDSTYLE, style)
+
 	def SetHotItem(self, idButton):
 		return self.SendMessage(TB_SETHOTITEM, idButton)
 
@@ -2020,18 +2163,16 @@ class ToolBar(Window):
 	def InsertButton(self, iButton, tbButton):
 		return self.SendMessage(TB_INSERTBUTTON, iButton, addressof(tbButton))
 
-	def insert_button(self, id_command = 0, caption = '', id_button = 0, id_image = I_IMAGENONE, fs_state = TBSTATE_ENABLED, fs_style = TBSTYLE_BUTTON):
+	def insert_button(self, id_command = 0, id_caption = None, id_button = 0, id_image = I_IMAGENONE, fs_state = TBSTATE_ENABLED, fs_style = TBSTYLE_BUTTON):
 		button = TBBUTTON()
 		button.idCommand = id_command
 		button.iBitmap = id_image
 		button.fsState = fs_state
 		button.fsStyle = fs_style
 		button.dwData = 0
-		if caption:
-			button.iString = self.AddString(id_button, caption)
+		if id_caption is not None:
+			button.iString = id_caption
 		result = self.InsertButton(id_button, button)
-		if caption:
-			self.SetButtonCaption(id_button, caption)
 		return result
 
 	def SetImageList(self, imageList, iImage = 0):
@@ -2047,19 +2188,32 @@ class ToolBar(Window):
 		info.pszText = caption
 		return self.SetButtonInfo(id_button, info)
 
+	def SetButtonToolTip(self, id_button = 0, text = ''):
+		tool_tip = TBBUTTON()
+		#~ tool_tip.idCommand = 0
+		#~ tool_tip.fsState = TBSTATE_ENABLED
+		tool_tip.fsStyle = TBSTYLE_TOOLTIPS
+		#~ tool_tip.dwData = 0
+		tool_tip.iString = self.AddString(id_button, text)
+		return self.SendMessage(TB_SETTOOLTIPS, addressof(tool_tip))
+
+	def SetToolTips(self, tool_tips):
+		return self.SendMessage(TB_SETTOOLTIPS, handle(tool_tips))
+
 	def SetButtonSize(self, dxButton, dyButton):
 		return self.SendMessage(TB_SETBUTTONSIZE, 0, MAKELONG(dxButton, dyButton))
 
 	def SetAutoSize(self):
 		return self.SendMessage(TB_AUTOSIZE, 0, 0)
 
-	def AddString(self, uid = 0, text = ''):
-		size_buffer = len(text)
-		if UNICODE:
-			text = c_wchar_p(text)
-		else:
-			text = c_char_p(text)
-		LoadString(hInstance, uid, text, size_buffer)
+	#~ def AddString(self, uid = 0, text = ''):
+	def AddString(self, text = ''):
+		#~ size_buffer = len(text)
+		#~ if UNICODE:
+			#~ text = c_wchar_p(text)
+		#~ else:
+			#~ text = c_char_p(text)
+		#~ LoadString(hInstance, uid, text, size_buffer)
 		return self.SendMessage(TB_ADDSTRING, 0, text)
 
 	def AddBitmap(self, nButtons, lptbab = TBADDBITMAP()):
@@ -2086,6 +2240,35 @@ class Rebar(Window):
 		rebarInfo.fMask = 0
 		rebarInfo.himl = NULL
 		self.SendMessage(RB_SETBARINFO, 0, addressof(rebarInfo))
+
+class ToolTips(Window):
+	_window_class_ = TOOLTIPS_CLASS
+	_window_style_ = TTS_ALWAYSTIP
+	_window_style_clip_children_and_siblings_ = False
+	_window_icon_ = 0
+	_window_icon_sm_ = 0
+
+	def AddTool(self, tool_info):
+		self.SendMessage(TTM_ADDTOOL, 0, addressof(tool_info))
+
+	def SetMaxTipWidth(self, width = 200):
+		self.SendMessage(TTM_SETMAXTIPWIDTH, 0, width)
+
+	def add_tools(self, tool_bar, tools):
+		if len(tools):
+			ti = TOOLINFO()
+			#~ ZeroMemory(ti, sizeof(TOOLINFO))
+			ti.cbSize = sizeof(TOOLINFO)
+			ti.hwnd = self.handle
+			ti.hinst = hInstance or GetModuleHandle(None)
+			ti.uFlags = TTF_SUBCLASS | TTF_TRANSPARENT
+			for tool_id, tool_text in tools:
+				#~ SendMessage(handle(tool_bar), TB_GETITEMRECT, tool_id, addressof(ti)+TOOLINFO.rect.offset)
+				SendMessage(handle(tool_bar), TB_GETITEMRECT, tool_id, byref(ti.rect))
+				#~ print ti.rect
+				ti.uId = tool_id
+				ti.lpszText = tool_text
+				self.AddTool(ti)
 
 class ImageList(WindowsObject):
 	__dispose__ = windll.comctl32.ImageList_Destroy

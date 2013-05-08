@@ -56,8 +56,8 @@ class Tree(tree.Tree):
 	def __init__(self, *args, **kwargs):
 		tree.Tree.__init__(self, *args, **kwargs)
 
-		self.iml = comctl.ImageList(16, 16, ILC_COLOR32 | ILC_MASK, 0, 32)
-		self.iml.AddIconsFromModule("shell32.dll", 16, 16, LR_LOADMAP3DCOLORS)
+		self.iml = comctl.ImageList(16, 16, comctl.ILC_COLOR32 | comctl.ILC_MASK, 0, 32)
+		self.iml.AddIconsFromModule('shell32.dll', 16, 16, LR_LOADMAP3DCOLORS)
 		self.iml.SetBkColor(gdi.CLR_NONE)
 		self.SetImageList(self.iml)
 

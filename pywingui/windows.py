@@ -148,13 +148,11 @@ class WNDCLASSEX(Structure):
 class POINT(Structure):
 	_fields_ = [("x", LONG), ("y", LONG)]
 	def __str__(self):
-		return "POINT {x: %d, y: %d}" % (self.x, self.y)
-POINTL = POINT
+		return "POINT{x: %d, y: %d}" % (self.x, self.y)
 LPPOINT = POINTER(POINT)
 
 class POINTS(Structure):
 	_fields_ = [("x", SHORT), ("y", SHORT)]
-
 
 PtInRect = windll.user32.PtInRect
 
@@ -165,7 +163,7 @@ class RECT(Structure):
 		("bottom", LONG)]
 
 	def __str__(self):
-		return "RECT {left: %d, top: %d, right: %d, bottom: %d}" % (self.left, self.top, self.right, self.bottom)
+		return "RECT{left: %d, top: %d, right: %d, bottom: %d}" % (self.left, self.top, self.right, self.bottom)
 
 	def __add__(self, value):
 		left, top, right, bottom = 0, 0, 0, 0
@@ -218,28 +216,25 @@ class RECT(Structure):
 		"""
 		return bool(PtInRect(byref(self), pt))
 
-RECTL = RECT
 LPRECT = POINTER(RECT)
 
 class SIZE(Structure):
 	_fields_ = [('cx', LONG), ('cy', LONG)]
+	def __str__(self):
+		return 'SIZE{cx: %d, cy: %d}' % (self.cx, self.cy)
+LPSIZE = POINTER(SIZE)
 
-SIZEL = SIZE        
-
-##class MSG(Structure):
-##    _fields_ = [("hWnd", HWND),
-##                ("message", UINT),
-##                ("wParam", WPARAM),
-##                ("lParam", LPARAM),
-##                ("time", DWORD),
-##                ("pt", POINT)]
-
-##    def __str__(self):
-##        return "MSG {%d %d %d %d %d %s}" % (self.hWnd, self.message, self.wParam, self.lParam,
-##                                            self.time, str(self.pt))
-
-#Hack: we need to use the same MSG type as comtypes.ole uses!
-from ctypes.wintypes import MSG
+class MSG(Structure):
+	_fields_ = [("hWnd", HWND),
+	("message", UINT),
+	("wParam", WPARAM),
+	("lParam", LPARAM),
+	("time", DWORD),
+	("pt", POINT)]
+	def __str__(self):
+		return "MSG{%d %d %d %d %d %s}" % (self.hWnd, self.message, self.wParam, self.lParam, self.time, str(self.pt))
+##Hack: we need to use the same MSG type as comtypes.ole uses!
+##from ctypes.wintypes import MSG
 
 class ACCEL(Structure):
 	_fields_ = [("fVirt", BYTE),
@@ -805,16 +800,6 @@ MK_RBUTTON = 2
 MK_SHIFT = 4
 MK_CONTROL = 8
 MK_MBUTTON = 16
-
-ILC_COLOR = 0
-ILC_COLOR4 = 4
-ILC_COLOR8 = 8
-ILC_COLOR16 = 16
-ILC_COLOR24 = 24
-ILC_COLOR32 = 32
-ILC_COLORDDB = 254
-ILC_MASK = 1
-ILC_PALETTE = 2048
 
 LR_LOADFROMFILE = 16
 LR_VGACOLOR = 0x0080

@@ -263,7 +263,8 @@ OEM_CHARSET = 255
 
 FIXED_PITCH = 1
 
-CLR_NONE = 0xffffffff
+CLR_NONE = 0xFFFFFFFF
+CLR_DEFAULT = 0xFF000000
 
 HS_BDIAGONAL = 3
 HS_CROSS = 4
@@ -346,12 +347,16 @@ if WINVER >= 0x0500:
 
 _GetClipBox = WINFUNCTYPE(c_int, c_void_p, LPRECT)(('GetClipBox', windll.gdi32))
 def GetClipBox(hdc):
-	rect = LPRECT()
+	rect = RECT()
 	result = _GetClipBox(hdc, rect)
 	return result, rect
 
-#LONG GetBitmapBits(__in HBITMAP hbit, __in LONG cb, __out_bcount(cb) LPVOID lpvBits)
 GetBitmapBits = WINFUNCTYPE(c_long, HBITMAP, c_long, c_void_p)(('GetBitmapBits', windll.gdi32))
+_GetBitmapDimensionEx = WINFUNCTYPE(c_bool, HBITMAP, LPSIZE)(('GetBitmapDimensionEx', windll.gdi32))
+def GetBitmapDimensionEx(hBitmap):
+	sz = SIZE()
+	result = _GetBitmapDimensionEx(hBitmap, sz)
+	return result, sz
 
 GetStockObject = windll.gdi32.GetStockObject
 LineTo = windll.gdi32.LineTo
@@ -395,6 +400,8 @@ ExcludeClipRect = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, c_int, c_int)(('Exc
 IntersectClipRect = WINFUNCTYPE(c_int, c_void_p, c_int, c_int, c_int, c_int)(('IntersectClipRect', windll.gdi32))
 
 GetBkColor = WINFUNCTYPE(COLORREF, c_void_p)(('GetBkColor', windll.gdi32))
+GetPixel = WINFUNCTYPE(COLORREF, c_void_p, c_int, c_int)(('GetPixel', windll.gdi32))
+SetPixel = WINFUNCTYPE(COLORREF, c_void_p, c_int, c_int, COLORREF)(('SetPixel', windll.gdi32))
 
 SetTextColor = WINFUNCTYPE(COLORREF, c_void_p, COLORREF)(('SetTextColor', windll.gdi32))
 if WINVER >= 0x0500:
