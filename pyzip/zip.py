@@ -14,6 +14,22 @@ ZipAddDirectory = func_type(ctypes.c_ulong, ctypes.c_void_p, ctypes.c_wchar_p)((
 ZipGetData = func_type(ctypes.c_ulong, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_ulong)(('ZipGetData', zip_module))
 ZipClose = func_type(ctypes.c_ulong, ctypes.c_void_p)(('ZipClose', zip_module))
 
+class ZipFile:
+	def __init__(self, *args, **kwargs):
+		self.name = args[0]
+		self.password = ''
+		if len(args) > 1:
+			self.password = args[1]
+		self.zhandle = CreateZipFile(self.name, self.password)
+	def write(self, filename, arcname = None):
+		if not arcname:
+			arcname = filename
+		return ZipAddFile(self.zhandle, arcname, filename)
+	def writestr(self, filename, data):
+		return ZipAddData(self.zhandle, filename, data, len(data))
+	def close(self):
+		return ZipClose(self.zhandle)
+
 
 if __name__ == "__main__":
 	data1 = 'some small data string'
@@ -22,3 +38,10 @@ if __name__ == "__main__":
 	ZipAddData(zhandle, 'myfile1.txt', data1, len(data1))
 	ZipAddData(zhandle, 'myfile2.txt', data2, len(data2))
 	ZipClose(zhandle)
+
+	# ZipFile compatibility
+	f = ZipFile('oop_test.zip', 'password')
+	f.writestr('myfile1.txt', data1)
+	#~ f.write('zip.py', 'zip_archived.py')
+	f.write('zip.py')
+	f.close()
