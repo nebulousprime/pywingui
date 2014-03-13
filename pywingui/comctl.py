@@ -23,6 +23,7 @@ from windows import *
 from wtl import *
 from sdkddkver import _WIN32_IE, _WIN32_WINNT, NTDDI_VERSION, NTDDI_LONGHORN
 from winuser import IMAGE_BITMAP, SetWindowText
+from gdi import CreateBitmap, DeleteObject
 
 ATL_IDW_BAND_FIRST = 0xEB00
 HTREEITEM = HANDLE
@@ -1904,14 +1905,18 @@ class TabControl(Window):
 	def GetItem(self, index, mask):
 		item = TCITEM()
 		item.mask = mask
+		#~ if self.SendMessage(TCM_GETITEM, index, byref(item)):
 		if self.SendMessage(TCM_GETITEM, index, addressof(item)):
 			return item
 		else:
-			raise 'error'
-		
+			print FormatError()
+			#~ print GetLastError()
+			raise Exception('ERROR TCM_GETITEM (TabControl.GetItem method)')
+
 	def AdjustRect(self, fLarger, rect):
-		lprect = byref(rect)
-		self.SendMessage(TCM_ADJUSTRECT, fLarger, lprect)
+		#~ lprect = byref(rect)
+		#~ self.SendMessage(TCM_ADJUSTRECT, fLarger, lprect)
+		self.SendMessage(TCM_ADJUSTRECT, fLarger, byref(rect))
 
 	def GetCurSel(self):
 		return self.SendMessage(TCM_GETCURSEL)
@@ -2328,3 +2333,10 @@ class ImageList(WindowsObject):
 			except:
 				break
 			i += 1
+
+	def add_bits(self, bits_data, width = 32, height = 32, planes = 1, bits_format = 32):
+		bmp_color = CreateBitmap(width, height, planes, bits_format, bits_data)
+		bmp_mask = CreateBitmap(width, height, planes, bits_format, bits_data)
+		self.Add(bmp_color, bmp_mask)
+		DeleteObject(bmp_color)
+		DeleteObject(bmp_mask)

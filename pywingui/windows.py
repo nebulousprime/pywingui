@@ -19,6 +19,8 @@
 ## OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 ## WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
 
+UINT_MAX = 0xffffffff
+
 from version_microsoft import WINVER, UNICODE
 from sdkddkver import _WIN32_WINNT
 
@@ -536,10 +538,10 @@ MSGS += [('WM_UNICHAR', 0x0109),#if _WIN32_WINNT >= 0x0501
 ('WM_MBUTTONDOWN', 0x0207),
 ('WM_MBUTTONUP', 0x0208),
 ('WM_MBUTTONDBLCLK', 0x0209)]
-if _WIN32_WINNT < 0x0600:
+if _WIN32_WINNT >= 0x0400:
 	MSGS.append(('WM_MOUSEWHEEL', 0x020A))
-else:
-	MSGS.append(('WM_MOUSEWHEEL', 0x020E))
+if _WIN32_WINNT >= 0x0600:
+	MSGS.append(('WM_MOUSEHWHEEL', 0x020E))
 MSGS += [('WM_XBUTTONDOWN', 0x020B),#if _WIN32_WINNT >= 0x0500
 ('WM_XBUTTONUP', 0x020C),#if _WIN32_WINNT >= 0x0500
 ('WM_XBUTTONDBLCLK', 0x020D)]#if _WIN32_WINNT >= 0x0500
@@ -795,11 +797,14 @@ TCIF_PARAM = 8
 
 TCS_MULTILINE = 512
 
-MK_LBUTTON = 1
-MK_RBUTTON = 2
-MK_SHIFT = 4
-MK_CONTROL = 8
-MK_MBUTTON = 16
+MK_LBUTTON = 0x0001
+MK_RBUTTON = 0x0002
+MK_SHIFT = 0x0004
+MK_CONTROL = 0x0008
+MK_MBUTTON = 0x0010
+if _WIN32_WINNT >= 0x0500:
+	MK_XBUTTON1 = 0x0020
+	MK_XBUTTON2 = 0x0040
 
 LR_LOADFROMFILE = 16
 LR_VGACOLOR = 0x0080
@@ -1117,7 +1122,8 @@ if _WIN32_WINNT > 0x0500:
 	GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS = (0x00000004)
 	GetModuleHandleEx = WINFUNCTYPE(c_bool, c_wchar_p, c_ulong, c_void_p)(('GetModuleHandleExW', windll.kernel32))
 GetModuleHandle = WINFUNCTYPE(c_void_p, c_wchar_p)(('GetModuleHandleW', windll.kernel32))
-GetModuleFileName = WINFUNCTYPE(c_ulong, c_void_p, c_wchar_p, c_ulong)(('GetModuleFileNameW', windll.kernel32))
+#~ GetModuleFileName = WINFUNCTYPE(c_ulong, c_void_p, c_wchar_p, c_ulong)(('GetModuleFileNameW', windll.kernel32))
+GetModuleFileName = WINFUNCTYPE(c_ulong, c_void_p, c_void_p, c_ulong)(('GetModuleFileNameW', windll.kernel32))
 ExpandEnvironmentStrings = windll.kernel32.ExpandEnvironmentStringsW
 LoadLibrary = WINFUNCTYPE(c_void_p, c_wchar_p)(('LoadLibraryW', windll.kernel32))
 FindResource = windll.kernel32.FindResourceW
@@ -1127,7 +1133,8 @@ if not UNICODE:
 	if _WIN32_WINNT > 0x0500:
 		GetModuleHandleEx = WINFUNCTYPE(c_bool, c_char_p, c_ulong, c_void_p)(('GetModuleHandleExA', windll.kernel32))
 	GetModuleHandle = WINFUNCTYPE(c_void_p, c_char_p)(('GetModuleHandleA', windll.kernel32))
-	GetModuleFileName = WINFUNCTYPE(c_ulong, c_void_p, c_char_p, c_ulong)(('GetModuleFileNameA', windll.kernel32))
+	#~ GetModuleFileName = WINFUNCTYPE(c_ulong, c_void_p, c_char_p, c_ulong)(('GetModuleFileNameA', windll.kernel32))
+	GetModuleFileName = WINFUNCTYPE(c_ulong, c_void_p, c_void_p, c_ulong)(('GetModuleFileNameA', windll.kernel32))
 	ExpandEnvironmentStrings = windll.kernel32.ExpandEnvironmentStringsA
 	LoadLibrary = WINFUNCTYPE(c_void_p, c_char_p)(('LoadLibraryA', windll.kernel32))
 	FindResource = windll.kernel32.FindResourceA
