@@ -359,6 +359,12 @@ class DLGITEMTEMPLATEEX(Structure):
 	('extraCount', WORD)]
 LPDLGITEMTEMPLATEEX = POINTER(DLGITEMTEMPLATEEX)
 
+class SECURITY_ATTRIBUTES(Structure):
+	_fields_ = [('nLength', c_ulong),
+	('lpSecurityDescriptor', c_void_p),
+	('bInheritHandle', c_bool)]
+LPSECURITY_ATTRIBUTES = POINTER(SECURITY_ATTRIBUTES)
+
 def LOWORD(dword):
 	return dword & 0x0000ffff
 
@@ -1236,3 +1242,70 @@ RDW_NOFRAME            = 0x0800
 RedrawWindow = WINFUNCTYPE(c_byte, HWND, POINTER(RECT), HRGN, c_uint)(('RedrawWindow', windll.user32))
 
 WinExec = WINFUNCTYPE(c_uint, c_char_p, c_uint)(('WinExec', windll.kernel32))
+
+INVALID_HANDLE_VALUE = -1
+PAGE_NOACCESS         = 0x01     
+PAGE_READONLY         = 0x02     
+PAGE_READWRITE        = 0x04     
+PAGE_WRITECOPY        = 0x08     
+PAGE_EXECUTE          = 0x10     
+PAGE_EXECUTE_READ     = 0x20     
+PAGE_EXECUTE_READWRITE= 0x40     
+PAGE_EXECUTE_WRITECOPY= 0x80     
+PAGE_GUARD            =0x100     
+PAGE_NOCACHE          =0x200     
+PAGE_WRITECOMBINE     =0x400     
+MEM_COMMIT           =0x1000     
+MEM_RESERVE          =0x2000     
+MEM_DECOMMIT         =0x4000     
+MEM_RELEASE          =0x8000     
+MEM_FREE            =0x10000     
+MEM_PRIVATE         =0x20000     
+MEM_MAPPED          =0x40000     
+MEM_RESET           =0x80000     
+MEM_TOP_DOWN       =0x100000     
+MEM_WRITE_WATCH    =0x200000     
+MEM_PHYSICAL       =0x400000     
+MEM_ROTATE         =0x800000     
+MEM_LARGE_PAGES = 0x20000000     
+MEM_4MB_PAGES   = 0x80000000     
+SEC_FILE         =  0x800000     
+SEC_IMAGE        = 0x1000000     
+SEC_PROTECTED_IMAGE = 0x2000000     
+SEC_RESERVE      = 0x4000000     
+SEC_COMMIT       = 0x8000000     
+SEC_NOCACHE     = 0x10000000     
+SEC_WRITECOMBINE= 0x40000000     
+SEC_LARGE_PAGES = 0x80000000     
+MEM_IMAGE        = SEC_IMAGE     
+WRITE_WATCH_FLAG_RESET= 0x01     
+
+SECTION_QUERY               = 0x0001
+SECTION_MAP_WRITE           = 0x0002
+SECTION_MAP_READ            = 0x0004
+SECTION_MAP_EXECUTE         = 0x0008
+SECTION_EXTEND_SIZE         = 0x0010
+SECTION_MAP_EXECUTE_EXPLICIT= 0x0020# not included in SECTION_ALL_ACCESS
+
+SECTION_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED | SECTION_QUERY | SECTION_MAP_WRITE | SECTION_MAP_READ | SECTION_MAP_EXECUTE | SECTION_EXTEND_SIZE
+
+FILE_MAP_COPY      = SECTION_QUERY
+FILE_MAP_WRITE     = SECTION_MAP_WRITE
+FILE_MAP_READ      = SECTION_MAP_READ
+FILE_MAP_ALL_ACCESS= SECTION_ALL_ACCESS
+FILE_MAP_EXECUTE   = SECTION_MAP_EXECUTE_EXPLICIT# not included in FILE_MAP_ALL_ACCESS
+
+#if _WIN32_WINNT >= 0x0500:
+MapViewOfFile = WINFUNCTYPE(c_void_p, c_void_p, c_ulong, c_ulong, c_ulong, c_ulong)(('MapViewOfFile', windll.kernel32))
+FlushViewOfFile = WINFUNCTYPE(c_bool, c_void_p, c_ulong)(('FlushViewOfFile', windll.kernel32))
+UnmapViewOfFile = WINFUNCTYPE(c_bool, c_void_p)(('UnmapViewOfFile', windll.kernel32))
+CreateFileMapping = WINFUNCTYPE(c_void_p, c_void_p, LPSECURITY_ATTRIBUTES, c_ulong, c_ulong, c_ulong, c_wchar_p)(('CreateFileMappingW', windll.kernel32))
+if not UNICODE:
+	CreateFileMapping = WINFUNCTYPE(c_void_p, c_void_p, LPSECURITY_ATTRIBUTES, c_ulong, c_ulong, c_ulong, c_char_p)(('CreateFileMappingA', windll.kernel32))
+if _WIN32_WINNT >= 0x0600:
+	CreateFileMappingNuma = WINFUNCTYPE(c_void_p, c_void_p, LPSECURITY_ATTRIBUTES, c_ulong, c_ulong, c_ulong, c_wchar_p, c_ulong)(('CreateFileMappingNumaW', windll.kernel32))
+	if not UNICODE:
+		CreateFileMappingNuma = WINFUNCTYPE(c_void_p, c_void_p, LPSECURITY_ATTRIBUTES, c_ulong, c_ulong, c_ulong, c_char_p, c_ulong)(('CreateFileMappingNumaA', windll.kernel32))
+OpenFileMapping = WINFUNCTYPE(c_void_p, c_ulong, c_bool, c_wchar_p)(('OpenFileMappingW', windll.kernel32))
+if not UNICODE:
+	OpenFileMapping= WINFUNCTYPE(c_void_p, c_ulong, c_bool, c_char_p)(('OpenFileMappingA', windll.kernel32))
